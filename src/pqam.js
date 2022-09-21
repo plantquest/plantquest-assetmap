@@ -5,10 +5,16 @@ import L from 'leaflet'
 import Pkg from '../package.json'
 
 ;(function(W, D) {
-  const log = true === window.PLANTQUEST_ASSETMAP_LOG ?
-        (...args) => { console.log.apply(null, args) } :
-        (...args) => { if('ERROR'===args[1]) { console.log.apply(null, args) } }
-        
+  // const log = true === window.PLANTQUEST_ASSETMAP_LOG ?
+  //       (...args) => { console.log.apply(null, args) } :
+  //       (...args) => { if('ERROR'===args[1]) { console.log.apply(null, args) } }
+
+  const log = (...args) => {
+    if(true === window.PLANTQUEST_ASSETMAP_LOG) {
+      console.log.apply(null, args)
+    }
+  }
+  
   const scriptID = (''+Math.random()).substring(2,8)
 
   log('PQAM','script-load', 'start', 'version=', Pkg.version, 'scriptid=', scriptID)
@@ -241,8 +247,16 @@ import Pkg from '../package.json'
         }
       }
       else if('asset' === msg.show || 'asset' === msg.hide) {
-        let asset = self.data.deps.cp.asset[msg.asset]
-        if(asset) {
+        let assetRoom = self.data.deps.cp.asset[msg.asset]
+        let assetData = self.data.assetMap[msg.asset]
+        if(assetRoom) {
+          self.emit({
+            srv:'plantquest',
+            part:'assetmap',
+            show:'asset',
+            before:true,
+            asset: assetData,
+          })
           self.showAssetAlarm(msg.asset, msg.alarm, 'asset' === msg.hide)
         }
         else {
@@ -713,19 +727,23 @@ import Pkg from '../package.json'
 
       assetState.poly.addTo(self.layer.asset)
 
-      assetState.label = L.marker([ay-20,ax-20], {icon: L.divIcon({
-        className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-label-'+alarm,
-        html: assetID
-      })})
-
-      assetState.label.addTo(self.layer.asset)
-
-      let lem = assetState.label.getElement()
-      lem.style.width = ''
-      lem.style.height = ''
-      lem.style.fontSize = ''
+      setTimeout(()=>{
+        let html = $('#plantquest-assetmap-assetinfo').innerHTML
       
-      self.zoomEndRender()
+        assetState.label = L.marker([ay-20,ax-20], {icon: L.divIcon({
+          className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-label-'+alarm,
+          html
+        })})
+
+        assetState.label.addTo(self.layer.asset)
+
+        let lem = assetState.label.getElement()
+        lem.style.width = ''
+        lem.style.height = ''
+        lem.style.fontSize = ''
+      
+        self.zoomEndRender()
+      },50)
     }
 
 
@@ -898,10 +916,10 @@ img.plantquest-assetmap-logo {
 
 
 div.plantquest-assetmap-asset-label {
-    width: 96px;
-    height: 48px;
+    xwidth: 96px;
+    xheight: 48px;
     font-size: 16px;
-    overflow: hidden;
+    xoverflow: hidden;
 }
 
 div.plantquest-assetmap-asset-label-green {
@@ -909,7 +927,7 @@ div.plantquest-assetmap-asset-label-green {
     color: white;
     border: 2px solid #696;
     border-radius: 4px;
-    background-color: rgba(102,153,102,0.2);
+    background-color: rgba(102,153,102,0.8);
 }
 
 div.plantquest-assetmap-asset-label-red {
@@ -917,10 +935,12 @@ div.plantquest-assetmap-asset-label-red {
     color: white;
     border: 2px solid #f66;
     border-radius: 4px;
-    background-color: rgba(255,102,102,0.2);
+    background-color: rgba(255,102,102,0.8);
 }
 
-
+#plantquest-assetmap-assetinfo {
+    display: none;
+}
 
 
 
