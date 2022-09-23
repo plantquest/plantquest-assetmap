@@ -5,12 +5,8 @@ import './leaflet.toolbar.min.js'
 import Pkg from '../package.json'
 
 ;(function(W, D) {
-  // const log = true === window.PLANTQUEST_ASSETMAP_LOG ?
-  //       (...args) => { console.log.apply(null, args) } :
-  //       (...args) => { if('ERROR'===args[1]) { console.log.apply(null, args) } }
-
   const log = (...args) => {
-    if(true === window.PLANTQUEST_ASSETMAP_LOG) {
+    if(true === window.PLANTQUEST_ASSETMAP_LOG || 'ERROR' === args[1]) {
       console.log.apply(null, args)
     }
   }

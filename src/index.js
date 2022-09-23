@@ -16,7 +16,6 @@ class PlantQuestAssetMap extends React.Component {
     window.PlantQuestAssetMap.start(this.props.options)
   
     window.PlantQuestAssetMap.listen((msg)=>{
-      console.log('RR', msg)
       if('asset' === msg.show && msg.before) {
         this.setState({asset:msg.asset})
       }
