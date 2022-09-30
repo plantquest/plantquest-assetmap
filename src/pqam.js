@@ -49,7 +49,11 @@ import Pkg from '../package.json'
           green: ['#99f','#33f'],  // lo, hi; NOTE: same as neutral in this version
           red: ['#f99','#f33'],  // lo, hi
         },
-        map: []
+        map: [],
+        start: {
+          map: 0,
+          level: 0,
+        }
       },
       data: {},
       state: {
@@ -253,11 +257,14 @@ import Pkg from '../package.json'
             before:true,
             asset: assetData,
           })
-          self.showAssetAlarm(msg.asset, msg.alarm, 'asset' === msg.hide)
+          self.showAssetAlarm(msg.asset, msg.alarm, 'asset' === msg.hide, !!msg.blink)
         }
         else {
           self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
         }
+      }
+      else if(null != msg.zoom) {
+        self.map.setZoom(msg.zoom)
       }
     }
 
@@ -332,7 +339,7 @@ import Pkg from '../package.json'
     
     self.build = function() {
       let ms = {
-        mapurl: self.config.map[0],
+        mapurl: self.config.map[self.config.start.map],
         bounds: [[0, 0], [...self.config.mapBounds]]
       }
 
@@ -481,6 +488,24 @@ import Pkg from '../package.json'
           }
         }
       }
+
+      Object.values(self.state.asset).map((assetState)=>{
+        if(assetState.poly) {
+          if(assetState.blink) {
+            if(true === assetState.blinkState) {
+              assetState.poly.addTo(self.layer.asset)
+              assetState.blinkState = false
+            }
+            else {
+              assetState.poly.remove(self.layer.asset)
+              assetState.blinkState = true
+            }
+          }
+          // else {
+          //   assetState.poly.remove(self.layer.asset)
+          // }
+        }
+      })
     }        
 
 
@@ -689,7 +714,7 @@ import Pkg from '../package.json'
     }
     
 
-    self.showAssetAlarm = function(assetID, alarm, hide) {
+    self.showAssetAlarm = function(assetID, alarm, hide, blink) {
       let assetProps = self.data.assetMap[assetID]
       self.log('showAssetAlarm', assetID, alarm, 'hide', hide, assetProps)
       
@@ -712,8 +737,6 @@ import Pkg from '../package.json'
 
 
       self.showRoomAlarm(assetProps.room, alarm)
-
-      
       
       // Only draw polys if room is chosen or not hiding
       if(hide ||
@@ -754,6 +777,8 @@ import Pkg from '../package.json'
 
       assetState.poly.addTo(self.layer.asset)
 
+      assetState.blink = null == blink ? false : blink
+      
       setTimeout(()=>{
         let html = $('#plantquest-assetmap-assetinfo').innerHTML
       
@@ -773,7 +798,7 @@ import Pkg from '../package.json'
       },50)
     }
 
-
+    
     self.clearRoomAssets = function(roomID) {
       for(let assetID in self.state.asset) {
         let assetState = self.state.asset[assetID]

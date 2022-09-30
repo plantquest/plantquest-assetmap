@@ -21,11 +21,24 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
 
   <h2>SEND MESSAGES</h2>
 
+  <h3>ZOOM</h3>
+  <pre>
+    {
+      srv: 'plantquest',
+      part: 'assetmap',
+      ZOOM: &lt;INTEGER&gt;,     
+    }
+  </pre>
+  <p>Where:<br>
+    <i>&lt;INTEGER&gt;</i>: Zoom level (default: -4 to +2)<br>
+  </p>
+
+
   <h3>GET RELATION</h3>
   <pre>
     {
       srv: 'plantquest',
-      part: 'visnav',
+      part: 'assetmap',
       relate: 'room-asset',
     }
   </pre>
@@ -37,7 +50,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
   <pre>
     {
       srv: 'plantquest',
-      part: 'visnav',
+      part: 'assetmap',
       show: 'room',
       room: &lt;ROOM-ID&gt;,     
     }
@@ -51,7 +64,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
   <pre>
     {
       srv: 'plantquest',
-      part: 'visnav',
+      part: 'assetmap',
       alarm: &lt;ALARM&gt;,
       asset: &lt;ASSET-ID&gt;,     
     }
@@ -66,7 +79,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
   <pre>
     {
       srv: 'plantquest',
-      part: 'visnav',
+      part: 'assetmap',
       room: &lt;ROOM-ID&gt;,
       assets: [
         {
@@ -91,7 +104,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
   <pre>
     {
       srv: 'plantquest',
-      part: 'visnav',
+      part: 'assetmap',
       state: &lt;STATE&gt;,
     }
   </pre>
@@ -105,7 +118,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
   <pre>
     {
       srv: 'plantquest',
-      part: 'visnav',
+      part: 'assetmap',
       relate: 'room-asset',
       relation: &lt;RELATION&gt;,
     }
@@ -123,7 +136,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
   <pre>
     {
       srv: 'plantquest',
-      part: 'visnav',
+      part: 'assetmap',
       select: 'room',
       room: &lt;ROOM-ID&gt;,     
     }
