@@ -17,6 +17,23 @@ npm install --save @plantquest/assetmap
 Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
 
 
+## Options
+
+* `width`: Pixel width of map
+* `height`: Pixel height of map
+* `mapBounds`: Pixel bounds of map
+* `mapStart`: Pixel start position of map
+* `mapStartZoom`: Starting zoom level
+* `mapRoomFocusZoom`: Zoom level for room focus
+* `mapMaxZoom`: Maximum zoom
+* `mapMinZoom`: Minimum zoom
+* `states`: State definitions
+  * `{ [stateName]: { color: COLOR, name: STRING, marker: 'standard'|'alert'}, ...}`
+* `start.map`: Starting map
+* `start.level`: Starting level
+* `room.color`: Room highlight color
+
+
 ## Messages
 
   <h2>SEND MESSAGES</h2>
@@ -60,39 +77,17 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
   </p>
 
 
-  <h3>SET ALARM ASSET</h3>
+  <h3>SET ASSET STATUS</h3>
   <pre>
     {
       srv: 'plantquest',
       part: 'assetmap',
-      alarm: &lt;ALARM&gt;,
+      status: &lt;STATUS&gt;,
       asset: &lt;ASSET-ID&gt;,     
     }
   </pre>
   <p>Where:<br>
-    <i>&lt;ALARM&gt;</i>: Alarm State String ('red', 'green')<br>
-    <i>&lt;ASSET-ID&gt;</i>: Asset Identifier String<br>
-  </p>
-
-
-  <h3>SET ALARM ROOM</h3>
-  <pre>
-    {
-      srv: 'plantquest',
-      part: 'assetmap',
-      room: &lt;ROOM-ID&gt;,
-      assets: [
-        {
-          alarm: &lt;ALARM&gt;,
-          asset: &lt;ASSET-ID&gt;,     
-        },
-        ...
-      ]
-    }
-  </pre>
-  <p>Where:<br>
-    <i>&lt;ALARM&gt;</i>: Alarm State String ('red', 'green')<br>
-    <i>&lt;ROOM-ID&gt;</i>: Room Identifier String<br>
+    <i>&lt;STATUS&gt;</i>: Status String ('red', 'green')<br>
     <i>&lt;ASSET-ID&gt;</i>: Asset Identifier String<br>
   </p>
 

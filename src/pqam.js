@@ -44,19 +44,26 @@ import Pkg from '../package.json'
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
-        colorState: {
-          neutral: ['#99f','#33f'],  // lo, hi
-          green: ['#99f','#33f'],  // lo, hi; NOTE: same as neutral in this version
-          red: ['#f99','#f33'],  // lo, hi
+
+        states: {
+          up: { color: '#99f', name: 'Up', marker: 'standard' },
+          down: { color: '#666', name: 'Down', marker: 'standard' },
+          missing: { color: '#f9f', name: 'Missing', marker: 'alert' },
+          alarm: { color: '#f99', name: 'Alarm', marker: 'alert' },
         },
+        
         map: [],
         start: {
           map: 0,
           level: 0,
+        },
+
+        room: {
+          color: '#33f'
         }
       },
       data: {},
-      state: {
+      current: {
         started: false,
         room: {},
         asset: {
@@ -71,14 +78,14 @@ import Pkg from '../package.json'
     
     
     self.start = function(config) {
-      if(self.state.started) {
+      if(self.current.started) {
         self.clearRoomAssets()
         self.unselectRoom()
         self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
         return
       }
       
-      self.state.started = true
+      self.current.started = true
 
       self.config = { ...self.config, ...(config || {}) }
       self.log('start', JSON.stringify(config))
@@ -233,7 +240,7 @@ import Pkg from '../package.json'
           if(msg.assets) {
             if(msg.assets) {
               for(let asset of msg.assets) {
-                self.showAssetAlarm(asset.asset, asset.alarm)
+                self.showAsset(asset.asset, asset.state)
               }
             }
           }
@@ -257,7 +264,7 @@ import Pkg from '../package.json'
             before:true,
             asset: assetData,
           })
-          self.showAssetAlarm(msg.asset, msg.alarm, 'asset' === msg.hide, !!msg.blink)
+          self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
         }
         else {
           self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
@@ -323,7 +330,7 @@ import Pkg from '../package.json'
         poly: null,
         room: null,
       },
-      alarmShown: {},
+      stateShown: {},
       asset: {},
       // level: 'Ground Floor',
       map: -1,
@@ -406,7 +413,8 @@ import Pkg from '../package.json'
     self.zoomEndRender = function() {
       let zoom = self.map.getZoom()
       if(null == zoom) return;
-      
+
+      /*
       if(self.config.assetFontHideZoom < zoom) {
         let assetFontSize = self.config.assetFontScaleRoom +
           (zoom * self.config.assetFontScaleZoom)        
@@ -432,6 +440,7 @@ import Pkg from '../package.json'
             label.style.display='none'
           })
       }
+      */
     }
     
     
@@ -442,13 +451,12 @@ import Pkg from '../package.json'
       let rooms = Object.values(self.data.rooms)
 
       for(let room of rooms) {
-        // if(self.loc.level !== room.level) {
         if((1+self.loc.map) != room.map) {
           continue
         }
         
-        let alarmState = self.state.room[room.room] ?
-            self.state.room[room.room].alarm : null
+        let alarmState = self.current.room[room.room] ?
+            self.current.room[room.room].alarm : null
 
         let inside = room.poly && pointInPolygon([yco,xco], room.poly)
         let alreadyShown = room === self.loc.room || room === self.loc.chosen.room
@@ -468,15 +476,16 @@ import Pkg from '../package.json'
           }
           
           try {
-            let roomState = self.state.room[room.room] ||
-                (self.state.room[room.room]={alarm:'neutral'})
+            let roomState = self.current.room[room.room] ||
+                (self.current.room[room.room]={alarm:'neutral'})
 
             self.loc.room = room
             self.loc.alarmState = alarmState
 
             self.loc.poly = L.polygon(
               room.poly, {
-                color: self.resolveColor(roomState.alarm,'lo')
+                // color: self.resolveRoomColor(roomState.alarm,'lo')
+                color: self.config.room.color
               })
 
             self.loc.poly.on('click', ()=>self.selectRoom(room.room))
@@ -489,7 +498,7 @@ import Pkg from '../package.json'
         }
       }
 
-      Object.values(self.state.asset).map((assetState)=>{
+      Object.values(self.current.asset).map((assetState)=>{
         if(assetState.poly) {
           if(assetState.blink) {
             if(true === assetState.blinkState) {
@@ -501,9 +510,6 @@ import Pkg from '../package.json'
               assetState.blinkState = true
             }
           }
-          // else {
-          //   assetState.poly.remove(self.layer.asset)
-          // }
         }
       })
     }        
@@ -524,8 +530,8 @@ import Pkg from '../package.json'
 
         self.showMap(parseInt(room.map)-1)
         
-        let roomState = self.state.room[room.room] ||
-            (self.state.room[room.room]={alarm:'neutral'})
+        let roomState = self.current.room[room.room] ||
+            (self.current.room[room.room]={alarm:'neutral'})
 
         if(self.loc.poly) {
           self.loc.poly.remove(self.layer.room)
@@ -535,19 +541,19 @@ import Pkg from '../package.json'
 
         if(self.loc.chosen.poly && room !== self.loc.chosen.room) {
           let prevRoom = self.loc.chosen.room
-          let prevRoomState = self.state.room[prevRoom.room] ||
-              (self.state.room[prevRoom.room]={alarm:'neutral'})
+          let prevRoomState = self.current.room[prevRoom.room] ||
+              (self.current.room[prevRoom.room]={alarm:'neutral'})
 
-          if('red'===prevRoomState.alarm) {
-            self.loc.chosen.poly.setStyle({
-              color: self.resolveColor(prevRoomState.alarm,'lo')
-            })
-            self.loc.alarmShown[prevRoom.room].poly = self.loc.chosen.poly
-          }
-          else {
+          // if('red'===prevRoomState.alarm) {
+          //   self.loc.chosen.poly.setStyle({
+          //     color: self.resolveRoomColor(prevRoomState.alarm,'lo')
+          //   })
+          //   self.loc.stateShown[prevRoom.room].poly = self.loc.chosen.poly
+          // }
+          // else {
             self.loc.chosen.poly.remove(self.layer.room)
             self.loc.chosen.poly = null
-          }
+        // }
         }
 
         if(self.loc.popup) {
@@ -558,26 +564,27 @@ import Pkg from '../package.json'
         self.loc.chosen.room = room
 
 
-        if('red' === roomState.alarm) {
-          let alarmShown = self.loc.alarmShown[room.room] ||
-              (self.loc.alarmShown[room.room]= {})
-          if(alarmShown.poly) {
-            alarmShown.poly.setStyle({
-              color: self.resolveColor(roomState.alarm,'hi')
-            })
-            self.loc.chosen.poly = alarmShown.poly
-          }
-        }
-        else {
+        // if('red' === roomState.alarm) {
+        //   let stateShown = self.loc.stateShown[room.room] ||
+        //       (self.loc.stateShown[room.room]= {})
+        //   if(stateShown.poly) {
+        //     stateShown.poly.setStyle({
+        //       color: self.resolveRoomColor(roomState.alarm,'hi')
+        //     })
+        //     self.loc.chosen.poly = stateShown.poly
+        //   }
+        // }
+        // else {
         
           self.loc.chosen.poly = L.polygon(
             room.poly, {
-              color: self.resolveColor(roomState.alarm,'hi')
+              // color: self.resolveRoomColor(roomState.alarm,'hi')
+              color: self.config.room.color
             })
           self.loc.chosen.poly.on('click', ()=>self.selectRoom(room.room))
           
           self.loc.chosen.poly.addTo(self.layer.room)
-        }
+      // }
 
         let roomlatlng = self.focusRoom(room)
                
@@ -610,14 +617,14 @@ import Pkg from '../package.json'
       let prevRoom = self.loc.chosen.room
       if(prevRoom) {
         self.loc.chosen.room = null
-        let prevRoomState = self.state.room[prevRoom.room] ||
-            (self.state.room[prevRoom.room]={alarm:'neutral'})
+        let prevRoomState = self.current.room[prevRoom.room] ||
+            (self.current.room[prevRoom.room]={alarm:'neutral'})
       
         if('red'===prevRoomState.alarm) {
           self.loc.chosen.poly.setStyle({
-            color: self.resolveColor(prevRoomState.alarm,'lo')
+            color: self.resolveRoomColor(prevRoomState.alarm,'lo')
           })
-          self.loc.alarmShown[prevRoom.room].poly = self.loc.chosen.poly
+          self.loc.stateShown[prevRoom.room].poly = self.loc.chosen.poly
         }
         else {
           self.loc.chosen.poly.remove(self.layer.room)
@@ -652,91 +659,105 @@ import Pkg from '../package.json'
     }
 
     
-    self.showRoomAlarm = function(room, alarm) {
-      self.log('showRoomAlarm', room, alarm)
+    self.showRoom = function(room, stateName) {
+      self.log('showRoom', room, stateName)
+
+      stateName = stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
+      let stateDef = self.config.states[stateName]
+
       room = 'string' === typeof room ? self.data.roomMap[room] : room
       
       try {
-        if('green' === alarm && self.roomHasAssetAlarms(room.room,'red')) {
-          alarm = 'red'
-        }
+        stateDef = self.alertRoomState(room.room, stateDef)
+        
+        let roomCurrent =
+            self.current.room[room.room] ||
+            (self.current.room[room.room]={})
 
-        let roomState =
-            self.state.room[room.room] ||
-            (self.state.room[room.room]={})
+        roomCurrent.stateDef = stateDef
 
-        roomState.alarm = alarm
-
-        let alarmShown = self.loc.alarmShown[room.room] ||
-            (self.loc.alarmShown[room.room]= {})
+        let stateShown = self.loc.stateShown[room.room] ||
+            (self.loc.stateShown[room.room]= {})
 
         if(room === self.loc.chosen.room) {
           if(self.loc.chosen.poly) {
             self.loc.chosen.poly.setStyle({
-              color: self.resolveColor(roomState.alarm,'hi')
+              // color: self.resolveRoomColor(roomCurrent.stateDef,'hi')
+              color: self.config.room.color
             })
           }
         }
         else {
-          if(alarmShown.poly) {
-            alarmShown.poly.remove(self.layer.room)
-            alarmShown.poly = null
+          if(stateShown.poly) {
+            stateShown.poly.remove(self.layer.room)
+            stateShown.poly = null
           }
             
-          if('red' === alarm) {
-            alarmShown.poly = L.polygon(
-              room.poly, {
-                color: self.resolveColor(roomState.alarm,'lo')
-              })
-            alarmShown.poly.addTo(self.layer.room)
-            alarmShown.poly.on('click', ()=>self.selectRoom(room.room))
-          }
+          // if('red' === alarm) {
+          //   stateShown.poly = L.polygon(
+          //     room.poly, {
+          //       color: self.resolveRoomColor(roomCurrent.stateDef,'lo')
+          //     })
+          //   stateShown.poly.addTo(self.layer.room)
+          //   stateShown.poly.on('click', ()=>self.selectRoom(room.room))
+          // }
         }
         
       }
       catch(e) {
-        self.log('ERROR','map','showRoomAlarm','1040', e.message, e)
+        self.log('ERROR','map','showRoom','1040', e.message, e)
       }
     }
 
     
-    self.roomHasAssetAlarms = function(roomID, kind) {
+    // Room state is set to highest priority (by order of definition in config.states) alert state
+    self.alertRoomState = function(roomID, newStateDef) {
+      let actualStateDef = newStateDef
+      let newPriority = Object.keys(self.config.states).indexOf(newStateDef.stateName)
+      
       let assets = (self.data.deps.pc.room[roomID] ?
                     self.data.deps.pc.room[roomID].asset : []) || []
       for(let assetID of assets) {
-        let assetState = self.state.asset[assetID]
-        if(assetState && kind === assetState.alarm) {
-          return true
+        let assetState = self.current.asset[assetID]
+        if(assetState && assetState.stateName) {
+          let stateDef = self.config.states[assetState.stateName]
+          if('alert' === stateDef.marker) {
+            let priority = Object.keys(self.config.states).indexOf(assetState.stateName)
+            if(newPriority < priority) {
+              actualStateDef = stateDef
+            }
+          }
         }
       }
 
-      return false
+      return actualStateDef
     }
     
 
-    self.showAssetAlarm = function(assetID, alarm, hide, blink) {
+    self.showAsset = function(assetID, stateName, hide, blink) {
+      let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
+
+      stateName = stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
+      let stateDef = self.config.states[stateName]
+
       let assetProps = self.data.assetMap[assetID]
-      self.log('showAssetAlarm', assetID, alarm, 'hide', hide, assetProps)
+      self.log('showAsset', assetID, stateName, stateDef, 'hide', hide, 'blink', blink, assetProps)
       
       if(null == assetProps) {
         return
       }
       
-      let assetState = self.state.asset[assetID] || (self.state.asset[assetID]={})
-      alarm = assetState.alarm = alarm || assetState.alarm || 'green'
- 
-      if(assetState.poly) {
-        assetState.poly.remove(self.layer.asset)
-        assetState.poly = null
+      if(assetCurrent.poly) {
+        assetCurrent.poly.remove(self.layer.asset)
+        assetCurrent.poly = null
       }
 
-      if(assetState.label) {
-        assetState.label.remove(self.layer.asset)
-        assetState.label = null
+      if(assetCurrent.label) {
+        assetCurrent.label.remove(self.layer.asset)
+        assetCurrent.label = null
       }
 
-
-      self.showRoomAlarm(assetProps.room, alarm)
+      self.showRoom(assetProps.room, stateName)
       
       // Only draw polys if room is chosen or not hiding
       if(hide ||
@@ -754,12 +775,11 @@ import Pkg from '../package.json'
       let ax = assetPoint[1]
       let ay = assetPoint[0]
       
-      assetState.alarm = alarm
-      let color = '#696'
+      assetCurrent.stateName = stateName
+      let color = stateDef.color
       
-      if('red' === alarm) {
-        color = '#f66'
-        assetState.poly = L.polygon([
+      if('alert' === stateDef.marker) {
+        assetCurrent.poly = L.polygon([
           [ay+10,ax],
           [ay-10,ax+10],
           [ay-10,ax-10],
@@ -768,28 +788,28 @@ import Pkg from '../package.json'
         })
       }
       else {
-        assetState.poly = L.circle(
+        assetCurrent.poly = L.circle(
           assetPoint, {
             radius: 5,
             color: color,
           })
       }
 
-      assetState.poly.addTo(self.layer.asset)
+      assetCurrent.poly.addTo(self.layer.asset)
 
-      assetState.blink = null == blink ? false : blink
+      assetCurrent.blink = null == blink ? false : blink
       
       setTimeout(()=>{
         let html = $('#plantquest-assetmap-assetinfo').innerHTML
       
-        assetState.label = L.marker([ay-20,ax-20], {icon: L.divIcon({
-          className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-label-'+alarm,
+        assetCurrent.label = L.marker([ay-20,ax-20], {icon: L.divIcon({
+          className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-'+stateName,
           html
         })})
 
-        assetState.label.addTo(self.layer.asset)
+        assetCurrent.label.addTo(self.layer.asset)
 
-        let lem = assetState.label.getElement()
+        let lem = assetCurrent.label.getElement()
         lem.style.width = ''
         lem.style.height = ''
         lem.style.fontSize = ''
@@ -800,14 +820,14 @@ import Pkg from '../package.json'
 
     
     self.clearRoomAssets = function(roomID) {
-      for(let assetID in self.state.asset) {
-        let assetState = self.state.asset[assetID]
+      for(let assetID in self.current.asset) {
+        let assetCurrent = self.current.asset[assetID]
         if(self.data.deps.cp.asset[assetID].room !== roomID) {
-          if(assetState.poly) {
-            assetState.poly.remove(self.layer.asset)
+          if(assetCurrent.poly) {
+            assetCurrent.poly.remove(self.layer.asset)
           }
-          if(assetState.label) {
-            assetState.label.remove(self.layer.asset)
+          if(assetCurrent.label) {
+            assetCurrent.label.remove(self.layer.asset)
           }
         }
       }
@@ -819,9 +839,9 @@ import Pkg from '../package.json'
                     self.data.deps.pc.room[roomID].asset : []) || []
 
       for(let assetID of assets) {
-        let assetState = self.state.asset[assetID]
-        if(assetState && assetState.alarm) {
-          self.showAssetAlarm(assetID, assetState.alarm)
+        let assetCurrent = self.current.asset[assetID]
+        if(assetCurrent && assetCurrent.alarm) {
+          self.showAsset(assetID, assetCurrent.alarm)
         }
       }
     }
@@ -857,11 +877,8 @@ import Pkg from '../package.json'
     }
 
     
-    self.resolveColor = function(stateName, hilo) {
-      stateName = self.config.colorState[stateName] ? stateName : 'neutral'
-      let colorHilo = 'hi' === hilo ? 1 : 0
-      let color = self.config.colorState[stateName][colorHilo]
-      return color
+    self.resolveRoomColor = function(stateDef, hilo) {
+      return 'hi' === hilo ? stateDef.color : self.config.room.color
     }
     
 
