@@ -1,6 +1,6 @@
 {
   "name": "@plantquest/assetmap",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "PlantQuest Asset Map",
   "author": "plantquest",
   "license": "MIT",
@@ -55,7 +55,8 @@
   "files": [
     "LICENSE",
     "README.md",
-    "dist"
+    "dist",
+    "*.ts"
   ],
   "dependencies": {
     "leaflet": "^1.8.0"
