@@ -60,7 +60,12 @@ import Pkg from '../package.json'
 
         room: {
           color: '#33f'
-        }
+        },
+
+        plants: [
+          { id: 'aaa', name: 'Plant AAA' },
+          { id: 'bbb', name: 'Plant BBB' }
+        ],
       },
       data: {},
       current: {
@@ -85,8 +90,6 @@ import Pkg from '../package.json'
         return
       }
       
-      self.current.started = true
-
       self.config = { ...self.config, ...(config || {}) }
       self.log('start', JSON.stringify(config))
       
@@ -103,12 +106,13 @@ import Pkg from '../package.json'
           clearInterval(loadingInterval)
           return
         }
-        
-        self.target.style.width = self.config.width
-        self.target.style.height = self.config.height
-        
+                
+        if (null != self.target && false === self.current.started) {
+          self.current.started = true
 
-        if (null != self.target) {
+          self.target.style.width = self.config.width
+          self.target.style.height = self.config.height
+
           clearInterval(loadingInterval)
           self.log('start','target-found',self.target)
 
@@ -226,6 +230,9 @@ import Pkg from '../package.json'
       else if('map' === msg.show) {
         self.showMap(msg.map)
       }
+      else if('plant' === msg.show) {
+        self.showMap(msg.plant)
+      }
       else if('floor' === msg.show) {
         self.showMap(msg.map)
         self.clearRoomAssets()
@@ -332,7 +339,6 @@ import Pkg from '../package.json'
       },
       stateShown: {},
       asset: {},
-      // level: 'Ground Floor',
       map: -1,
     }
 
@@ -396,11 +402,63 @@ import Pkg from '../package.json'
           })
         )
       })
-      
-      new L.Toolbar2.Control({
-        actions: levelActions
-      }).addTo(self.map)
 
+      self.config.plants.forEach((plant,index)=>{
+        levelActions.push(
+          L.Toolbar2.Action.extend({
+            options: {
+              toolbarIcon: {
+                html: plant.name,
+              }
+            },
+            
+            addHooks: function () {
+              self.showMap(index)
+            }
+          })
+        )
+      })
+
+      self.map.addLayer(new L.Toolbar2.Control({
+        actions: levelActions,
+        position: 'topright',
+      }))
+
+        
+      /*
+      // new L.Toolbar2.Control({
+      //   actions: levelActions
+      // }).addTo(self.map)
+
+      let plantActions = []
+      self.config.plants.forEach((plant,index)=>{
+        plantActions.push(
+          L.Toolbar2.Action.extend({
+            options: {
+              toolbarIcon: {
+                html: plant.name,
+              }
+            },
+            
+            addHooks: function () {
+              self.showMap(index)
+            }
+          })
+        )
+      })
+      
+      // new L.Toolbar2.Control({
+      //   position: 'bottomleft',
+      //   actions: plantActions,
+      // }).addTo(self.map)
+
+      self.map.addLayer(
+        new L.Toolbar2.Control({
+          position: 'bottomleft',
+          actions: plantActions,
+        }).addTo(self.map)
+        )
+        */
     }
 
 

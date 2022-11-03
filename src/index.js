@@ -13,6 +13,8 @@ class PlantQuestAssetMap extends React.Component {
   }
 
   componentDidMount() {
+    console.log('PQ DIDM')
+    
     window.PlantQuestAssetMap.start(this.props.options)
   
     window.PlantQuestAssetMap.listen((msg)=>{
@@ -23,7 +25,7 @@ class PlantQuestAssetMap extends React.Component {
   }
 
   render() {
-
+    console.log('PQ RENDER')
     let AIC = this.props.assetinfo
   
     return (
@@ -42,11 +44,3 @@ export {
 }
 
 
-/*
-
-
-      <div id="plantquest-assetmap-assetinfo">
-        { asset ? <AIC asset={asset}/> : <></> }
-      </div>
-
-*/
