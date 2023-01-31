@@ -223,7 +223,19 @@ import SenecaMemStore from 'seneca-mem-store'
         })
         return assets
       }
-
+      
+      
+      
+      function reset() {
+        // reset
+        self.data.deps = {}
+        self.data.roomMap = {}
+        self.data.rooms = []
+        self.data.buildings = []
+        self.data.levels = []
+        self.data.maps = []
+      }
+      
       async function processData(json) {
         self.data = json
         
@@ -237,7 +249,17 @@ import SenecaMemStore from 'seneca-mem-store'
           asset.yco = parseInt(asset.yco)
           asset.zco = isNaN(parseInt(asset.zco)) ? 0 : parseInt(asset.zco)
           assetMap[assetID] = asset
+          
+          // save 'pqs/building' test
+          // await seneca.entity('pqs/building').save$({ id: asset.building })
+          
+          
         }
+        
+        
+        // load 'pqs/building' test
+        // self.data.buildings = ( await seneca.entity('pqs/building').list$() )
+        // console.log('buildings: ', self.data.buildings )
         
         
         self.data.assets = main_assets
@@ -245,9 +267,8 @@ import SenecaMemStore from 'seneca-mem-store'
         self.data.assetMap = assetMap
         console.log('assetMap: ', assetMap)
         
-        // self.data.roomMap = {}
-        // self.data.rooms = []
-        
+
+        // reset()
         
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a),{})
         self.data.roomMap = roomMap
@@ -255,6 +276,11 @@ import SenecaMemStore from 'seneca-mem-store'
 
         
         self.log('data loaded')
+        
+        console.log('self: ', self)
+        window.main = { data: self.data, }
+        window.main.main_assets = []
+        
         done(json)
       }
 
@@ -267,7 +293,6 @@ import SenecaMemStore from 'seneca-mem-store'
         let waiter = setInterval(()=>{
           self.log('loading data...')
           if(window.PLANTQUEST_ASSETMAP_DATA) {
-            console.log('self: ', self)
 	    // console.log('self.config: ', self.config)
 
             clearInterval(waiter)
@@ -329,19 +354,64 @@ import SenecaMemStore from 'seneca-mem-store'
       
       })
       
-      let deps = seneca.make$('pqs/deps')
-      let pc = seneca.make$('pqs/deps/pc')
-      let cp = seneca.make$('pqs/deps/cp')
-      deps.pc = pc, deps.cp = cp
+      // same/similar goes for 'pqs/map', 'pqs/level', 'pqs/deps', etc.
+      seneca.use(function pqsbuilding() {
+        let building = {}
+        this
+          .message(
+            'role:entity,cmd:save,base:pqs,name:building',
+            async function save_building(msg) {
+              let ent = msg.ent
+              ent.id = ent.id || seneca.util.Nid()
+              if(!building[ent.id]) {
+                building[ent.id] = ent
+              }
+              return ent
+            })
+            
+          .message(
+            'role:entity,cmd:load,base:pqs,name:building',
+            async function load_building(msg) {
+              let id = msg.q.id
+              return building[id]
+            })
+            
+          .message(
+            'role:entity,cmd:list,base:pqs,name:building',
+            async function list_building(msg) {
+              return Object.keys(building)
+            })
+      })
       
-      console.log('deps: ', deps)
-      self.data.deps = {}
+      
+      /*
+      // my idea for when asset is updated
+      seneca.add('role:entity,cmd:save,base:pqs,name:asset', async function (msg, reply) {
+        const seneca = this
+        let ent = msg.ent
+        
+        // update deps ( relations ) along with the other logic from the script
+        await seneca.entity('pqs/deps').save$( ... )
+    
+        return await this.prior(msg, reply)
+      })
+      */
+
+      
+      let maps = self.data.maps = seneca.make$('pqs/map')
+      let levels = self.data.levels = seneca.make$('pqs/level')
+      let deps = self.data.deps = seneca.make$('pqs/deps')
+      
+      let pc = {} // seneca.make$('pqs/deps/pc')
+      let cp = {} // seneca.make$('pqs/deps/cp')
+      deps.pc = pc, deps.cp = cp
+      await deps.save$()
+      
+      
+      console.log('deps: ', deps )
       
       window.seneca = seneca
       self.seneca = seneca
-      window.main = {deps, data: self.data,}
-      
-      window.main.main_assets = []
       
   
     }
