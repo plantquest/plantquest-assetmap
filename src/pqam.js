@@ -4,6 +4,13 @@ import L from 'leaflet'
 import './leaflet.toolbar.min.js'
 import Pkg from '../package.json'
 
+
+
+import Seneca from 'seneca-browser'
+import SenecaEntity from 'seneca-entity'
+import SenecaMemStore from 'seneca-mem-store'
+
+
 ;(function(W, D) {
   const log = (...args) => {
     if(true === window.PLANTQUEST_ASSETMAP_LOG || 'ERROR' === args[1]) {
@@ -71,8 +78,11 @@ import Pkg from '../package.json'
       current: {
         started: false,
         room: {},
-        asset: {
-        },
+        asset: {},
+      },
+      upload: {
+        assetI: 0,
+        interval: null,
       },
       listeners: [],
     }
@@ -142,20 +152,95 @@ import Pkg from '../package.json'
     }
 
     
-    self.load = function(done) {
+    self.load = async function(done) {
+      let seneca = new Seneca({
+        log: { logger: 'flat', level: 'warn' },
+          plugin: {
+            browser: {
+              endpoint: '/msg01',
+              headers: {
+	      },
+            }
+          },
+          timeout: 44444,
+      })
+      
+      
+      seneca
+        .test()
+        .use(SenecaEntity)
+        .use(SenecaMemStore)
+        .ready(async function() {
+          const seneca = this
+          console.log('seneca ready')
+        })
+      await seneca.ready()
+      
+      await seneca.client({
+        type: 'browser',
+        pin: [
+          'role:entity,cmd:load',
+          'role:entity,cmd:list',
+          'role:entity,cmd:save',
+          'role:entity,cmd:remove',
+          'pqs:*',
+          'aim:web',
+        ]
+      })
+      
+      // linear load - refatoring needed
+      async function loadAssets() {
+        let assets = await seneca.entity('pqs/asset').list$({
+          custom$: {
+            lister: true
+          },
+          
+          fields$:[
+            'id',
+            'tag',
+            'xco',
+            'yco',
+            'zco',
+            'icon',
+            'atype',    
+            'discipline1',  
+            'description',       
+            'manufacturer', 
+            'model',        
+            'serial',       
+            'map',
+            'building',     
+            'level',        
+            'room',              
+            'drawing1',     
+            'drawing2',        
+            'system',       
+            'subsys',       
+	    'custom12',
+          ]
+          
+        })
+        return assets
+      }
 
-      function processData(json) {
+      async function processData(json) {
         self.data = json
         
         let assetMap = {}
         let assetProps = self.data.assets[0]
-        for(let rowI = 1; rowI < self.data.assets.length; rowI++) {
-          let row = self.data.assets[rowI]
-          let assetID = row[0]
-          assetMap[assetID] = assetProps.reduce((a,p,i)=>((a[p]=row[i]),a),{})
+        let main_assets = await loadAssets()
+        for(let i = 0; i < main_assets.length; i++) {
+          let asset = main_assets[i]
+          let assetID = asset.id
+          asset.xco = parseInt(asset.xco)
+          asset.yco = parseInt(asset.yco)
+          // asset.zco = parseInt(asset.zco)
+          assetMap[assetID] = asset
         }
         
+        self.data.assets = main_assets
         self.data.assetMap = assetMap
+        console.log('assetMap: ', assetMap)
         
         
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a),{})
@@ -168,12 +253,15 @@ import Pkg from '../package.json'
       if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
         const head = $('head')
         const skript = document.createElement('script')
-        skript.setAttribute('src', self.config.data)
+        skript.setAttribute('src', 'pqd-pq01-ast-011.js')
         head.appendChild(skript)
 
         let waiter = setInterval(()=>{
           self.log('loading data...')
           if(window.PLANTQUEST_ASSETMAP_DATA) {
+            console.log('self: ', self)
+	    // console.log('self.config: ', self.config)
+
             clearInterval(waiter)
             processData(window.PLANTQUEST_ASSETMAP_DATA)
           }
@@ -181,6 +269,7 @@ import Pkg from '../package.json'
       }
       else {
         // fetch(self.config.base+self.config.data)
+        
         fetch(self.config.data)
           .then(response => {
             if (!response.ok) {
@@ -191,6 +280,61 @@ import Pkg from '../package.json'
           .then(json => processData(json))
           .catch((err)=>self.log('ERROR','load',err))
       }
+      
+      seneca.use(function pqscommands() {
+        const seneca = this
+        
+        seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
+          console.log("cmd map msgg: ", msg)
+        })
+
+        seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
+          console.log("cmd room msgg: ", msg)
+        })
+        
+        seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
+          console.log("cmd plant msgg: ", msg)
+        })
+        
+        seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
+          console.log("cmd floor msgg: ", msg)
+        })
+
+        seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
+          console.log("cmd asset msgg: ", msg)
+        })
+        
+        seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
+          console.log("cmd hide msgg: ", msg)
+          return await seneca.post('srv:plantquest,part:assetmap,show:asset', {},)
+        })
+        
+        seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
+          console.log("cmd room-asset msgg: ", msg)
+        })
+        
+      })
+      
+      seneca.add('role:web,cmd:upload', function(msg, reply) {
+        let assets = []
+        return reply(assets)
+      
+      })
+      
+      let deps = seneca.make$('deps')
+      let pc = seneca.make$('pc')
+      let cp = seneca.make$('cp')
+      deps.pc = pc, deps.cp = cp
+      
+      console.log('deps: ', deps)
+      
+      window.seneca = seneca
+      self.seneca = seneca
+      window.main = {deps,}
+      
+      window.main.main_assets = []
+      
+  
     }
 
     
@@ -216,8 +360,10 @@ import Pkg from '../package.json'
       }, self.domInterval)
     }
 
-    self.send = function(msg) {
+    self.send = async function(msg) {
       self.log('send', 'in', msg)
+      
+      await seneca.post(msg) // use seneca messages instead of if chain - still needs work
 
       if('room-asset' === msg.relate) {
         self.emit({
@@ -242,6 +388,7 @@ import Pkg from '../package.json'
       else if('room' === msg.show) {
         let room = self.data.roomMap[msg.room]
         
+        
         if(room) {
 
           if(msg.assets) {
@@ -253,7 +400,7 @@ import Pkg from '../package.json'
           }
 
           if(msg.focus) {
-            self.selectRoom(room.room, {mute:true})
+            self.selectRoom(room.room, { mute:true })
           }
         }
         else {
@@ -280,6 +427,7 @@ import Pkg from '../package.json'
       else if(null != msg.zoom) {
         self.map.setZoom(msg.zoom)
       }
+      
     }
 
     self.listen = function(listener) {

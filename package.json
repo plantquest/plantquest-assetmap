@@ -28,10 +28,7 @@
     "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
     "repo-publish-quick": "npm run build && npm run test:unit && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
   },
-  "peerDependencies": {
-  },
   "devDependencies": {
-    "react": "^16.7.0",
     "babel-eslint": "^10.0.3",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
@@ -59,6 +56,13 @@
     "*.ts"
   ],
   "dependencies": {
-    "leaflet": "^1.8.0"
+    "leaflet": "1.8.0",
+    "seneca": "3.29.0",
+    "seneca-browser": "4.0.1",
+    "seneca-entity": "18.4.0",
+    "seneca-mem-store": "7.0.1"
+  },
+  "resolutions": {
+    "react-error-overlay": "6.0.9"
   }
 }
