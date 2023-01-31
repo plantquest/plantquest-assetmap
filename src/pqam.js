@@ -217,6 +217,7 @@ import SenecaMemStore from 'seneca-mem-store'
             'system',       
             'subsys',       
 	    'custom12',
+	    'data2',
           ]
           
         })
@@ -244,12 +245,14 @@ import SenecaMemStore from 'seneca-mem-store'
         self.data.assetMap = assetMap
         console.log('assetMap: ', assetMap)
         
+        // self.data.roomMap = {}
+        // self.data.rooms = []
+        
         
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a),{})
         self.data.roomMap = roomMap
         
-        // self.data.roomMap = {}
-        // self.data.rooms = []
+
         
         self.log('data loaded')
         done(json)
@@ -326,9 +329,9 @@ import SenecaMemStore from 'seneca-mem-store'
       
       })
       
-      let deps = seneca.make$('deps')
-      let pc = seneca.make$('pc')
-      let cp = seneca.make$('cp')
+      let deps = seneca.make$('pqs/deps')
+      let pc = seneca.make$('pqs/deps/pc')
+      let cp = seneca.make$('pqs/deps/cp')
       deps.pc = pc, deps.cp = cp
       
       console.log('deps: ', deps)
