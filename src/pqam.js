@@ -234,7 +234,7 @@ import SenecaMemStore from 'seneca-mem-store'
           let assetID = asset.id
           asset.xco = parseInt(asset.xco)
           asset.yco = parseInt(asset.yco)
-          // asset.zco = parseInt(asset.zco)
+          asset.zco = isNaN(parseInt(asset.zco)) ? 0 : parseInt(asset.zco)
           assetMap[assetID] = asset
         }
         
