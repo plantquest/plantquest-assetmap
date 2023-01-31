@@ -314,7 +314,7 @@ import SenecaMemStore from 'seneca-mem-store'
         
         seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
           console.log("cmd hide msgg: ", msg)
-          return await seneca.post('srv:plantquest,part:assetmap,show:asset', {},)
+          // show:asset functionality
         })
         
         seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
