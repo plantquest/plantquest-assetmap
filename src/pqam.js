@@ -238,7 +238,9 @@ import SenecaMemStore from 'seneca-mem-store'
           assetMap[assetID] = asset
         }
         
+        
         self.data.assets = main_assets
+        
         self.data.assetMap = assetMap
         console.log('assetMap: ', assetMap)
         
@@ -246,14 +248,17 @@ import SenecaMemStore from 'seneca-mem-store'
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a),{})
         self.data.roomMap = roomMap
         
+        // self.data.roomMap = {}
+        // self.data.rooms = []
+        
         self.log('data loaded')
         done(json)
       }
 
-      if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
+      if('pqd-pq01-ast-011.js' === self.config.data) {
         const head = $('head')
         const skript = document.createElement('script')
-        skript.setAttribute('src', 'pqd-pq01-ast-011.js')
+        skript.setAttribute('src', self.config.data)
         head.appendChild(skript)
 
         let waiter = setInterval(()=>{
@@ -327,10 +332,11 @@ import SenecaMemStore from 'seneca-mem-store'
       deps.pc = pc, deps.cp = cp
       
       console.log('deps: ', deps)
+      self.data.deps = {}
       
       window.seneca = seneca
       self.seneca = seneca
-      window.main = {deps,}
+      window.main = {deps, data: self.data,}
       
       window.main.main_assets = []
       
