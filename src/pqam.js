@@ -75,6 +75,7 @@ import SenecaMemStore from 'seneca-mem-store'
         ],
       },
       data: {},
+      assetMap: {},
       current: {
         started: false,
         room: {},
@@ -192,7 +193,7 @@ import SenecaMemStore from 'seneca-mem-store'
       async function loadAssets() {
         let assets = await seneca.entity('pqs/asset').list$({
           custom$: {
-            lister: false
+            lister: true
           },
           
           fields$:[
@@ -221,9 +222,7 @@ import SenecaMemStore from 'seneca-mem-store'
           ]
           
         })
-        assets[0].save$()
-        await seneca.post('role:mem-store, cmd:import', { json: JSON.stringify(assets) } )
-        console.log(':::assets:::', ((await seneca.post('role:mem-store, cmd:export')).json) )
+        // assets[0].save$()
         return assets
       }
       
@@ -253,18 +252,16 @@ import SenecaMemStore from 'seneca-mem-store'
           asset.zco = isNaN(parseInt(asset.zco)) ? 0 : parseInt(asset.zco)
           assetMap[assetID] = asset
           
-          // await seneca.entity('am/asset').save$({ ...asset })
-          
-          // save 'pqs/building' test
-          // await seneca.entity('pqs/building').save$({ id: asset.building })
+          // await seneca.entity('am/asset').save$({ ...asset }) // too slow
           
           
         }
         
         
-        // load 'pqs/building' test
-        // self.data.buildings = ( await seneca.entity('pqs/building').list$() )
-        // console.log('buildings: ', self.data.buildings )
+        seneca.post('role:mem-store, cmd:import', { json: JSON.stringify(assetMap) } )
+        // console.log(':::assets:::', ((await seneca.post('role:mem-store, cmd:export')).json) )
+        Object.assign(self.assetMap, assetMap)
+        
         console.log('am_assets:: ', (await seneca.entity('am/asset').list$()) )
         
         
@@ -415,7 +412,8 @@ import SenecaMemStore from 'seneca-mem-store'
       
       // same/similar goes for 'pqs/map', 'pqs/level', 'pqs/deps', etc.
       seneca.use(function amasset() {
-        let assets = {}
+        let assets = self.assetMap 
+        // JSON.parse( (await seneca.post('role:mem-store, cmd:export')).json )
         this
           .message(
             'role:entity,cmd:save,base:am,name:asset',
@@ -432,7 +430,9 @@ import SenecaMemStore from 'seneca-mem-store'
             'role:entity,cmd:load,base:am,name:asset',
             async function load_asset(msg) {
               let id = msg.q.id
-              return assets[id]
+              // entize ?
+              return Object.assign(msg.ent, assets[id])
+              // return assets[id]
             })
             
           .message(
@@ -502,6 +502,7 @@ import SenecaMemStore from 'seneca-mem-store'
       self.log('send', 'in', msg)
       
       await seneca.post(msg) // use seneca messages instead of 'if chain'
+      
       if(null != msg.zoom) {
         self.map.setZoom(msg.zoom)
       }
