@@ -252,7 +252,7 @@ import SenecaMemStore from 'seneca-mem-store'
           asset.zco = isNaN(parseInt(asset.zco)) ? 0 : parseInt(asset.zco)
           assetMap[assetID] = asset
           
-          // await seneca.entity('am/asset').save$({ ...asset }) // too slow
+          // await seneca.entity('am/asset').data$({ ...asset }).save$({ ...asset }) // too slow
           
           
         }
