@@ -192,7 +192,7 @@ import SenecaMemStore from 'seneca-mem-store'
       async function loadAssets() {
         let assets = await seneca.entity('pqs/asset').list$({
           custom$: {
-            lister: true
+            lister: false
           },
           
           fields$:[
@@ -221,6 +221,9 @@ import SenecaMemStore from 'seneca-mem-store'
           ]
           
         })
+        assets[0].save$()
+        await seneca.post('role:mem-store, cmd:import', { json: JSON.stringify(assets) } )
+        console.log(':::assets:::', ((await seneca.post('role:mem-store, cmd:export')).json) )
         return assets
       }
       
@@ -250,6 +253,8 @@ import SenecaMemStore from 'seneca-mem-store'
           asset.zco = isNaN(parseInt(asset.zco)) ? 0 : parseInt(asset.zco)
           assetMap[assetID] = asset
           
+          // await seneca.entity('am/asset').save$({ ...asset })
+          
           // save 'pqs/building' test
           // await seneca.entity('pqs/building').save$({ id: asset.building })
           
@@ -260,6 +265,7 @@ import SenecaMemStore from 'seneca-mem-store'
         // load 'pqs/building' test
         // self.data.buildings = ( await seneca.entity('pqs/building').list$() )
         // console.log('buildings: ', self.data.buildings )
+        console.log('am_assets:: ', (await seneca.entity('am/asset').list$()) )
         
         
         self.data.assets = main_assets
@@ -314,36 +320,89 @@ import SenecaMemStore from 'seneca-mem-store'
           .catch((err)=>self.log('ERROR','load',err))
       }
       
-      seneca.use(function pqscommands() {
+      seneca.use(function amcommands() {
         const seneca = this
         
+        function assetShow(msg) {
+          let assetRoom = self.data.deps.cp.asset[msg.asset]
+          let assetData = self.data.assetMap[msg.asset]
+          if(assetRoom) {
+            self.emit({
+              srv:'plantquest',
+              part:'assetmap',
+              show:'asset',
+              before:true,
+              asset: assetData,
+            })
+            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
+          }
+          else {
+            self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
+          }
+        }
+        
         seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
-          console.log("cmd map msgg: ", msg)
+          console.error("cmd map msgg: ", msg)
+          self.showMap(msg.map)
         })
 
         seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
-          console.log("cmd room msgg: ", msg)
+          let room = self.data.roomMap[msg.room]
+        
+          if(room) {
+
+            if(msg.assets) {
+              if(msg.assets) {
+                for(let asset of msg.assets) {
+                  self.showAsset(asset.asset, asset.state)
+                }
+              }
+            }
+
+            if(msg.focus) {
+              self.selectRoom(room.room, { mute:true })
+            }
+          }
+          else {
+            self.log('ERROR', 'send', 'room', 'unknown-room', msg)
+          }
+          
         })
         
         seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
-          console.log("cmd plant msgg: ", msg)
+          console.error("cmd plant msgg: ", msg)
+          self.showMap(msg.plant)
         })
         
         seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
-          console.log("cmd floor msgg: ", msg)
+          console.error("cmd floor msgg: ", msg)
+          
+          self.showMap(msg.map)
+          self.clearRoomAssets()
+          self.unselectRoom()
+          self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
+        
         })
 
         seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
-          console.log("cmd asset msgg: ", msg)
+          console.error("cmd asset msgg: ", msg)
+          assetShow(msg)
         })
         
         seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
-          console.log("cmd hide msgg: ", msg)
           // show:asset functionality
+          console.error("cmd hide msgg: ", msg)
+          assetShow(msg)
         })
         
         seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
-          console.log("cmd room-asset msgg: ", msg)
+          console.error("cmd room-asset msgg: ", msg)
+          self.emit({
+            srv:'plantquest',
+            part:'assetmap',
+            relate:'room-asset',
+            relation:clone(self.data.deps.pc.room)
+          })  
         })
         
       })
@@ -355,31 +414,31 @@ import SenecaMemStore from 'seneca-mem-store'
       })
       
       // same/similar goes for 'pqs/map', 'pqs/level', 'pqs/deps', etc.
-      seneca.use(function pqsbuilding() {
-        let building = {}
+      seneca.use(function amasset() {
+        let assets = {}
         this
           .message(
-            'role:entity,cmd:save,base:pqs,name:building',
-            async function save_building(msg) {
+            'role:entity,cmd:save,base:am,name:asset',
+            async function save_asset(msg) {
               let ent = msg.ent
               ent.id = ent.id || seneca.util.Nid()
-              if(!building[ent.id]) {
-                building[ent.id] = ent
+              if(!assets[ent.id]) {
+                assets[ent.id] = ent
               }
               return ent
             })
             
           .message(
-            'role:entity,cmd:load,base:pqs,name:building',
-            async function load_building(msg) {
+            'role:entity,cmd:load,base:am,name:asset',
+            async function load_asset(msg) {
               let id = msg.q.id
-              return building[id]
+              return assets[id]
             })
             
           .message(
-            'role:entity,cmd:list,base:pqs,name:building',
-            async function list_building(msg) {
-              return Object.keys(building)
+            'role:entity,cmd:list,base:am,name:asset',
+            async function list_asset(msg) {
+              return Object.values(assets)
             })
       })
       
@@ -442,68 +501,8 @@ import SenecaMemStore from 'seneca-mem-store'
     self.send = async function(msg) {
       self.log('send', 'in', msg)
       
-      await seneca.post(msg) // use seneca messages instead of if chain - still needs work
-
-      if('room-asset' === msg.relate) {
-        self.emit({
-          srv:'plantquest',
-          part:'assetmap',
-          relate:'room-asset',
-          relation:clone(self.data.deps.pc.room)
-        })        
-      }
-      else if('map' === msg.show) {
-        self.showMap(msg.map)
-      }
-      else if('plant' === msg.show) {
-        self.showMap(msg.plant)
-      }
-      else if('floor' === msg.show) {
-        self.showMap(msg.map)
-        self.clearRoomAssets()
-        self.unselectRoom()
-        self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
-      }
-      else if('room' === msg.show) {
-        let room = self.data.roomMap[msg.room]
-        
-        
-        if(room) {
-
-          if(msg.assets) {
-            if(msg.assets) {
-              for(let asset of msg.assets) {
-                self.showAsset(asset.asset, asset.state)
-              }
-            }
-          }
-
-          if(msg.focus) {
-            self.selectRoom(room.room, { mute:true })
-          }
-        }
-        else {
-          self.log('ERROR', 'send', 'room', 'unknown-room', msg)
-        }
-      }
-      else if('asset' === msg.show || 'asset' === msg.hide) {
-        let assetRoom = self.data.deps.cp.asset[msg.asset]
-        let assetData = self.data.assetMap[msg.asset]
-        if(assetRoom) {
-          self.emit({
-            srv:'plantquest',
-            part:'assetmap',
-            show:'asset',
-            before:true,
-            asset: assetData,
-          })
-          self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
-        }
-        else {
-          self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
-        }
-      }
-      else if(null != msg.zoom) {
+      await seneca.post(msg) // use seneca messages instead of 'if chain'
+      if(null != msg.zoom) {
         self.map.setZoom(msg.zoom)
       }
       
