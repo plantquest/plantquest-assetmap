@@ -76,6 +76,7 @@ import SenecaMemStore from 'seneca-mem-store'
       },
       data: {},
       assetMap: {},
+      roomMap: {},
       current: {
         started: false,
         room: {},
@@ -262,19 +263,17 @@ import SenecaMemStore from 'seneca-mem-store'
         // console.log(':::assets:::', ((await seneca.post('role:mem-store, cmd:export')).json) )
         Object.assign(self.assetMap, assetMap)
         
-        console.log('am_assets:: ', (await seneca.entity('am/asset').list$()) )
-        
         
         self.data.assets = main_assets
         
         self.data.assetMap = assetMap
-        console.log('assetMap: ', assetMap)
         
 
         // reset()
         
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a),{})
         self.data.roomMap = roomMap
+        Object.assign(self.roomMap, roomMap)
         
 
         
@@ -283,6 +282,9 @@ import SenecaMemStore from 'seneca-mem-store'
         console.log('self: ', self)
         window.main = { data: self.data, }
         window.main.main_assets = []
+        
+        console.log('am_assets: ', (await seneca.entity('am/asset').list$()) )
+        console.log('am_room:: ', (await seneca.entity('am/room').list$()) )
         
         done(json)
       }
@@ -341,6 +343,7 @@ import SenecaMemStore from 'seneca-mem-store'
         seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
           console.error("cmd map msgg: ", msg)
           self.showMap(msg.map)
+          
         })
 
         seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
@@ -369,6 +372,7 @@ import SenecaMemStore from 'seneca-mem-store'
         seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
           console.error("cmd plant msgg: ", msg)
           self.showMap(msg.plant)
+          
         })
         
         seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
@@ -399,7 +403,8 @@ import SenecaMemStore from 'seneca-mem-store'
             part:'assetmap',
             relate:'room-asset',
             relation:clone(self.data.deps.pc.room)
-          })  
+          })
+          
         })
         
       })
@@ -439,6 +444,16 @@ import SenecaMemStore from 'seneca-mem-store'
             'role:entity,cmd:list,base:am,name:asset',
             async function list_asset(msg) {
               return Object.values(assets)
+            })
+      })
+      
+      seneca.use(function asroom() {
+        let rooms = self.roomMap
+        this
+          .message(
+            'role:entity,cmd:list,base:am,name:room',
+            async function list_room(msg) {
+              return Object.values(rooms)
             })
       })
       
