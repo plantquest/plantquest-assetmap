@@ -260,7 +260,7 @@ import { intern } from 'seneca-mem-store'
           
         }
         
-        let entmap = seneca.export('mem-store$1/native')
+        let entmap = seneca.export('mem-store/native')
         entmap.am = {}
         entmap.am.asset = assetMap
         
@@ -416,7 +416,7 @@ import { intern } from 'seneca-mem-store'
       
       // same/similar goes for 'pqs/map', 'pqs/level', 'pqs/deps', etc.
       seneca.use(function amasset() {
-        let entmap = seneca.export('mem-store$1/native')
+        let entmap = seneca.export('mem-store/native')
         this
           .message(
             'role:entity,cmd:save,base:am,name:asset',
