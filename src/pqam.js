@@ -10,6 +10,8 @@ import Seneca from 'seneca-browser'
 import SenecaEntity from 'seneca-entity'
 import SenecaMemStore from 'seneca-mem-store'
 
+import { intern } from 'seneca-mem-store'
+
 
 ;(function(W, D) {
   const log = (...args) => {
@@ -258,10 +260,9 @@ import SenecaMemStore from 'seneca-mem-store'
           
         }
         
-        
-        seneca.post('role:mem-store, cmd:import', { json: JSON.stringify(assetMap) } )
-        // console.log(':::assets:::', ((await seneca.post('role:mem-store, cmd:export')).json) )
-        Object.assign(self.assetMap, assetMap)
+        let entmap = seneca.export('mem-store$1/native')
+        entmap.am = {}
+        entmap.am.asset = assetMap
         
         
         self.data.assets = main_assets
@@ -273,7 +274,6 @@ import SenecaMemStore from 'seneca-mem-store'
         
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a),{})
         self.data.roomMap = roomMap
-        Object.assign(self.roomMap, roomMap)
         
 
         
@@ -284,7 +284,6 @@ import SenecaMemStore from 'seneca-mem-store'
         window.main.main_assets = []
         
         console.log('am_assets: ', (await seneca.entity('am/asset').list$()) )
-        console.log('am_room:: ', (await seneca.entity('am/room').list$()) )
         
         done(json)
       }
@@ -417,8 +416,7 @@ import SenecaMemStore from 'seneca-mem-store'
       
       // same/similar goes for 'pqs/map', 'pqs/level', 'pqs/deps', etc.
       seneca.use(function amasset() {
-        let assets = self.assetMap 
-        // JSON.parse( (await seneca.post('role:mem-store, cmd:export')).json )
+        let entmap = seneca.export('mem-store$1/native')
         this
           .message(
             'role:entity,cmd:save,base:am,name:asset',
@@ -440,22 +438,18 @@ import SenecaMemStore from 'seneca-mem-store'
               // return assets[id]
             })
             
-          .message(
+          .add(
             'role:entity,cmd:list,base:am,name:asset',
-            async function list_asset(msg) {
-              return Object.values(assets)
+            async function list_asset(msg, reply) {
+              let list = []
+              msg.q = msg.q || {}
+              intern.listents(this, entmap, msg.qent, msg.q, function(err, asset) {
+                return reply(asset)
+              })
+              
             })
       })
       
-      seneca.use(function asroom() {
-        let rooms = self.roomMap
-        this
-          .message(
-            'role:entity,cmd:list,base:am,name:room',
-            async function list_room(msg) {
-              return Object.values(rooms)
-            })
-      })
       
       
       /*
