@@ -59,6 +59,7 @@
     "*.ts"
   ],
   "dependencies": {
-    "leaflet": "^1.8.0"
+    "leaflet": "1.8.0",
+    "leaflet-rastercoords": "1.0.5"
   }
 }
