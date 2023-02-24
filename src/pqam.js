@@ -930,7 +930,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     },
     
     self.createTile = function(mapIndex) {
-      self.tileLyr = 
+      let tileLyr = 
         L.tileLayer(self.getUrl(mapIndex), {
           // noWrap: true,
           // maxNativeZoom: rc.zoomLevel(),
@@ -938,7 +938,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           minZoom: self.config.mapMinZoom,
           maxZoom: self.config.mapMaxZoom,
         })
-      return self.tileLyr
+      return tileLyr
     },
     
     self.showMap = function(mapIndex) {
