@@ -657,19 +657,24 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       // }
 
         let roomlatlng = self.focusRoom(room)
+        
+        // convert for popup
+        let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
+        let roompos_x = roomlatlng[1]
+        let roompos = c_asset_coords({y: roompos_y-50, x: roompos_x+50 } )
                
-               /*
+        // map focus on room selection
         self.loc.popup = L.popup({
           autoClose: false,
           closeOnClick: false,
         })
-          .setLatLng(roomlatlng)
+          .setLatLng(roompos)
           .setContent(self.roomPopup(self.loc.chosen.room))
           .openOn(self.map)
-          */
-
-        // self.map.setView([roomlatlng[0]-50,roomlatlng[1]+50],
-                         // self.config.mapRoomFocusZoom)
+        
+        // self.map.setView(roompos,
+                         // self.map.getZoom())
+                         
 
         self.showRoomAssets(room.room)
         self.clearRoomAssets(room.room)
@@ -723,8 +728,15 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         }
       }
 
-      let roompos = [roomlatlng[0],roomlatlng[1]-30]
-      self.map.setView(roompos, self.config.mapRoomFocusZoom)
+      // let roompos = [roomlatlng[0],roomlatlng[1]-30]
+      
+      let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
+      let roompos_x = roomlatlng[1]
+      let roompos = c_asset_coords({y: roompos_y, x: roompos_x-30 } )
+      // self.map.setView(roompos, self.config.mapRoomFocusZoom)
+      self.map.setView(roompos,
+                        self.map.getZoom())
+                        
       self.zoomEndRender()
       
       return roomlatlng
