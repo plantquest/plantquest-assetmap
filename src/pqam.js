@@ -925,9 +925,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
     }
 
+    self.getUrl = function(mapIndex) {
+      return self.config.tilesEndPoint + '/' + mapIndex + '/{z}/{x}/{y}.png'
+    },
+    
     self.createTile = function(mapIndex) {
       self.tileLyr = 
-        L.tileLayer('/tiles' + '/'+mapIndex+'/' +'{z}/{x}/{y}.png', {
+        L.tileLayer(self.getUrl(mapIndex), {
           // noWrap: true,
           // maxNativeZoom: rc.zoomLevel(),
           bounds: self.rc.getMaxBounds(),
