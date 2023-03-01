@@ -53,6 +53,9 @@ import { intern } from 'seneca-mem-store'
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
+        
+        api_key: '<API KEY>',
+        api_endpoint: '/msg01',
 
         states: {
           up: { color: '#99f', name: 'Up', marker: 'standard' },
@@ -161,8 +164,9 @@ import { intern } from 'seneca-mem-store'
         log: { logger: 'flat', level: 'warn' },
           plugin: {
             browser: {
-              endpoint: '/msg01',
+              endpoint: self.config.api_endpoint,
               headers: {
+                'X-API-Key': self.config.api_key,
 	      },
             }
           },
@@ -188,6 +192,7 @@ import { intern } from 'seneca-mem-store'
           'role:entity,cmd:save',
           'role:entity,cmd:remove',
           'pqs:*',
+          'am:*',
           'aim:web',
         ]
       })
