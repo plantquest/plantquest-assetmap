@@ -69,11 +69,13 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
       srv: 'plantquest',
       part: 'assetmap',
       show: 'room',
-      room: &lt;ROOM-ID&gt;,     
+      room: &lt;ROOM-ID&gt;,
+      focus: &lt;Boolean&gt;,   
     }
   </pre>
   <p>Where:<br>
     <i>&lt;ROOM-ID&gt;</i>: Room Identifier String<br>
+    <i>&lt;Boolean&gt;</i>: either true or false - when a room is shown<br>
   </p>
 
 
