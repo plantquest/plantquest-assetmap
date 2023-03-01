@@ -162,15 +162,15 @@ import { intern } from 'seneca-mem-store'
     self.load = async function(done) {
       let seneca = new Seneca({
         log: { logger: 'flat', level: 'warn' },
-          plugin: {
-            browser: {
-              endpoint: self.config.api_endpoint,
-              headers: {
-                'X-API-Key': self.config.api_key,
-	      },
-            }
-          },
-          timeout: 44444,
+        plugin: {
+          browser: {
+            endpoint: self.config.api_endpoint,
+            headers: {
+              'X-API-Key': self.config.api_key,
+	    },
+          }
+        },
+        timeout: 44444,
       })
       
       
