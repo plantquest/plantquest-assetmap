@@ -45,7 +45,7 @@ import { intern } from 'seneca-mem-store'
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
-        mapStart: [2925,3900],
+        mapStart: [2925, 3900],
         mapStartZoom: -4,
         mapRoomFocusZoom: 0,
         mapMaxZoom: 1,
