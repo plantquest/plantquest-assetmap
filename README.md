@@ -47,7 +47,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
     }
   </pre>
   <p>Where:<br>
-    <i>&lt;INTEGER&gt;</i>: Zoom level (default: -4 to +2)<br>
+    <i>&lt;INTEGER&gt;</i>: Zoom level (default: 2 to 6)<br>
   </p>
 
 
