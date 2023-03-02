@@ -173,7 +173,7 @@ class App extends React.Component {
   state: &lt;STATE&gt;,
 }</pre>
   <p>Where:<br>
-    <i>&lt;STATE&gt;</i>: 'ready'<br>
+    <i>&lt;STATE&gt;</i>: 'ready' - triggered when the map is fully rendered <br>
   </p>
 
 
