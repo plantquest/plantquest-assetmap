@@ -64,13 +64,13 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     
+    // to keep track of map's state
+    // using listeners so we can reuse these in our app
     this.state = {
-      foundRooms: [],
-      roomAssets: [],
       map: -1,
       level: '',
-      levels: [],
-      rooms: []
+      rooms: [],
+      showRoom: null,
     }
     
 
@@ -78,16 +78,47 @@ class App extends React.Component {
   
   componentDidMount() {
     const PQAM = window.PlantQuestAssetMap
-      
-    PQAM.listen((msg)=>{
-      if('ready'===msg.state) {
+    
+    
+    PQAM.listen((msg) => {
+      // put 'ready' listener to use
+      if('ready' === msg.state) {
+        // set 'rooms' for reuse
         this.setState({
           rooms: PQAM.data.rooms
         })
       }
+      // when a user selects a room
+      // "USER SELECT ROOM" example
+      else if ('room' === msg.select) {
+        // pick a room
+        let item = PQAM.data.roomMap[msg.room]
+        this.setState({ showRoom: item })
+        this.selectRoom(item)
+      }
+      // "USER SELECT MAP" example
+      else if('map' === msg.show) {
+        this.setState({ level: msg.level })
+        this.setState({ map: msg.map })
+      }
+      
     })
+    
   
-    console.log('PQAM: ', PQAM )
+  }
+  
+  selectRoom(item) {
+    const PQAM = window.PlantQuestAssetMap
+    
+    // "SEND A MESSAGE" example
+    // "SHOW ROOM"
+    PQAM.send({
+      srv: 'plantquest',
+      part: 'assetmap',
+      show: 'room',
+      room: item.room,
+      focus: true,
+    })
   
   }
   
