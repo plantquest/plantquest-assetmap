@@ -79,7 +79,7 @@ class App extends React.Component {
   componentDidMount() {
     const PQAM = window.PlantQuestAssetMap
     
-    
+    // set up message listener
     PQAM.listen((msg) => {
       // put 'ready' listener to use
       if('ready' === msg.state) {
