@@ -184,6 +184,17 @@ class App extends React.Component {
     <i>&lt;ASSET-ID&gt;</i>: Asset Identifier String<br>
   </p>
 
+  <h3>SHOW MAP</h3>
+  <pre>
+{
+  srv: 'plantquest',
+  part: 'assetmap',
+  show: 'map',
+  map: &lt;INTEGER&gt;,     
+}</pre>
+  <p>Where:<br>
+    <i>&lt;INTEGER&gt;</i>: Number of the map<br>
+  </p>
   
   
   <h2>LISTEN MESSAGES</h2>
