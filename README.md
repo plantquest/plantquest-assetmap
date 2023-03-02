@@ -278,13 +278,25 @@ class App extends React.Component {
 {
   srv: 'plantquest',
   part: 'assetmap',
-  show: 'map'
+  show: 'map',
   map: &lt;INTEGER&gt;,
   level: &lt;STRING&gt;,
 }</pre>
   <p>Where:<br>
     <i>&lt;INTEGER&gt;</i>: Number of the map user just selected <br>
     <i>&lt;STRING&gt;</i>: Name of the level of that map <br>
+  </p>
+  
+  <h3>USER SHOW ASSET</h3>
+  <pre>
+{
+  srv: 'plantquest',
+  part: 'assetmap',
+  show: 'asset',
+  asset: &lt;OBJECT&gt;,
+}</pre>
+  <p>Where:<br>
+    <i>&lt;OBJECT&gt;</i>: Metadata of the SHOWN asset <br>
   </p>
 
 ## Licenses
