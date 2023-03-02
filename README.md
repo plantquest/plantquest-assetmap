@@ -60,6 +60,31 @@ const options = {
   },
 }
 
+// container when showing an asset
+/*
+// css example
+div.plantquest-assetmap-asset-state-up {
+    color: white;
+    border: 2px solid #696;
+    border-radius: 4px;
+    background-color: #696;
+    opacity: 0.7;
+}
+*/
+class AssetInfo extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {}
+  }
+  
+  render() {
+    return <div>
+             <h3>{this.props.asset.id}</h3>
+             <p><i>Building:</i> {this.props.asset.building}</p>
+           </div>
+  }
+}
+
 class App extends React.Component {
   
   constructor(props) {
@@ -72,6 +97,7 @@ class App extends React.Component {
       level: '',
       rooms: [],
       showRoom: null,
+      showAsset: null,
     }
     
 
@@ -102,9 +128,12 @@ class App extends React.Component {
         this.setState({ level: msg.level })
         this.setState({ map: msg.map })
       }
+      // Listen for "USER SHOW ASSET"
+      else if('asset' === msg.show) {
+        // use msg
+      }
       
     })
-    
   
   }
   
@@ -123,12 +152,38 @@ class App extends React.Component {
   
   }
   
+  showAsset(asset) {
+    const PQAM = window.PlantQuestAssetMap
+    
+    // "SHOW ASSET" example
+    // when showing an asset
+    // it's important to first show the room of that asset and then the asset
+    PQAM.send({
+      srv: 'plantquest',
+      part: 'assetmap',
+      show: 'room',
+      room: asset.room,
+      focus: true,
+    })
+    PQAM.send({
+      srv: 'plantquest',
+      part: 'assetmap',
+      show: 'asset',
+      asset: asset.id,
+    })
+    
+    this.setState({ showRoom: asset.room })
+    this.setState({ showAsset: asset })
+    
+  }
+  
 
   render() {
     return (
       <div className="App">
         <PlantQuestAssetMap
           options={options}
+          assetinfo={AssetInfo}
         />
       </div>
     )
