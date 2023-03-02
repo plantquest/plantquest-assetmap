@@ -147,6 +147,17 @@ class App extends React.Component {
     <i>&lt;Boolean&gt;</i>: either true or false - enable focus when a room is shown<br>
   </p>
 
+  <h3>SHOW ASSET</h3>
+  <pre>
+{
+  srv: 'plantquest',
+  part: 'assetmap',
+  show: 'asset',
+  asset: &lt;ASSET-ID&gt;,     
+}</pre>
+  <p>Where:<br>
+    <i>&lt;ASSET-ID&gt;</i>: Asset Identifier String<br>
+  </p>
 
   <h3>SET ASSET STATUS</h3>
   <pre>
