@@ -144,7 +144,7 @@ class App extends React.Component {
 }</pre>
   <p>Where:<br>
     <i>&lt;ROOM-ID&gt;</i>: Room Identifier String<br>
-    <i>&lt;Boolean&gt;</i>: either true or false - when a room is shown<br>
+    <i>&lt;Boolean&gt;</i>: either true or false - enable focus when a room is shown<br>
   </p>
 
 
