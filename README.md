@@ -35,7 +35,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
 * `start.level`: Starting level
 * `room.color`: Room highlight color
 
-## Quick Example
+## ReactJS: Quick Example
 
 ```js
 
