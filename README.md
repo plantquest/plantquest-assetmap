@@ -207,7 +207,19 @@ class App extends React.Component {
     <i>&lt;ROOM-ID&gt;</i>: Room Identifier String<br>
   </p>
 
-
+  <h3>USER SELECT MAP</h3>
+  <pre>
+{
+  srv: 'plantquest',
+  part: 'assetmap',
+  show: 'map'
+  map: &lt;INTEGER&gt;,
+  level: &lt;STRING&gt;,
+}</pre>
+  <p>Where:<br>
+    <i>&lt;INTEGER&gt;</i>: Number of the map user just selected <br>
+    <i>&lt;STRING&gt;</i>: Name of the level of that map <br>
+  </p>
 
 ## Licenses
 
