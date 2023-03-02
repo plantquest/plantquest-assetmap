@@ -35,6 +35,76 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
 * `start.level`: Starting level
 * `room.color`: Room highlight color
 
+## Quick Example
+
+```js
+
+import { PlantQuestAssetMap } from '@plantquest/assetmap'
+
+window.PLANTQUEST_ASSETMAP_LOG = true
+
+const options = {
+  data: 'https://demo.plantquest.app/sample-data.js',
+  map: [
+    'https://demo.plantquest.app/pqd-pq01-m01-011.png',
+    'https://demo.plantquest.app/pqd-pq01-m02-011.png',
+  ],
+  width: '1000px',
+  height: '1000px',
+  states: {
+    up: { color: '#696', name: 'Up', marker: 'standard' },
+    down: { color: '#666', name: 'Down', marker: 'standard' },
+    missing: { color: '#f3f', name: 'Missing', marker: 'alert' },
+    alarm: { color: '#f33', name: 'Alarm', marker: 'alert' },
+  },
+}
+
+class App extends React.Component {
+  
+  constructor(props) {
+    super(props)
+    
+    this.state = {
+      foundRooms: [],
+      roomAssets: [],
+      map: -1,
+      level: '',
+      levels: [],
+      rooms: []
+    }
+    
+
+  }
+  
+  componentDidMount() {
+    const PQAM = window.PlantQuestAssetMap
+      
+    PQAM.listen((msg)=>{
+      if('ready'===msg.state) {
+        this.setState({
+          rooms: PQAM.data.rooms
+        })
+      }
+    })
+  
+    console.log('PQAM: ', PQAM )
+  
+  }
+  
+
+  render() {
+    return (
+      <div className="App">
+        <PlantQuestAssetMap
+          options={options}
+        />
+      </div>
+    )
+  }
+  
+}
+
+```
 
 ## Messages
 
