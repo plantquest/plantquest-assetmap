@@ -158,6 +158,18 @@ class App extends React.Component {
   <p>Where:<br>
     <i>&lt;ASSET-ID&gt;</i>: Asset Identifier String<br>
   </p>
+  
+  <h3>HIDE ASSET</h3>
+  <pre>
+{
+  srv: 'plantquest',
+  part: 'assetmap',
+  hide: 'asset',
+  asset: &lt;ASSET-ID&gt;,     
+}</pre>
+  <p>Where:<br>
+    <i>&lt;ASSET-ID&gt;</i>: Asset Identifier String<br>
+  </p>
 
   <h3>SET ASSET STATUS</h3>
   <pre>
