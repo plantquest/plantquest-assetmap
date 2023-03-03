@@ -202,7 +202,7 @@ class App extends React.Component {
 {
   srv: 'plantquest',
   part: 'assetmap',
-  ZOOM: &lt;INTEGER&gt;,     
+  zoom: &lt;INTEGER&gt;,     
 }</pre>
   <p>Where:<br>
     <i>&lt;INTEGER&gt;</i>: Zoom level (default: 2 to 6)<br>
