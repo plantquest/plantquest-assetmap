@@ -209,7 +209,7 @@ class App extends React.Component {
   </p>
 
 
-  <h3>GET RELATION</h3>
+  <h3>GET RELATION ( REQUIRES A RELATION LISTENER )</h3>
   <pre>
 {
   srv: 'plantquest',
