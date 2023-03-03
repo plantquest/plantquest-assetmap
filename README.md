@@ -57,6 +57,9 @@ const options = {
     down: { color: '#666', name: 'Down', marker: 'standard' },
     missing: { color: '#f3f', name: 'Missing', marker: 'alert' },
     alarm: { color: '#f33', name: 'Alarm', marker: 'alert' },
+    // "color" - color of the polygon of that state
+    // "name" - name of the state
+    // "marker" - type of marker ( 'standard' | 'alert' ) 
   },
 }
 
