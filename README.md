@@ -315,7 +315,7 @@ class App extends React.Component {
     <i>&lt;RELATION&gt;</i>:
     <pre>
       { '&lt;ROOM-ID&gt;': { asset: [ '&lt;ASSET-ID&gt;', ... ] } }</pre>
-    ROOM-ASSET RELATION: Get all the rooms IDS with their asset IDS in that room
+    ROOM-ASSET RELATION: Get all the rooms IDS containing their asset IDS in that room
     <br>
   </p>
 
