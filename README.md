@@ -41,7 +41,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
 
 import { PlantQuestAssetMap } from '@plantquest/assetmap'
 
-// enable logging for debugging purposes
+// enable logging - useful for debugging purposes
 window.PLANTQUEST_ASSETMAP_LOG = true
 
 const options = {
