@@ -319,6 +319,16 @@ class App extends React.Component {
     <br>
   </p>
 
+```js
+// for example
+const PQAM = window.PlantQuestAssetMap
+PQAM.listen((msg) => {
+  if('room-asset' === msg.relate) {
+    // use (msg.relation)
+  }
+})
+```
+
 
   <h3>USER SELECT ROOM</h3>
   <pre>
