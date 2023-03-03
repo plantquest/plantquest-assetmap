@@ -133,7 +133,7 @@ class App extends React.Component {
       }
       // Listen for "USER SHOW ASSET"
       else if('asset' === msg.show) {
-        // use msg
+        // use msg.asset
       }
       
     })
@@ -324,7 +324,7 @@ class App extends React.Component {
 const PQAM = window.PlantQuestAssetMap
 PQAM.listen((msg) => {
   if('room-asset' === msg.relate) {
-    // use (msg.relation)
+    // use msg.relation
   }
 })
 ```
