@@ -271,6 +271,20 @@ class App extends React.Component {
     <i>&lt;ASSET-ID&gt;</i>: Asset Identifier String<br>
   </p>
 
+  <h3>SET ASSET STATE</h3>
+  <pre>
+{
+  srv: 'plantquest',
+  part: 'assetmap',
+  show: 'asset',
+  state: &lt;STATE&gt;,
+  asset: &lt;ASSET-ID&gt;,     
+}</pre>
+  <p>Where:<br>
+    <i>&lt;STATE&gt;</i>: State String ('up', 'down', 'alarm', 'missing') - states from the <b>options</b> <br>
+    <i>&lt;ASSET-ID&gt;</i>: Asset Identifier String<br>
+  </p>
+
   <h3>SHOW MAP</h3>
   <pre>
 {
