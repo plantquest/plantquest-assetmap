@@ -311,7 +311,7 @@ class App extends React.Component {
   <p>Where:<br>
     <i>&lt;RELATION&gt;</i>:
     <pre>
-      { '&lt;ROOM-ID&gt;': { asset: [ '&lt;ASSET-ID&gt;', ... ] } ... }</pre>
+      { '&lt;ROOM-ID&gt;': { asset: [ '&lt;ASSET-ID&gt;', ... ] } }</pre>
     ROOM-ASSET RELATION: Get all the rooms IDS with their asset IDS in that room
     <br>
   </p>
