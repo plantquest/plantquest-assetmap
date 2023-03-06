@@ -279,7 +279,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         done(json)
       }
 
-      if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
+      if(self.config.data) {
         const head = $('head')
         const skript = document.createElement('script')
         skript.setAttribute('src', self.config.data)
