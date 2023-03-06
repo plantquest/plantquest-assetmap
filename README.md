@@ -62,6 +62,7 @@ const options = {
     // "marker" - type of marker ( 'standard' | 'alert' ) 
   },
   
+  // room highlight color
   room: {
     color: 'red'
   },
