@@ -189,7 +189,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         .use(SenecaMemStore)
         .ready(async function() {
           const seneca = this
-          console.log('seneca ready')
+          // console.log('seneca ready')
         })
       await seneca.ready()
       
@@ -482,7 +482,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       // await deps.save$()
       
       
-      console.log('deps: ', deps )
+      // console.log('deps: ', deps )
       
       window.seneca = seneca
       self.seneca = seneca
@@ -1106,13 +1106,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       ])
       
       if('alert' === stateDef.marker) {
-        console.log('alert')
         assetCurrent.poly = L.polygon(room_poly, {
           color: color,
         })
       }
       else {
-        console.log('circle')
         assetCurrent.poly = L.circle(
           c_asset_coords({x: ax, y: ay}), {
             radius: 0.2,
