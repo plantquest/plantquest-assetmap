@@ -323,7 +323,7 @@ import { intern } from 'seneca-mem-store'
         }
         
         seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
-          console.error("cmd map msgg: ", msg)
+          // console.error("cmd map msgg: ", msg)
           self.showMap(msg.map)
           
         })
