@@ -54,6 +54,7 @@ import { intern } from 'seneca-mem-store'
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
         
+        data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
         api_key: '<API KEY>',
         api_endpoint: '/',
