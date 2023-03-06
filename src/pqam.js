@@ -897,7 +897,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // convert for popup
         let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
         let roompos_x = roomlatlng[1]
-        let roompos = c_asset_coords({y: roompos_y-50, x: roompos_x+50 } )
+        let roompos = c_asset_coords({y: roompos_y-4, x: roompos_x+5 } )
                
         // map focus on room selection
         self.loc.popup = L.popup({
