@@ -24,7 +24,7 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
 * `width`: Pixel width of map ( default: `'600px'` )
 * `height`: Pixel height of map ( default: `'400px'` )
 * `mapBounds`: Pixel bounds of map
-* `mapStart`: Pixel start position of map ( e.g `[y, x]` ( default: `[2825, 3900]` ) )
+* `mapStart`: Pixel start position of map ( e.g `[y, x]` ( default: `[2925, 3900]` ) )
 * `mapStartZoom`: Starting zoom level
 * `mapRoomFocusZoom`: Zoom level for room focus
 * `mapMaxZoom`: Maximum zoom
