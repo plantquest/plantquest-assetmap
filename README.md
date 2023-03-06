@@ -21,19 +21,19 @@ Set `window.PLANTQUEST_ASSETMAP_LOG` to `true` to enable logging.
 
 ## Options
 
-* `width`: Pixel width of map ( default: 600px )
-* `height`: Pixel height of map ( default: 400px )
+* `width`: Pixel width of map ( default: `'600px'` )
+* `height`: Pixel height of map ( default: `'400px'` )
 * `mapBounds`: Pixel bounds of map
-* `mapStart`: Pixel start position of map ( e.g [y, x] ( default: [2825, 3900] ) )
+* `mapStart`: Pixel start position of map ( e.g `[y, x]` ( default: `[2825, 3900]` ) )
 * `mapStartZoom`: Starting zoom level
 * `mapRoomFocusZoom`: Zoom level for room focus
 * `mapMaxZoom`: Maximum zoom
 * `mapMinZoom`: Minimum zoom
 * `states`: State definitions ( optional )
   * `{ [stateName]: { color: COLOR, name: STRING, marker: 'standard'|'alert'}, ...}`
-* `start.map`: Starting map ( default: 0 )
-* `start.level`: Starting level ( default: 0 )
-* `room.color`: Room highlight color
+* `start.map`: Starting map ( default: `0` )
+* `start.level`: Starting level ( default: `0` )
+* `room.color`: Room highlight color ( default: `'#33f'` )
 
 ## ReactJS: Quick Example
 
@@ -61,6 +61,11 @@ const options = {
     // "name" - name of the state
     // "marker" - type of marker ( 'standard' | 'alert' ) 
   },
+  
+  room: {
+    color: 'red'
+  },
+  
 }
 
 // container when showing an asset
