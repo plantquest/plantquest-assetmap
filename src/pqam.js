@@ -4,6 +4,12 @@ import L from 'leaflet'
 import './leaflet.toolbar.min.js'
 import Pkg from '../package.json'
 
+
+import Seneca from 'seneca-browser'
+import SenecaEntity from 'seneca-entity'
+import SenecaMemStore from 'seneca-mem-store'
+
+import { intern } from 'seneca-mem-store'
 import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 
@@ -43,6 +49,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
+        mapStart: [2925, 3900],
         mapImg: [7800, 5850],
         mapStart: [2925,3900],
         mapStartZoom: -4,
@@ -52,6 +59,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
+        
+        data: 'https://demo.plantquest.app/sample-data.js',
+        mode: 'demo',
+        api_key: '<API KEY>',
+        api_endpoint: '/',
         tilesEndPoint: 'https://demo.plantquest.app/tiles',
 
         states: {
@@ -77,11 +89,16 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         ],
       },
       data: {},
+      assetMap: {},
+      roomMap: {},
       current: {
         started: false,
         room: {},
-        asset: {
-        },
+        asset: {},
+      },
+      upload: {
+        assetI: 0,
+        interval: null,
       },
       listeners: [],
     }
@@ -151,17 +168,105 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     }
 
     
-    self.load = function(done) {
-
-      function processData(json) {
+    self.load = async function(done) {
+      let seneca = new Seneca({
+        log: { logger: 'flat', level: 'warn' },
+        plugin: {
+          browser: {
+            endpoint: self.config.api_endpoint,
+            headers: {
+              'X-API-Key': self.config.api_key,
+	    },
+          }
+        },
+        timeout: 44444,
+      })
+      
+      
+      seneca
+        .test()
+        .use(SenecaEntity)
+        .use(SenecaMemStore)
+        .ready(async function() {
+          const seneca = this
+          // console.log('seneca ready')
+        })
+      await seneca.ready()
+      
+      await seneca.client({
+        type: 'browser',
+        pin: [
+          'role:entity,cmd:load',
+          'role:entity,cmd:list',
+          'role:entity,cmd:save',
+          'role:entity,cmd:remove',
+          'pqs:*',
+          'am:*',
+          'aim:web',
+        ]
+      })
+      
+      // linear load - refatoring needed
+      async function loadAssets() {
+        let assets = await seneca.entity('pqs/asset').list$({
+          custom$: {
+            lister: true
+          },
+          
+          fields$:[
+            'id',
+            'tag',
+            'xco',
+            'yco',
+            'zco',
+            'icon',
+            'atype',    
+            'discipline1',  
+            'description',       
+            'manufacturer', 
+            'model',        
+            'serial',       
+            'map',
+            'building',     
+            'level',        
+            'room',              
+            'drawing1',     
+            'drawing2',        
+            'system',       
+            'subsys',       
+	    'custom12',
+	    'data2',
+          ]
+          
+        })
+        // assets[0].save$()
+        return assets
+      }
+      
+      
+      
+      function reset() {
+        // reset
+        self.data.deps = {}
+        self.data.roomMap = {}
+        self.data.rooms = []
+        self.data.buildings = []
+        self.data.levels = []
+        self.data.maps = []
+      }
+      
+      async function processData(json) {
         self.data = json
         
+        let assets = []
+        
+        if(self.config.mode === 'demo') {
+          assets = await seneca.entity('pqs/asset').list$()
+        }
         let assetMap = {}
-        let assetProps = self.data.assets[0]
-        for(let rowI = 1; rowI < self.data.assets.length; rowI++) {
-          let row = self.data.assets[rowI]
-          let assetID = row[0]
-          assetMap[assetID] = assetProps.reduce((a,p,i)=>((a[p]=row[i]),a),{})
+        
+        for(let asset of assets) {
+          assetMap[asset.id] = asset
         }
         
         self.data.assetMap = assetMap
@@ -183,6 +288,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         let waiter = setInterval(()=>{
           self.log('loading data...')
           if(window.PLANTQUEST_ASSETMAP_DATA) {
+	    // console.log('self.config: ', self.config)
+
             clearInterval(waiter)
             processData(window.PLANTQUEST_ASSETMAP_DATA)
           }
@@ -190,6 +297,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
       else {
         // fetch(self.config.base+self.config.data)
+        
         fetch(self.config.data)
           .then(response => {
             if (!response.ok) {
@@ -200,6 +308,186 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           .then(json => processData(json))
           .catch((err)=>self.log('ERROR','load',err))
       }
+      
+      seneca.use(function amcommands() {
+        const seneca = this
+        
+        function assetShow(msg) {
+          let assetRoom = self.data.deps.cp.asset[msg.asset]
+          let assetData = self.data.assetMap[msg.asset]
+          if(assetRoom) {
+            self.emit({
+              srv:'plantquest',
+              part:'assetmap',
+              show:'asset',
+              before:true,
+              asset: assetData,
+            })
+            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
+          }
+          else {
+            self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
+          }
+        }
+        
+        seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
+          // console.error("cmd map msgg: ", msg)
+          self.showMap(msg.map)
+          
+        })
+
+        seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
+          let room = self.data.roomMap[msg.room]
+        
+          if(room) {
+
+            if(msg.assets) {
+              if(msg.assets) {
+                for(let asset of msg.assets) {
+                  self.showAsset(asset.asset, asset.state)
+                }
+              }
+            }
+
+            if(msg.focus) {
+              self.selectRoom(room.room, { mute:true })
+            }
+          }
+          else {
+            self.log('ERROR', 'send', 'room', 'unknown-room', msg)
+          }
+          
+        })
+        
+        seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
+          // console.error("cmd plant msgg: ", msg)
+          self.showMap(msg.plant)
+          
+        })
+        
+        seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
+          // console.error("cmd floor msgg: ", msg)
+          
+          self.showMap(msg.map)
+          self.clearRoomAssets()
+          self.unselectRoom()
+          self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
+        
+        })
+
+        seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
+          // console.error("cmd asset msgg: ", msg)
+          assetShow(msg)
+        })
+        
+        seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
+          // show:asset functionality
+          // console.error("cmd hide msgg: ", msg)
+          assetShow(msg)
+        })
+        
+        seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
+          // console.error("cmd room-asset msgg: ", msg)
+          self.emit({
+            srv:'plantquest',
+            part:'assetmap',
+            relate:'room-asset',
+            relation:clone(self.data.deps.pc.room)
+          })
+          
+        })
+        
+      })
+      
+      seneca.add('role:web,cmd:upload', function(msg, reply) {
+        let assets = []
+        return reply(assets)
+      
+      })
+      
+      // same/similar goes for 'pqs/map', 'pqs/level', 'pqs/deps', etc.
+      seneca.use(function amasset() {
+        let entmap = seneca.export('mem-store/native')
+        this
+          .message(
+            'role:entity,cmd:save,base:am,name:asset',
+            async function save_asset(msg) {
+              let ent = msg.ent
+              ent.id = ent.id || seneca.util.Nid()
+              if(!assets[ent.id]) {
+                assets[ent.id] = ent
+              }
+              return ent
+            })
+            
+          .message(
+            'role:entity,cmd:load,base:am,name:asset',
+            async function load_asset(msg) {
+              let id = msg.q.id
+              // entize ?
+              return Object.assign(msg.ent, assets[id])
+              // return assets[id]
+            })
+            
+          .add(
+            'role:entity,cmd:list,base:am,name:asset',
+            async function list_asset(msg, reply) {
+              let list = []
+              msg.q = msg.q || {}
+              intern.listents(this, entmap, msg.qent, msg.q, function(err, asset) {
+                return reply(asset)
+              })
+              
+            })
+      })
+      
+      seneca.use(function pqsasset() {
+        let assetMap = {}
+        this.message(
+          'role:entity, cmd: list, base: pqs, name: asset',
+          async function list_asset(msg, reply) {
+            let assetProps = self.data.assets[0]
+            for(let rowI = 1; rowI < self.data.assets.length; rowI++) {
+              let row = self.data.assets[rowI]
+              let assetID = row[0]
+              assetMap[assetID] = assetProps.reduce((a,p,i)=>((a[p]=row[i]),a),{})
+            }
+            return Object.values(assetMap)
+        })
+      })
+      
+      
+      
+      /*
+      // my idea for when asset is updated
+      seneca.add('role:entity,cmd:save,base:pqs,name:asset', async function (msg, reply) {
+        const seneca = this
+        let ent = msg.ent
+        
+        // update deps ( relations ) along with the other logic from the script
+        await seneca.entity('pqs/deps').save$( ... )
+    
+        return await this.prior(msg, reply)
+      })
+      */
+
+      
+      let maps = self.data.maps = seneca.make$('pqs/map')
+      let levels = self.data.levels = seneca.make$('pqs/level')
+      let deps = self.data.deps = seneca.make$('pqs/deps')
+      
+      let pc = {} // seneca.make$('pqs/deps/pc')
+      let cp = {} // seneca.make$('pqs/deps/cp')
+      deps.pc = pc, deps.cp = cp
+      // await deps.save$()
+      
+      
+      // console.log('deps: ', deps )
+      
+      window.seneca = seneca
+      self.seneca = seneca
+      
+  
     }
 
     
@@ -225,70 +513,15 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }, self.domInterval)
     }
 
-    self.send = function(msg) {
+    self.send = async function(msg) {
       self.log('send', 'in', msg)
-
-      if('room-asset' === msg.relate) {
-        self.emit({
-          srv:'plantquest',
-          part:'assetmap',
-          relate:'room-asset',
-          relation:clone(self.data.deps.pc.room)
-        })        
-      }
-      else if('map' === msg.show) {
-        self.showMap(msg.map)
-      }
-      else if('plant' === msg.show) {
-        self.showMap(msg.plant)
-      }
-      else if('floor' === msg.show) {
-        self.showMap(msg.map)
-        self.clearRoomAssets()
-        self.unselectRoom()
-        self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
-      }
-      else if('room' === msg.show) {
-        let room = self.data.roomMap[msg.room]
-        
-        if(room) {
-
-          if(msg.assets) {
-            if(msg.assets) {
-              for(let asset of msg.assets) {
-                self.showAsset(asset.asset, asset.state)
-              }
-            }
-          }
-
-          if(msg.focus) {
-            self.selectRoom(room.room, {mute:true})
-          }
-        }
-        else {
-          self.log('ERROR', 'send', 'room', 'unknown-room', msg)
-        }
-      }
-      else if('asset' === msg.show || 'asset' === msg.hide) {
-        let assetRoom = self.data.deps.cp.asset[msg.asset]
-        let assetData = self.data.assetMap[msg.asset]
-        if(assetRoom) {
-          self.emit({
-            srv:'plantquest',
-            part:'assetmap',
-            show:'asset',
-            before:true,
-            asset: assetData,
-          })
-          self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
-        }
-        else {
-          self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
-        }
-      }
-      else if(null != msg.zoom) {
+      
+      await seneca.post(msg) // use seneca messages instead of 'if chain'
+      
+      if(null != msg.zoom) {
         self.map.setZoom(msg.zoom)
       }
+      
     }
 
     self.listen = function(listener) {
@@ -664,7 +897,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // convert for popup
         let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
         let roompos_x = roomlatlng[1]
-        let roompos = c_asset_coords({y: roompos_y-50, x: roompos_x+50 } )
+        let roompos = c_asset_coords({y: roompos_y-4, x: roompos_x+5 } )
                
         // map focus on room selection
         self.loc.popup = L.popup({
@@ -873,13 +1106,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       ])
       
       if('alert' === stateDef.marker) {
-        console.log('alert')
         assetCurrent.poly = L.polygon(room_poly, {
           color: color,
         })
       }
       else {
-        console.log('circle')
         assetCurrent.poly = L.circle(
           c_asset_coords({x: ax, y: ay}), {
             radius: 0.2,
