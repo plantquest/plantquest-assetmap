@@ -87,11 +87,10 @@ class AssetInfo extends React.Component {
   }
   
   render() {
-    return
-      (<div className="AssetInfo">
+    return <div>
          <h3>{this.props.asset.id}</h3>
          <p><i>Building:</i> {this.props.asset.building}</p>
-       </div>)
+       </div>
   }
 }
 
