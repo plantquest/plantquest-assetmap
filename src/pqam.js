@@ -55,7 +55,7 @@ import { intern } from 'seneca-mem-store'
         assetFontHideZoom: -1,
         
         api_key: '<API KEY>',
-        api_endpoint: '/msg01',
+        api_endpoint: '/',
 
         states: {
           up: { color: '#99f', name: 'Up', marker: 'standard' },
@@ -249,51 +249,24 @@ import { intern } from 'seneca-mem-store'
       async function processData(json) {
         self.data = json
         
+        let assets = await seneca.entity('pqs/asset').list$()
         let assetMap = {}
-        let assetProps = self.data.assets[0]
-        let main_assets = await loadAssets()
-        for(let i = 0; i < main_assets.length; i++) {
-          let asset = main_assets[i]
-          let assetID = asset.id
-          asset.xco = parseInt(asset.xco)
-          asset.yco = parseInt(asset.yco)
-          asset.zco = isNaN(parseInt(asset.zco)) ? 0 : parseInt(asset.zco)
-          assetMap[assetID] = asset
-          
-          // await seneca.entity('am/asset').data$({ ...asset }).save$({ ...asset }) // too slow
-          
-          
+        
+        for(let asset of assets) {
+          assetMap[asset.id] = asset
         }
-        
-        let entmap = seneca.export('mem-store/native')
-        entmap.am = {}
-        entmap.am.asset = assetMap
-        
-        
-        self.data.assets = main_assets
         
         self.data.assetMap = assetMap
         
-
-        // reset()
         
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a),{})
         self.data.roomMap = roomMap
         
-
-        
         self.log('data loaded')
-        
-        console.log('self: ', self)
-        window.main = { data: self.data, }
-        window.main.main_assets = []
-        
-        console.log('am_assets: ', (await seneca.entity('am/asset').list$()) )
-        
         done(json)
       }
 
-      if('pqd-pq01-ast-011.js' === self.config.data) {
+      if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
         const head = $('head')
         const skript = document.createElement('script')
         skript.setAttribute('src', self.config.data)
@@ -374,13 +347,13 @@ import { intern } from 'seneca-mem-store'
         })
         
         seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
-          console.error("cmd plant msgg: ", msg)
+          // console.error("cmd plant msgg: ", msg)
           self.showMap(msg.plant)
           
         })
         
         seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
-          console.error("cmd floor msgg: ", msg)
+          // console.error("cmd floor msgg: ", msg)
           
           self.showMap(msg.map)
           self.clearRoomAssets()
@@ -390,18 +363,18 @@ import { intern } from 'seneca-mem-store'
         })
 
         seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
-          console.error("cmd asset msgg: ", msg)
+          // console.error("cmd asset msgg: ", msg)
           assetShow(msg)
         })
         
         seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
           // show:asset functionality
-          console.error("cmd hide msgg: ", msg)
+          // console.error("cmd hide msgg: ", msg)
           assetShow(msg)
         })
         
         seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
-          console.error("cmd room-asset msgg: ", msg)
+          // console.error("cmd room-asset msgg: ", msg)
           self.emit({
             srv:'plantquest',
             part:'assetmap',
@@ -455,6 +428,21 @@ import { intern } from 'seneca-mem-store'
             })
       })
       
+      seneca.use(function pqsasset() {
+        let assetMap = {}
+        this.message(
+          'role:entity, cmd: list, base: pqs, name: asset',
+          async function list_asset(msg, reply) {
+            let assetProps = self.data.assets[0]
+            for(let rowI = 1; rowI < self.data.assets.length; rowI++) {
+              let row = self.data.assets[rowI]
+              let assetID = row[0]
+              assetMap[assetID] = assetProps.reduce((a,p,i)=>((a[p]=row[i]),a),{})
+            }
+            return Object.values(assetMap)
+        })
+      })
+      
       
       
       /*
@@ -478,7 +466,7 @@ import { intern } from 'seneca-mem-store'
       let pc = {} // seneca.make$('pqs/deps/pc')
       let cp = {} // seneca.make$('pqs/deps/cp')
       deps.pc = pc, deps.cp = cp
-      await deps.save$()
+      // await deps.save$()
       
       
       console.log('deps: ', deps )
