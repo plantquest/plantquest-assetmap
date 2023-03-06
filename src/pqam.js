@@ -30,9 +30,11 @@ import Pkg from '../package.json'
   function PlantQuestAssetMap() {
     const self = {
       id: (''+Math.random()).substring(2,8),
+      
+      // default config
       config: {
-        width: 600,
-        height: 400,
+        width: '600px',
+        height: '400px',
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
@@ -859,6 +861,10 @@ import Pkg from '../package.json'
       
       setTimeout(()=>{
         let html = $('#plantquest-assetmap-assetinfo').innerHTML
+        
+        if(assetCurrent.label != null) {
+          return
+        }
       
         assetCurrent.label = L.marker([ay-20,ax-20], {icon: L.divIcon({
           className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-'+stateName,
@@ -873,7 +879,7 @@ import Pkg from '../package.json'
         lem.style.fontSize = ''
       
         self.zoomEndRender()
-      },50)
+      }, 50)
     }
 
     
