@@ -57,13 +57,13 @@
   ],
   "dependencies": {
     "leaflet": "1.8.0",
+    "leaflet-rastercoords": "1.0.5",
     "seneca": "3.29.0",
     "seneca-browser": "4.0.1",
     "seneca-entity": "18.4.0",
     "seneca-mem-store": "7.0.1"
   },
   "resolutions": {
-    "react-error-overlay": "6.0.9",
-    "leaflet-rastercoords": "1.0.5"
+    "react-error-overlay": "6.0.9"
   }
 }
