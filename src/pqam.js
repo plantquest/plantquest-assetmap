@@ -4,6 +4,9 @@ import L from 'leaflet'
 import './leaflet.toolbar.min.js'
 import Pkg from '../package.json'
 
+import '../node_modules/leaflet-rastercoords/rastercoords.js'
+
+
 ;(function(W, D) {
   const log = (...args) => {
     if(true === window.PLANTQUEST_ASSETMAP_LOG || 'ERROR' === args[1]) {
@@ -27,6 +30,8 @@ import Pkg from '../package.json'
   let $All = D.querySelectorAll.bind(D)
   let Element = D.createElement.bind(D)
   
+  let rc
+  
   function PlantQuestAssetMap() {
     const self = {
       id: (''+Math.random()).substring(2,8),
@@ -38,11 +43,12 @@ import Pkg from '../package.json'
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
+        mapImg: [7800, 5850],
         mapStart: [2925,3900],
         mapStartZoom: -4,
         mapRoomFocusZoom: 0,
-        mapMaxZoom: 1,
-        mapMinZoom: -4,
+        mapMinZoom: 2,
+        mapMaxZoom: 6,
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
@@ -360,6 +366,7 @@ import Pkg from '../package.json'
 
       self.log('build', ms, L)
       
+      
       self.map = L.map('plantquest-assetmap-map', {
         crs: L.CRS.Simple,
         scrollWheelZoom: true,
@@ -367,6 +374,7 @@ import Pkg from '../package.json'
         minZoom: self.config.mapMinZoom,
         maxZoom: self.config.mapMaxZoom,
       })
+      rc = self.rc = new L.RasterCoords(self.map, self.config.mapImg)
 
       self.map.on('zoomstart', self.zoomStartRender)
       self.map.on('zoomend', self.zoomEndRender)
@@ -381,8 +389,9 @@ import Pkg from '../package.json'
       self.layer.asset = L.layerGroup().addTo(self.map)
       
       self.map.on('mousemove', (mev)=>{
-        self.loc.x = mev.latlng.lng
-        self.loc.y = mev.latlng.lat
+        let {xco, yco} = convert_latlng(mev.latlng)
+        self.loc.x = xco
+        self.loc.y = yco
       })
       
       setInterval(self.checkRooms, self.config.mapInterval)
@@ -506,7 +515,7 @@ import Pkg from '../package.json'
     
     self.checkRooms = function() {
       let xco = self.loc.x
-      let yco = self.loc.y
+      let yco = convert_poly_y(self.config.mapImg, self.loc.y)
       
       let rooms = Object.values(self.data.rooms)
 
@@ -538,12 +547,14 @@ import Pkg from '../package.json'
           try {
             let roomState = self.current.room[room.room] ||
                 (self.current.room[room.room]={alarm:'neutral'})
+            let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
 
             self.loc.room = room
             self.loc.alarmState = alarmState
+            
 
             self.loc.poly = L.polygon(
-              room.poly, {
+              room_poly, {
                 // color: self.resolveRoomColor(roomState.alarm,'lo')
                 color: self.config.room.color
               })
@@ -588,7 +599,7 @@ import Pkg from '../package.json'
 
         self.log('selectRoom', roomId, room)
 
-        self.showMap(parseInt(room.map)-1)
+        // self.showMap(parseInt(room.map)-1)
         
         let roomState = self.current.room[room.room] ||
             (self.current.room[room.room]={alarm:'neutral'})
@@ -635,33 +646,41 @@ import Pkg from '../package.json'
         //   }
         // }
         // else {
-        
+          let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
+          
           self.loc.chosen.poly = L.polygon(
-            room.poly, {
+            room_poly, {
               // color: self.resolveRoomColor(roomState.alarm,'hi')
               color: self.config.room.color
-            })
+          })
           self.loc.chosen.poly.on('click', ()=>self.selectRoom(room.room))
           
           self.loc.chosen.poly.addTo(self.layer.room)
       // }
 
         let roomlatlng = self.focusRoom(room)
+        
+        // convert for popup
+        let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
+        let roompos_x = roomlatlng[1]
+        let roompos = c_asset_coords({y: roompos_y-50, x: roompos_x+50 } )
                
+        // map focus on room selection
         self.loc.popup = L.popup({
           autoClose: false,
           closeOnClick: false,
         })
-          .setLatLng(roomlatlng)
+          .setLatLng(roompos)
           .setContent(self.roomPopup(self.loc.chosen.room))
           .openOn(self.map)
-
-        self.map.setView([roomlatlng[0]-50,roomlatlng[1]+50],
-                         self.config.mapRoomFocusZoom)
+        
+        // self.map.setView(roompos,
+                         // self.map.getZoom())
+                         
 
         self.showRoomAssets(room.room)
         self.clearRoomAssets(room.room)
-        self.zoomEndRender()
+        // self.zoomEndRender()
         
         if(!opts.mute) {
           self.click({select:'room', room:self.loc.chosen.room.room})
@@ -711,8 +730,15 @@ import Pkg from '../package.json'
         }
       }
 
-      let roompos = [roomlatlng[0],roomlatlng[1]-30]
-      self.map.setView(roompos, self.config.mapRoomFocusZoom)
+      // let roompos = [roomlatlng[0],roomlatlng[1]-30]
+      
+      let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
+      let roompos_x = roomlatlng[1]
+      let roompos = c_asset_coords({y: roompos_y, x: roompos_x-30 } )
+      // self.map.setView(roompos, self.config.mapRoomFocusZoom)
+      self.map.setView(roompos,
+                        self.map.getZoom())
+                        
       self.zoomEndRender()
       
       return roomlatlng
@@ -829,7 +855,7 @@ import Pkg from '../package.json'
       
       
       let assetPoint = [
-        self.config.mapBounds[0]-assetProps.yco,
+        assetProps.yco,
         assetProps.xco,
       ]
       let ax = assetPoint[1]
@@ -838,19 +864,24 @@ import Pkg from '../package.json'
       assetCurrent.stateName = stateName
       let color = stateDef.color
       
+      let ay_poly = convert_poly_y(self.config.mapImg, ay)
+      let room_poly = convertRoomPoly(self.config.mapImg, [
+          [ay_poly+10,ax],
+          [ay_poly-10,ax+10],
+          [ay_poly-10,ax-10],
+      ])
+      
       if('alert' === stateDef.marker) {
-        assetCurrent.poly = L.polygon([
-          [ay+10,ax],
-          [ay-10,ax+10],
-          [ay-10,ax-10],
-        ], {
+        console.log('alert')
+        assetCurrent.poly = L.polygon(room_poly, {
           color: color,
         })
       }
       else {
+        console.log('circle')
         assetCurrent.poly = L.circle(
-          assetPoint, {
-            radius: 5,
+          c_asset_coords({x: ax, y: ay}), {
+            radius: 0.2,
             color: color,
           })
       }
@@ -862,6 +893,7 @@ import Pkg from '../package.json'
       setTimeout(()=>{
         let html = $('#plantquest-assetmap-assetinfo').innerHTML
         
+        
         if(assetCurrent.label != null) {
           return
         }
@@ -870,6 +902,14 @@ import Pkg from '../package.json'
           className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-'+stateName,
           html
         })})
+        
+        assetCurrent.label = L.marker(
+          c_asset_coords({x: ax+1, y: ay+20 }),
+          {icon: L.divIcon({
+            className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-'+stateName,
+            html
+          })
+        })
 
         assetCurrent.label.addTo(self.layer.asset)
 
@@ -910,17 +950,33 @@ import Pkg from '../package.json'
       }
     }
 
+    self.getUrl = function(mapIndex) {
+      return self.config.tilesEndPoint + '/' + mapIndex + '/{z}/{x}/{y}.png'
+    },
+    
+    self.createTile = function(mapIndex) {
+      let tileLyr = 
+        L.tileLayer(self.getUrl(mapIndex), {
+          // noWrap: true,
+          // maxNativeZoom: rc.zoomLevel(),
+          bounds: self.rc.getMaxBounds(),
+          minZoom: self.config.mapMinZoom,
+          maxZoom: self.config.mapMaxZoom,
+        })
+      return tileLyr
+    },
     
     self.showMap = function(mapIndex) {
       self.log('showMap', mapIndex, self.loc)
       if(mapIndex !== self.loc.map) {
-        if(self.leaflet.mapimg) {
-          self.leaflet.mapimg.remove(self.map)
+        if(self.leaflet.maptile) {
+          self.leaflet.maptile.remove(self.map)
         }
-        let mapurl = self.config.map[mapIndex]
-        let bounds = [[0, 0], [...self.config.mapBounds]]
-        self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
-        self.leaflet.mapimg.addTo(self.map)
+        // let mapurl = self.config.map[mapIndex]
+        // let bounds = [[0, 0], [...self.config.mapBounds]]
+        self.leaflet.maptile = self.createTile(mapIndex+1)
+        // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
+        self.leaflet.maptile.addTo(self.map)
         self.loc.map = mapIndex
 
         self.unselectRoom()
@@ -1038,6 +1094,34 @@ import Pkg from '../package.json'
       if (intersect) inside = !inside
     }
     return inside
+  }
+  
+  // utility functions
+  
+  // transform poly coords for tilesets
+  function convertRoomPoly(img, poly) {
+    let p = []
+    for(let part of poly) {
+      p.push( rc.unproject({ x: part[1], y: img[1] - part[0] }) )
+    }
+    return p
+  }
+  
+  function convert_latlng(latlng) {
+    let Lng = rc.project(latlng)
+    return { 
+      xco: Math.floor(Lng.x),
+      yco: Math.floor(Lng.y)
+    }
+    
+  }
+  
+  function convert_poly_y(img, y) {
+    return img[1] - y
+  }
+  
+  function c_asset_coords( {x, y} ) {
+    return rc.unproject({x, y})
   }
     
   W.PlantQuestAssetMap = new PlantQuestAssetMap()
