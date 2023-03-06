@@ -54,6 +54,7 @@ import { intern } from 'seneca-mem-store'
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
         
+        mode: 'demo',
         api_key: '<API KEY>',
         api_endpoint: '/',
 
@@ -249,7 +250,11 @@ import { intern } from 'seneca-mem-store'
       async function processData(json) {
         self.data = json
         
-        let assets = await seneca.entity('pqs/asset').list$()
+        let assets = []
+        
+        if(self.config.mode === 'demo') {
+          assets = await seneca.entity('pqs/asset').list$()
+        }
         let assetMap = {}
         
         for(let asset of assets) {
