@@ -46,12 +46,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         mapImg: [7800, 5850],
         mapStart: [2925,3900],
         mapStartZoom: -4,
-        mapRoomFocusZoom: 0,
+        mapRoomFocusZoom: 5,
         mapMinZoom: 2,
         mapMaxZoom: 6,
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
+        tilesEndPoint: 'https://demo.plantquest.app/tiles',
 
         states: {
           up: { color: '#99f', name: 'Up', marker: 'standard' },
@@ -737,7 +738,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       let roompos = c_asset_coords({y: roompos_y, x: roompos_x-30 } )
       // self.map.setView(roompos, self.config.mapRoomFocusZoom)
       self.map.setView(roompos,
-                        self.map.getZoom())
+                        self.config.mapRoomFocusZoom)
                         
       self.zoomEndRender()
       
