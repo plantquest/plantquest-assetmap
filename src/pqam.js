@@ -206,43 +206,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         ]
       })
       
-      // linear load - refatoring needed
-      async function loadAssets() {
-        let assets = await seneca.entity('pqs/asset').list$({
-          custom$: {
-            lister: true
-          },
-          
-          fields$:[
-            'id',
-            'tag',
-            'xco',
-            'yco',
-            'zco',
-            'icon',
-            'atype',    
-            'discipline1',  
-            'description',       
-            'manufacturer', 
-            'model',        
-            'serial',       
-            'map',
-            'building',     
-            'level',        
-            'room',              
-            'drawing1',     
-            'drawing2',        
-            'system',       
-            'subsys',       
-	    'custom12',
-	    'data2',
-          ]
-          
-        })
-        // assets[0].save$()
-        return assets
-      }
-      
       
       
       function reset() {
@@ -279,167 +242,124 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         done(json)
       }
 
-      if(self.config.data) {
-        const head = $('head')
-        const skript = document.createElement('script')
-        skript.setAttribute('src', self.config.data)
-        head.appendChild(skript)
+      if(self.config.mode == 'demo') {
+      
+        if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
+          const head = $('head')
+          const skript = document.createElement('script')
+          skript.setAttribute('src', self.config.data)
+          head.appendChild(skript)
 
-        let waiter = setInterval(()=>{
-          self.log('loading data...')
-          if(window.PLANTQUEST_ASSETMAP_DATA) {
-	    // console.log('self.config: ', self.config)
+          let waiter = setInterval(()=>{
+            self.log('loading data...')
+            if(window.PLANTQUEST_ASSETMAP_DATA) {
+	      // console.log('self.config: ', self.config)
 
-            clearInterval(waiter)
-            processData(window.PLANTQUEST_ASSETMAP_DATA)
-          }
-        },111)
-      }
-      else {
-        // fetch(self.config.base+self.config.data)
-        
-        fetch(self.config.data)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error("HTTP error " + response.status)
+              clearInterval(waiter)
+              processData(window.PLANTQUEST_ASSETMAP_DATA)
             }
-            return response.json()
-          })
-          .then(json => processData(json))
-          .catch((err)=>self.log('ERROR','load',err))
+          },111)
+        }
+        else {
+          // fetch(self.config.base+self.config.data)
+        
+          fetch(self.config.data)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("HTTP error " + response.status)
+              }
+              return response.json()
+            })
+            .then(json => processData(json))
+            .catch((err)=>self.log('ERROR','load',err))
+        }
       }
       
-      seneca.use(function amcommands() {
-        const seneca = this
-        
-        function assetShow(msg) {
-          let assetRoom = self.data.deps.cp.asset[msg.asset]
-          let assetData = self.data.assetMap[msg.asset]
-          if(assetRoom) {
-            self.emit({
-              srv:'plantquest',
-              part:'assetmap',
-              show:'asset',
-              before:true,
-              asset: assetData,
-            })
-            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
-          }
-          else {
-            self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
-          }
-        }
-        
-        seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
-          // console.error("cmd map msgg: ", msg)
-          self.showMap(msg.map)
-          
-        })
-
-        seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
-          let room = self.data.roomMap[msg.room]
-        
-          if(room) {
-
-            if(msg.assets) {
-              if(msg.assets) {
-                for(let asset of msg.assets) {
-                  self.showAsset(asset.asset, asset.state)
-                }
-              }
-            }
-
-            if(msg.focus) {
-              self.selectRoom(room.room, { mute:true })
-            }
-          }
-          else {
-            self.log('ERROR', 'send', 'room', 'unknown-room', msg)
-          }
-          
-        })
-        
-        seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
-          // console.error("cmd plant msgg: ", msg)
-          self.showMap(msg.plant)
-          
-        })
-        
-        seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
-          // console.error("cmd floor msgg: ", msg)
-          
-          self.showMap(msg.map)
-          self.clearRoomAssets()
-          self.unselectRoom()
-          self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
-        
-        })
-
-        seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
-          // console.error("cmd asset msgg: ", msg)
-          assetShow(msg)
-        })
-        
-        seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
-          // show:asset functionality
-          // console.error("cmd hide msgg: ", msg)
-          assetShow(msg)
-        })
-        
-        seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
-          // console.error("cmd room-asset msgg: ", msg)
+      function assetShow(msg) {
+        let assetRoom = self.data.deps.cp.asset[msg.asset]
+        let assetData = self.data.assetMap[msg.asset]
+        if(assetRoom) {
           self.emit({
             srv:'plantquest',
             part:'assetmap',
-            relate:'room-asset',
-            relation:clone(self.data.deps.pc.room)
+            show:'asset',
+            before:true,
+            asset: assetData,
           })
+          self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
+        }
+        else {
+          self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
+        }
+      }
+        
+      seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
+        // console.error("cmd map msgg: ", msg)
+        self.showMap(msg.map)
           
-        })
+      })
+
+      seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
+        let room = self.data.roomMap[msg.room]
+        
+        if(room) {
+
+          if(msg.assets) {
+            if(msg.assets) {
+              for(let asset of msg.assets) {
+                self.showAsset(asset.asset, asset.state)
+              }
+            }
+          }
+
+          if(msg.focus) {
+            self.selectRoom(room.room, { mute:true })
+          }
+        }
+        else {
+          self.log('ERROR', 'send', 'room', 'unknown-room', msg)
+        }
+          
+      })
+        
+      seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
+        // console.error("cmd plant msgg: ", msg)
+        self.showMap(msg.plant)
+          
+      })
+        
+      seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
+        // console.error("cmd floor msgg: ", msg)
+          
+        self.showMap(msg.map)
+        self.clearRoomAssets()
+        self.unselectRoom()
+        self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
         
       })
-      
-      seneca.add('role:web,cmd:upload', function(msg, reply) {
-        let assets = []
-        return reply(assets)
-      
+
+      seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
+        // console.error("cmd asset msgg: ", msg)
+        assetShow(msg)
       })
-      
-      // same/similar goes for 'pqs/map', 'pqs/level', 'pqs/deps', etc.
-      seneca.use(function amasset() {
-        let entmap = seneca.export('mem-store/native')
-        this
-          .message(
-            'role:entity,cmd:save,base:am,name:asset',
-            async function save_asset(msg) {
-              let ent = msg.ent
-              ent.id = ent.id || seneca.util.Nid()
-              if(!assets[ent.id]) {
-                assets[ent.id] = ent
-              }
-              return ent
-            })
-            
-          .message(
-            'role:entity,cmd:load,base:am,name:asset',
-            async function load_asset(msg) {
-              let id = msg.q.id
-              // entize ?
-              return Object.assign(msg.ent, assets[id])
-              // return assets[id]
-            })
-            
-          .add(
-            'role:entity,cmd:list,base:am,name:asset',
-            async function list_asset(msg, reply) {
-              let list = []
-              msg.q = msg.q || {}
-              intern.listents(this, entmap, msg.qent, msg.q, function(err, asset) {
-                return reply(asset)
-              })
-              
-            })
+        
+      seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
+        // show:asset functionality
+        // console.error("cmd hide msgg: ", msg)
+        assetShow(msg)
       })
+        
+      seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
+        // console.error("cmd room-asset msgg: ", msg)
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          relate: 'room-asset',
+          relation: clone(self.data.deps.pc.room)
+        })
+          
+      })
+        
       
       seneca.use(function pqsasset() {
         let assetMap = {}
@@ -456,37 +376,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         })
       })
       
-      
-      
-      /*
-      // my idea for when asset is updated
-      seneca.add('role:entity,cmd:save,base:pqs,name:asset', async function (msg, reply) {
-        const seneca = this
-        let ent = msg.ent
-        
-        // update deps ( relations ) along with the other logic from the script
-        await seneca.entity('pqs/deps').save$( ... )
-    
-        return await this.prior(msg, reply)
-      })
-      */
-
-      
-      let maps = self.data.maps = seneca.make$('pqs/map')
-      let levels = self.data.levels = seneca.make$('pqs/level')
-      let deps = self.data.deps = seneca.make$('pqs/deps')
-      
-      let pc = {} // seneca.make$('pqs/deps/pc')
-      let cp = {} // seneca.make$('pqs/deps/cp')
-      deps.pc = pc, deps.cp = cp
-      // await deps.save$()
-      
-      
-      // console.log('deps: ', deps )
-      
-      window.seneca = seneca
-      self.seneca = seneca
-      
+      window.seneca = self.seneca = seneca
   
     }
 
