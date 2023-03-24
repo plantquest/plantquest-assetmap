@@ -247,18 +247,19 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       async function processData(json) {
       
-        self.data = window.PLANTQUEST_ASSETMAP_DATA
+        self.data = json
         
         let assets = []
-        
-        if(self.config.mode === 'demo') {
-          assets = await seneca.entity('pqs/asset').list$()
-        }
         let assetMap = {}
         
-        for(let asset of assets) {
-          assetMap[asset.id] = asset
+        
+        let assetProps = self.data.assets[0]
+        for(let rowI = 1; rowI < self.data.assets.length; rowI++) {
+          let row = self.data.assets[rowI]
+          let assetID = row[0]
+          assetMap[assetID] = assetProps.reduce((a,p,i)=>((a[p]=row[i]),a),{})
         }
+            
         
         self.data.assetMap = assetMap
         
@@ -433,22 +434,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           relation: clone(self.data.deps.pc.room)
         })
           
-      })
-        
-      
-      seneca.use(function pqsasset() {
-        let assetMap = {}
-        this.message(
-          'role:entity, cmd: list, base: pqs, name: asset',
-          async function list_asset(msg, reply) {
-            let assetProps = self.data.assets[0]
-            for(let rowI = 1; rowI < self.data.assets.length; rowI++) {
-              let row = self.data.assets[rowI]
-              let assetID = row[0]
-              assetMap[assetID] = assetProps.reduce((a,p,i)=>((a[p]=row[i]),a),{})
-            }
-            return Object.values(assetMap)
-        })
       })
       
       window.seneca = self.seneca = seneca
@@ -1391,6 +1376,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         asset.asset = asset.tag || asset.asset
         asset.room = asset.room || asset.room_id
         assetMap[asset.tag] = asset
+
       } else {
         asset.room = asset.room || asset.name
         roomMap[asset.room] = asset
@@ -1402,6 +1388,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       asset.xco = asset.xval
       asset.yco = asset.yval
+
       
       
       
