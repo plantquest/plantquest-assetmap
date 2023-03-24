@@ -169,14 +169,26 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
     
     self.load = async function(done) {
+    
+      let endpoint = (msg) => {
+        let suffix = '/api/web' + '/public/' + msg.on
+        let origin = self.config.api_endpoint // 'http://127.0.0.1:8888'
+        let url = origin + suffix
+        return url
+      }
+  
       let seneca = new Seneca({
         log: { logger: 'flat', level: 'warn' },
         plugin: {
           browser: {
-            endpoint: self.config.api_endpoint,
+            endpoint,
             headers: {
-              'X-API-Key': self.config.api_key,
+              // 'X-API-Key': self.config.api_key,
 	    },
+	    fetch: {
+              // mode: 'cors',
+              credentials: 'include',
+            },
           }
         },
         timeout: 44444,
@@ -200,9 +212,22 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           'role:entity,cmd:list',
           'role:entity,cmd:save',
           'role:entity,cmd:remove',
-          'pqs:*',
-          'am:*',
+          
           'aim:web',
+          
+          'aim:web,on:assetmap,get:info',
+
+          'aim:web,on:assetmap,list:asset',
+          'aim:web,on:assetmap,load:asset',
+          'aim:web,on:assetmap,save:asset',
+
+          'aim:web,on:assetmap,list:room',
+          'aim:web,on:assetmap,load:room',
+          'aim:web,on:assetmap,save:room',
+
+          'aim:web,on:assetmap,list:building',
+          'aim:web,on:assetmap,load:building',
+          'aim:web,on:assetmap,save:building',
         ]
       })
       
@@ -212,6 +237,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // reset
         self.data.deps = {}
         self.data.roomMap = {}
+        self.data.assetMap = {}
+        self.data.assets = []
         self.data.rooms = []
         self.data.buildings = []
         self.data.levels = []
@@ -219,7 +246,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
       
       async function processData(json) {
-        self.data = json
+      
+        self.data = window.PLANTQUEST_ASSETMAP_DATA
         
         let assets = []
         
@@ -239,9 +267,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         self.data.roomMap = roomMap
         
         self.log('data loaded')
-        done(json)
-      }
 
+  
+  
+        done(json)
+        
+      }
+      
       if(self.config.mode == 'demo') {
       
         if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
@@ -273,6 +305,49 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             .then(json => processData(json))
             .catch((err)=>self.log('ERROR','load',err))
         }
+      } else if (self.config.mode == 'dev') {
+      
+        let query = {
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        }
+        self.data.assets = (await seneca.post('aim:web,on:assetmap,list:asset', {query,} )).assets
+        self.data.rooms = (await seneca.post('aim:web,on:assetmap,list:room', {query, } )).rooms
+        let assets = self.data.assets
+        let rooms = self.data.rooms
+        
+        
+        self.data.deps = {}
+        
+        // console.log(assets, rooms)
+        // console.log(self.data)
+        
+        let {
+          deps,
+          maps,
+          levels,
+          buildings,
+          assetMap,
+          roomMap
+        } = generate( [ ...assets, ...rooms ] )
+          
+        self.data.buildings = buildings
+        self.data.levels = levels
+        self.data.maps = maps
+        
+        self.data.assetMap = assetMap
+        self.data.roomMap = roomMap
+        
+        // console.log(Object.keys(self.data.assetMap), Object.keys(self.data.roomMap) )
+        // console.log(Object.keys(deps.cp.asset), Object.keys(copy.cp.asset) )
+        
+        // depsUnitTest(deps)
+        
+        self.data.deps = deps
+        
+        done(self.data)
+  
       }
       
       function assetShow(msg) {
@@ -516,6 +591,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         let {xco, yco} = convert_latlng(mev.latlng)
         self.loc.x = xco
         self.loc.y = yco
+        // console.log(self.loc.x, self.loc.y)
       })
       
       setInterval(self.checkRooms, self.config.mapInterval)
@@ -951,6 +1027,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       let stateDef = self.config.states[stateName]
 
       let assetProps = self.data.assetMap[assetID]
+      
+      
       self.log('showAsset', assetID, stateName, stateDef, 'hide', hide, 'blink', blink, assetProps)
       
       if(null == assetProps) {
@@ -1242,9 +1320,163 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     return img[1] - y
   }
   
-  function c_asset_coords( {x, y} ) {
-    return rc.unproject({x, y})
+  function c_asset_coords({ x, y }) {
+    return rc.unproject({ x, y })
   }
+
+  function make_parent_key(relate, asset) {
+    return relate.p.split(/~/g).map(pn => asset[pn]).join('~')
+  }
+
+  function make_parent_val(relate, asset) {
+    return relate.p.split(/~/g).reduce(((a, pn) => (a[pn] = asset[pn], a)), {})
+  }
+
+
+  function make_child_id(relate, asset) {
+    // let ccol = 'asset' === relate.c ? 'tag' : relate.c
+    return asset[relate.c]
+  }
+
+  function insert_child(arr, child) {
+    for (let i = 0; i < arr.length; i++) {
+      if (('~' + arr[i]) === ('~' + child)) {
+        return
+      } else if (('~' + arr[i]) > ('~' + child)) {
+        arr.splice(i, 0, child)
+        return
+      }
+    }
+    // arr.add(child) // use a set instead?
+    arr.push(child)
+  }
+
+  function generate(assets) {
+    let ROOM_ATYPE = {
+      'Room/Area': 1,
+    }
+    
+    let deps = {
+      cp: {},
+      pc: {},
+    }
+
+    // Use a declarative data structure to define the relations we want.
+    let relate = [
+      { pc: true, p: 'room', c: 'asset', exclude: (asset) => ROOM_ATYPE[asset.atype] },
+      { pc: true, p: 'map',c: 'building' },
+      { pc: true, p: 'building', c: 'level' },
+      { pc: true, p: 'building', c: 'map' },
+      { pc: true, p: 'map~building', c: 'level' },
+      { pc: true, p: 'map~building~level', c: 'room',include: (asset) => ROOM_ATYPE[asset.atype] },
+      { pc: true, p: 'building~level', c: 'map' },
+      { pc: true, p: 'map~level',c: 'level', include: (asset) => asset.map },
+
+      { cp: true, p: 'map~building~level', c: 'room' },
+      { cp: true, p: 'room', c: 'asset', exclude: (asset) => ROOM_ATYPE[asset.atype] },
+    ]
+
+    let maps = new Set()
+    let levels = new Set()
+    let buildings = new Set()
+    
+    let assetMap = {}
+    let roomMap = {}
+
+    assets.forEach(asset => {
+
+      // asset = { ...asset }
+      
+      if (!ROOM_ATYPE[asset.atype]) {
+        asset.asset = asset.tag || asset.asset
+        asset.room = asset.room || asset.room_id
+        assetMap[asset.tag] = asset
+      } else {
+        asset.room = asset.room || asset.name
+        roomMap[asset.room] = asset
+        asset.poly = asset.polygon.points
+      }
+      asset.map = asset.map
+      asset.level = asset.level
+      asset.building = asset.building || asset.building_id
+      
+      asset.xco = asset.xval
+      asset.yco = asset.yval
+      
+      
+      
+
+      if (null != asset.level && '' !== asset.level) {
+        levels.add(asset.level)
+      }
+
+      if (null != asset.building && '' !== asset.building) {
+        buildings.add(asset.building)
+      }
+
+      if (null != asset.map && '' !== asset.map) {
+        maps.add(asset.map)
+      }
+
+
+      // Build each relation.
+      relate.forEach(r => {
+
+
+        // Build a Child-to-Parent
+        if (r.cp && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
+          let pv = make_parent_val(r, asset)
+          // console.error('pv: ', pv)
+          deps.cp[r.c] = (deps.cp[r.c] || {})
+          deps.cp[r.c][asset[r.c]] = pv
+        }
+
+        // Build a Parent-to-Child
+        if (r.pc && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
+          let pk = make_parent_key(r, asset)
+
+          // console.error('r.pc: ', r.p, pk, asset)
+          // console.log('PK',pk)
+
+          deps.pc[r.p] = (deps.pc[r.p] || {})
+          deps.pc[r.p][pk] = (deps.pc[r.p][pk] || {})
+          deps.pc[r.p][pk][r.c] = (deps.pc[r.p][pk][r.c] || [])
+
+          let cid = make_child_id(r, asset)
+
+          // insert_child(deps.pc[r.p][pk][r.c],''+asset[r.c])
+          insert_child(deps.pc[r.p][pk][r.c], cid)
+          
+        }
+      })
+    })
+
+    maps = [...maps]
+    levels = [...levels]
+    buildings = [...buildings]
+
+    return {
+      deps,
+      maps,
+      levels,
+      buildings,
+      assetMap,
+      roomMap
+    }
+
+  }
+  
+  function depsUnitTest(deps) {
+    const { deepEqual, deepStrictEqual } = require('assert')
+    
+    let copy = JSON.parse(JSON.stringify(require('./test_data.json').deps))
+    
+    console.log( deps.pc, copy.pc )
+    
+    deepStrictEqual(deps, copy, 'deepEqual Relations test')
+  }
+  
+  
     
   W.PlantQuestAssetMap = new PlantQuestAssetMap()
 
