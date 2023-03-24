@@ -1376,6 +1376,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         asset.asset = asset.tag || asset.asset
         asset.room = asset.room || asset.room_id
         assetMap[asset.tag] = asset
+        
+        asset.xco = asset.xco || asset.xval
+        asset.yco = asset.yco || asset.yval
 
       } else {
         asset.room = asset.room || asset.name
@@ -1385,12 +1388,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       asset.map = asset.map
       asset.level = asset.level
       asset.building = asset.building || asset.building_id
-      
-      asset.xco = asset.xval
-      asset.yco = asset.yval
-
-      
-      
       
 
       if (null != asset.level && '' !== asset.level) {
