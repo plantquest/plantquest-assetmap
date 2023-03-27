@@ -324,6 +324,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // console.log(assets, rooms)
         // console.log(self.data)
         
+        // let start = Date.now()
+        
         let {
           deps,
           maps,
@@ -331,8 +333,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           buildings,
           assetMap,
           roomMap
-        } = generate( [ ...assets, ...rooms ] )
-          
+        } = generate( { assets, rooms } )
+        
+        // console.log("CPU USED: ", Date.now() - start )
+        
         self.data.buildings = buildings
         self.data.levels = levels
         self.data.maps = maps
@@ -1324,19 +1328,24 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
   }
 
   function insert_child(arr, child) {
-    for (let i = 0; i < arr.length; i++) {
-      if (('~' + arr[i]) === ('~' + child)) {
-        return
-      } else if (('~' + arr[i]) > ('~' + child)) {
-        arr.splice(i, 0, child)
-        return
+    if(arr instanceof Array) {
+      for (let i = 0; i < arr.length; i++) {
+        // ( ('~'+arr[i]) == ('~'+child) )
+        if ( (arr[i]) === (child) ) {
+          return
+        } else if ( (arr[i]) > (child) ) {
+          arr.splice(i, 0, child)
+          return
+        }
       }
+      arr.push(child)
     }
-    // arr.add(child) // use a set instead?
-    arr.push(child)
+    else if(arr instanceof Set) {
+      arr.add(child)
+    }
   }
 
-  function generate(assets) {
+  function generate(collection) {
     let ROOM_ATYPE = {
       'Room/Area': 1,
     }
@@ -1367,73 +1376,79 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     
     let assetMap = {}
     let roomMap = {}
+    
+    Object.values(collection).forEach(assets => {
+    
+      assets.forEach(asset => {
 
-    assets.forEach(asset => {
-
-      // asset = { ...asset }
+        // asset = { ...asset }
       
-      if (!ROOM_ATYPE[asset.atype]) {
-        asset.asset = asset.tag || asset.asset
-        asset.room = asset.room || asset.room_id
-        assetMap[asset.tag] = asset
+        if (!ROOM_ATYPE[asset.atype]) {
+          asset.asset = asset.tag || asset.asset
+          asset.room = asset.room || asset.room_id
+          assetMap[asset.tag] = asset
         
-        asset.xco = asset.xco || asset.xval
-        asset.yco = asset.yco || asset.yval
+          asset.xco = asset.xco || asset.xval
+          asset.yco = asset.yco || asset.yval
 
-      } else {
-        asset.room = asset.room || asset.name
-        roomMap[asset.room] = asset
-        asset.poly = asset.polygon.points
-      }
-      asset.map = asset.map
-      asset.level = asset.level
-      asset.building = asset.building || asset.building_id
+        } else {
+          asset.room = asset.room || asset.name
+          roomMap[asset.room] = asset
+          asset.poly = asset.polygon.points
+        }
+        asset.map = asset.map
+        asset.level = asset.level
+        asset.building = asset.building || asset.building_id
       
 
-      if (null != asset.level && '' !== asset.level) {
-        levels.add(asset.level)
-      }
-
-      if (null != asset.building && '' !== asset.building) {
-        buildings.add(asset.building)
-      }
-
-      if (null != asset.map && '' !== asset.map) {
-        maps.add(asset.map)
-      }
-
-
-      // Build each relation.
-      relate.forEach(r => {
-
-
-        // Build a Child-to-Parent
-        if (r.cp && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
-          let pv = make_parent_val(r, asset)
-          // console.error('pv: ', pv)
-          deps.cp[r.c] = (deps.cp[r.c] || {})
-          deps.cp[r.c][asset[r.c]] = pv
+        if (null != asset.level && '' !== asset.level) {
+          levels.add(asset.level)
         }
 
-        // Build a Parent-to-Child
-        if (r.pc && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
-          let pk = make_parent_key(r, asset)
+        if (null != asset.building && '' !== asset.building) {
+          buildings.add(asset.building)
+        }
 
-          // console.error('r.pc: ', r.p, pk, asset)
-          // console.log('PK',pk)
+        if (null != asset.map && '' !== asset.map) {
+          maps.add(asset.map)
+        }
 
-          deps.pc[r.p] = (deps.pc[r.p] || {})
-          deps.pc[r.p][pk] = (deps.pc[r.p][pk] || {})
-          deps.pc[r.p][pk][r.c] = (deps.pc[r.p][pk][r.c] || [])
 
-          let cid = make_child_id(r, asset)
+        // Build each relation.
+        relate.forEach(r => {
 
-          // insert_child(deps.pc[r.p][pk][r.c],''+asset[r.c])
-          insert_child(deps.pc[r.p][pk][r.c], cid)
+
+          // Build a Child-to-Parent
+          if (r.cp && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
+            let pv = make_parent_val(r, asset)
+            // console.error('pv: ', pv)
+            deps.cp[r.c] = (deps.cp[r.c] || {})
+            deps.cp[r.c][asset[r.c]] = pv
+          }
+
+          // Build a Parent-to-Child
+          if (r.pc && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
+            let pk = make_parent_key(r, asset)
+
+            // console.error('r.pc: ', r.p, pk, asset)
+            // console.log('PK',pk)
+
+            deps.pc[r.p] = (deps.pc[r.p] || {})
+            deps.pc[r.p][pk] = (deps.pc[r.p][pk] || {})
+            deps.pc[r.p][pk][r.c] = (deps.pc[r.p][pk][r.c] || [])
+
+            let cid = make_child_id(r, asset)
+
+            // insert_child(deps.pc[r.p][pk][r.c],''+asset[r.c])
+            insert_child(deps.pc[r.p][pk][r.c], cid)
           
-        }
+            // deps.pc[r.p][pk][r.c] = [ ... deps.pc[r.p][pk][r.c] ]
+          
+          }
+        })
       })
-    })
+    
+   })
 
     maps = [...maps]
     levels = [...levels]
