@@ -1470,7 +1470,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     
     let copy = JSON.parse(JSON.stringify(require('./test_data.json').deps))
     
-    console.log( deps.pc, copy.pc )
+    console.log( deps, copy )
     
     deepStrictEqual(deps, copy, 'deepEqual Relations test')
   }
