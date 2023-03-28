@@ -248,8 +248,51 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
         }
       }
- 
-      seneca.message('srv:plantquest,part:assetmap,load:asset', async function(msg, reply) {
+      
+      seneca.message('srv:plantquest,part:assetmap,save:asset', async function(msg, reply) {
+        let { asset } = msg
+        asset = asset || {}
+        asset = await this.post('aim: web, on: assetmap, save: asset', { asset: {...asset}, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          save:'asset',
+          asset: asset.asset,
+        })
+          
+        return asset
+      })
+      .message('srv:plantquest,part:assetmap,save:room', async function(msg, reply) {
+        let { room } = msg
+        room = room || {}
+        room = await this.post('aim: web, on: assetmap, save: room', { room: {...room}, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          save:'room',
+          room: room.room,
+        })
+          
+        return room
+      })
+      .message('srv:plantquest,part:assetmap,save:building', async function(msg, reply) {
+        let { building } = msg
+        building = building || {}
+        building = await this.post('aim: web, on: assetmap, save: building', { building: {...building}, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          save:'building',
+          building: building.building,
+        })
+          
+        return building
+      })
+      
+      .message('srv:plantquest,part:assetmap,load:asset', async function(msg, reply) {
         const { id } = msg
         let asset = await this.post('aim: web, on: assetmap, load: asset', { id, } )
         
@@ -329,7 +372,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           srv:'plantquest',
           part:'assetmap',
           list:'building',
-          rooms: buildings.buildings,
+          buildings: buildings.buildings,
         })
         
         return buildings
