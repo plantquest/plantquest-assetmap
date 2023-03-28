@@ -194,7 +194,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         timeout: 44444,
       })
       
-      
       seneca
         .test()
         .use(SenecaEntity)
@@ -203,6 +202,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           const seneca = this
           // console.log('seneca ready')
         })
+      
+      
+      
       await seneca.ready()
       
       await seneca.client({
@@ -227,7 +229,166 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         ]
       })
       
+      window.seneca = self.seneca = seneca
       
+      function assetShow(msg) {
+        let assetRoom = self.data.deps.cp.asset[msg.asset]
+        let assetData = self.data.assetMap[msg.asset]
+        if(assetRoom) {
+          self.emit({
+            srv:'plantquest',
+            part:'assetmap',
+            show:'asset',
+            before:true,
+            asset: assetData,
+          })
+          self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
+        }
+        else {
+          self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
+        }
+      }
+ 
+      seneca.message('srv:plantquest,part:assetmap,load:asset', async function(msg, reply) {
+        const { id } = msg
+        let asset = await this.post('aim: web, on: assetmap, load: asset', { id, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          load:'asset',
+          asset: asset.asset,
+        })
+          
+        return asset
+      })
+      
+      seneca.message('srv:plantquest,part:assetmap,load:room', async function(msg, reply) {
+        const { id } = msg
+        let room = await this.post('aim: web, on: assetmap, load: room', { id, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          load:'room',
+          room: room.room,
+        })
+        
+        return room
+      })
+      
+      seneca.message('srv:plantquest,part:assetmap,load:building', async function(msg, reply) {
+        const { id } = msg
+        let building = await this.post('aim: web, on: assetmap, load: building', { id, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          load:'building',
+          building: building.building,
+        })
+        
+        return building
+      })
+      
+      seneca.message('srv:plantquest,part:assetmap,list:asset', async function(msg, reply) {
+        let { query } = msg
+        query = query || {}
+        // console.error(msg)
+        let assets = await this.post('aim: web, on: assetmap, list: asset', { query, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          list:'asset',
+          assets: assets.assets,
+        })
+        
+        return assets
+      })
+      
+      seneca.message('srv:plantquest,part:assetmap,list:room', async function(msg, reply) {
+        let { query } = msg
+        query = query || {}
+        // console.error(msg)
+        let rooms = await this.post('aim: web, on: assetmap, list: room', { query, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          list:'room',
+          rooms: rooms.rooms,
+        })
+        
+        return rooms
+      })       
+      
+      seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
+        // console.error("cmd map msgg: ", msg)
+        self.showMap(msg.map)
+          
+      })
+
+      seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
+        let room = self.data.roomMap[msg.room]
+        
+        if(room) {
+
+          if(msg.assets) {
+            if(msg.assets) {
+              for(let asset of msg.assets) {
+                self.showAsset(asset.asset, asset.state)
+              }
+            }
+          }
+
+          if(msg.focus) {
+            self.selectRoom(room.room, { mute:true })
+          }
+        }
+        else {
+          self.log('ERROR', 'send', 'room', 'unknown-room', msg)
+        }
+          
+      })
+        
+      seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
+        // console.error("cmd plant msgg: ", msg)
+        self.showMap(msg.plant)
+          
+      })
+        
+      seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
+        // console.error("cmd floor msgg: ", msg)
+          
+        self.showMap(msg.map)
+        self.clearRoomAssets()
+        self.unselectRoom()
+        self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
+        
+      })
+
+      seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
+        // console.error("cmd asset msgg: ", msg)
+        assetShow(msg)
+      })
+        
+      seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
+        // show:asset functionality
+        // console.error("cmd hide msgg: ", msg)
+        assetShow(msg)
+      })
+        
+      seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
+        // console.error("cmd room-asset msgg: ", msg)
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          relate: 'room-asset',
+          relation: clone(self.data.deps.pc.room)
+        })
+          
+      })
       
       function reset() {
         // reset
@@ -309,11 +470,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           plant_id: self.config.plant_id,
           stage: self.config.stage,
         }
-        self.data.assets = (await seneca.post('aim:web,on:assetmap,list:asset', {query,} )).assets
-        self.data.rooms = (await seneca.post('aim:web,on:assetmap,list:room', {query, } )).rooms
-        let assets = self.data.assets
-        let rooms = self.data.rooms
+        let{ assets } = await seneca.post('srv:plantquest,part:assetmap,list:asset', { query, } )
+        let{ rooms } = await seneca.post('srv:plantquest,part:assetmap,list:room', { query, } )
         
+        self.data.assets = assets
+        self.data.rooms = rooms
         
         self.data.deps = {}
         
@@ -334,7 +495,12 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // console.log("CPU USED: ", Date.now() - start )
         
         self.data.buildings = buildings
-        self.data.levels = levels
+        self.data.levels = self.config.levels.map(v=>{
+          if(!levels.includes(v.name)) {
+            throw new Error('level not found!')
+          }
+          return v.name
+        })
         self.data.maps = maps
         
         self.data.assetMap = assetMap
@@ -350,93 +516,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         done(self.data)
   
       }
-      
-      function assetShow(msg) {
-        let assetRoom = self.data.deps.cp.asset[msg.asset]
-        let assetData = self.data.assetMap[msg.asset]
-        if(assetRoom) {
-          self.emit({
-            srv:'plantquest',
-            part:'assetmap',
-            show:'asset',
-            before:true,
-            asset: assetData,
-          })
-          self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
-        }
-        else {
-          self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
-        }
-      }
-        
-      seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
-        // console.error("cmd map msgg: ", msg)
-        self.showMap(msg.map)
-          
-      })
-
-      seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
-        let room = self.data.roomMap[msg.room]
-        
-        if(room) {
-
-          if(msg.assets) {
-            if(msg.assets) {
-              for(let asset of msg.assets) {
-                self.showAsset(asset.asset, asset.state)
-              }
-            }
-          }
-
-          if(msg.focus) {
-            self.selectRoom(room.room, { mute:true })
-          }
-        }
-        else {
-          self.log('ERROR', 'send', 'room', 'unknown-room', msg)
-        }
-          
-      })
-        
-      seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
-        // console.error("cmd plant msgg: ", msg)
-        self.showMap(msg.plant)
-          
-      })
-        
-      seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
-        // console.error("cmd floor msgg: ", msg)
-          
-        self.showMap(msg.map)
-        self.clearRoomAssets()
-        self.unselectRoom()
-        self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
-        
-      })
-
-      seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
-        // console.error("cmd asset msgg: ", msg)
-        assetShow(msg)
-      })
-        
-      seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
-        // show:asset functionality
-        // console.error("cmd hide msgg: ", msg)
-        assetShow(msg)
-      })
-        
-      seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
-        // console.error("cmd room-asset msgg: ", msg)
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          relate: 'room-asset',
-          relation: clone(self.data.deps.pc.room)
-        })
-          
-      })
-      
-      window.seneca = self.seneca = seneca
   
     }
 
@@ -466,7 +545,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     self.send = async function(msg) {
       self.log('send', 'in', msg)
       
-      await seneca.post(msg) // use seneca messages instead of 'if chain'
+      await self.seneca.post(msg) // use seneca messages instead of 'if chain'
       
       if(null != msg.zoom) {
         self.map.setZoom(msg.zoom)
@@ -583,6 +662,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 
       let levelActions = []
+      
       self.data.levels.forEach((level,index)=>{
         levelActions.push(
           L.Toolbar2.Action.extend({
