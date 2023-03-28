@@ -262,8 +262,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           
         return asset
       })
-      
-      seneca.message('srv:plantquest,part:assetmap,load:room', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,load:room', async function(msg, reply) {
         const { id } = msg
         let room = await this.post('aim: web, on: assetmap, load: room', { id, } )
         
@@ -276,8 +275,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         
         return room
       })
-      
-      seneca.message('srv:plantquest,part:assetmap,load:building', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,load:building', async function(msg, reply) {
         const { id } = msg
         let building = await this.post('aim: web, on: assetmap, load: building', { id, } )
         
@@ -291,7 +289,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         return building
       })
       
-      seneca.message('srv:plantquest,part:assetmap,list:asset', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,list:asset', async function(msg, reply) {
         let { query } = msg
         query = query || {}
         // console.error(msg)
@@ -306,8 +304,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         
         return assets
       })
-      
-      seneca.message('srv:plantquest,part:assetmap,list:room', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,list:room', async function(msg, reply) {
         let { query } = msg
         query = query || {}
         // console.error(msg)
@@ -321,15 +318,29 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         })
         
         return rooms
-      })       
+      })
+      .message('srv:plantquest,part:assetmap,list:building', async function(msg, reply) {
+        let { query } = msg
+        query = query || {}
+        // console.error(msg)
+        let buildings = await this.post('aim: web, on: assetmap, list: building', { query, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          list:'building',
+          rooms: buildings.buildings,
+        })
+        
+        return buildings
+      })
       
-      seneca.message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,show:map', async function(msg, reply) {
         // console.error("cmd map msgg: ", msg)
         self.showMap(msg.map)
           
       })
-
-      seneca.message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,show:room', async function(msg, reply) {
         let room = self.data.roomMap[msg.room]
         
         if(room) {
@@ -351,14 +362,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         }
           
       })
-        
-      seneca.message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
+      
+      .message('srv:plantquest,part:assetmap,show:plant', async function(msg, reply) {
         // console.error("cmd plant msgg: ", msg)
         self.showMap(msg.plant)
           
       })
-        
-      seneca.message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,show:floor', async function(msg, reply) {
         // console.error("cmd floor msgg: ", msg)
           
         self.showMap(msg.map)
@@ -367,19 +377,16 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
         
       })
-
-      seneca.message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
         // console.error("cmd asset msgg: ", msg)
         assetShow(msg)
       })
-        
-      seneca.message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,hide:asset', async function(msg, reply) {
         // show:asset functionality
         // console.error("cmd hide msgg: ", msg)
         assetShow(msg)
       })
-        
-      seneca.message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
+      .message('srv:plantquest,part:assetmap,relate:room-asset', async function(msg, reply) {
         // console.error("cmd room-asset msgg: ", msg)
         self.emit({
           srv: 'plantquest',
@@ -472,6 +479,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         }
         let{ assets } = await seneca.post('srv:plantquest,part:assetmap,list:asset', { query, } )
         let{ rooms } = await seneca.post('srv:plantquest,part:assetmap,list:room', { query, } )
+        let{ buildings } = await seneca.post('srv:plantquest,part:assetmap,list:building', { query, } )
         
         self.data.assets = assets
         self.data.rooms = rooms
@@ -487,7 +495,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           deps,
           maps,
           levels,
-          buildings,
+          // buildings,
           assetMap,
           roomMap
         } = generate( { assets, rooms } )
