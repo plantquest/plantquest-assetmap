@@ -183,7 +183,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           browser: {
             endpoint,
             headers: {
-              'Authorization': 'Bearer 644b1848-50ab-43b3-9c68-405fa39e02f4',
+              'Authorization': 'Bearer ' + self.config.api_key,
 	    },
 	    fetch: {
               // mode: 'cors',
