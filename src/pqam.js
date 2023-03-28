@@ -183,7 +183,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           browser: {
             endpoint,
             headers: {
-              'Authorization': 'Bearer 70e98ee0-4347-4ccd-8075-66431a32a2d1',
+              'Authorization': 'Bearer 644b1848-50ab-43b3-9c68-405fa39e02f4',
 	    },
 	    fetch: {
               // mode: 'cors',
@@ -208,10 +208,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       await seneca.client({
         type: 'browser',
         pin: [
-          'role:entity,cmd:load',
-          'role:entity,cmd:list',
-          'role:entity,cmd:save',
-          'role:entity,cmd:remove',
           
           'aim:web',
           
