@@ -515,12 +515,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // console.log("CPU USED: ", Date.now() - start )
         
         self.data.buildings = buildings
-        self.data.levels = self.config.levels.map(v=>{
-          if(!levels.includes(v.name)) {
-            throw new Error('level not found!')
-          }
+        self.data.levels = levels.reverse()
+        /*self.config.levels.map(v=>{
           return v.name
         })
+        */
         self.data.maps = maps
         
         self.data.assetMap = assetMap

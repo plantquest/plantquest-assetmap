@@ -212,7 +212,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.6.0";
+var version = "1.6.1";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -585,12 +585,7 @@ var rastercoords = createCommonjsModule(function (module) {
                         assetMap = _generate.assetMap,
                         roomMap = _generate.roomMap;
                       self.data.buildings = buildings;
-                      self.data.levels = self.config.levels.map(function (v) {
-                        if (!levels.includes(v.name)) {
-                          throw new Error('level not found!');
-                        }
-                        return v.name;
-                      });
+                      self.data.levels = levels.reverse();
                       self.data.maps = maps;
                       self.data.assetMap = assetMap;
                       self.data.roomMap = roomMap;
