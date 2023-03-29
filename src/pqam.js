@@ -62,8 +62,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         
         data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
-        api_key: '<API KEY>',
-        api_endpoint: '/',
+        apikey: '<API KEY>',
+        endpoint: '/',
         tilesEndPoint: 'https://demo.plantquest.app/tiles',
 
         states: {
@@ -172,7 +172,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     
       let endpoint = (msg) => {
         let suffix = '/api/web' + '/public/' + msg.on
-        let origin = self.config.api_endpoint // 'http://127.0.0.1:8888'
+        let origin = self.config.endpoint // 'http://127.0.0.1:8888'
         let url = origin + suffix
         return url
       }
@@ -183,7 +183,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           browser: {
             endpoint,
             headers: {
-              'Authorization': 'Bearer ' + self.config.api_key,
+              'Authorization': 'Bearer ' + self.config.apikey,
 	    },
 	    fetch: {
               // mode: 'cors',
@@ -482,39 +482,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         
       }
       
-      if(self.config.mode == 'demo') {
-      
-        if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
-          const head = $('head')
-          const skript = document.createElement('script')
-          skript.setAttribute('src', self.config.data)
-          head.appendChild(skript)
-
-          let waiter = setInterval(()=>{
-            self.log('loading data...')
-            if(window.PLANTQUEST_ASSETMAP_DATA) {
-	      // console.log('self.config: ', self.config)
-
-              clearInterval(waiter)
-              processData(window.PLANTQUEST_ASSETMAP_DATA)
-            }
-          },111)
-        }
-        else {
-          // fetch(self.config.base+self.config.data)
+      async function loadData() {
         
-          fetch(self.config.data)
-            .then(response => {
-              if (!response.ok) {
-                throw new Error("HTTP error " + response.status)
-              }
-              return response.json()
-            })
-            .then(json => processData(json))
-            .catch((err)=>self.log('ERROR','load',err))
-        }
-      } else if (self.config.mode == 'dev') {
-      
         let query = {
           project_id: self.config.project_id,
           plant_id: self.config.plant_id,
@@ -565,7 +534,42 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         self.data.deps = deps
         
         done(self.data)
-  
+        
+      }
+      
+      if(self.config.mode == 'demo') {
+      
+        if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
+          const head = $('head')
+          const skript = document.createElement('script')
+          skript.setAttribute('src', self.config.data)
+          head.appendChild(skript)
+
+          let waiter = setInterval(()=>{
+            self.log('loading data...')
+            if(window.PLANTQUEST_ASSETMAP_DATA) {
+	      // console.log('self.config: ', self.config)
+
+              clearInterval(waiter)
+              processData(window.PLANTQUEST_ASSETMAP_DATA)
+            }
+          },111)
+        }
+        else {
+          // fetch(self.config.base+self.config.data)
+        
+          fetch(self.config.data)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("HTTP error " + response.status)
+              }
+              return response.json()
+            })
+            .then(json => processData(json))
+            .catch((err)=>self.log('ERROR','load',err))
+        }
+      } else if (self.config.mode == 'dev') {
+        loadData()
       }
   
     }
