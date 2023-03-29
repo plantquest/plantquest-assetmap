@@ -568,7 +568,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             .then(json => processData(json))
             .catch((err)=>self.log('ERROR','load',err))
         }
-      } else if (self.config.mode == 'dev') {
+      } else if (self.config.mode == 'live') {
         loadData()
       }
   
