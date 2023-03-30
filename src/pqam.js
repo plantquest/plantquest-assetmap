@@ -84,8 +84,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         },
 
         plants: [
-          { id: 'aaa', name: 'Plant AAA' },
-          { id: 'bbb', name: 'Plant BBB' }
+          // { id: 'aaa', name: 'Plant AAA' },
+          // { id: 'bbb', name: 'Plant BBB' }
         ],
       },
       data: {},
@@ -1536,7 +1536,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
         if (null != asset.building && '' !== asset.building) {
           
-          buildings.add(asset.building)
+          // buildings.add(asset.building)
         }
 
         if (null != asset.map && '' !== asset.map) {

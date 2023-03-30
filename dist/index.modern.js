@@ -212,7 +212,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.7.1";
+var version = "1.7.2";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -432,13 +432,7 @@ var rastercoords = createCommonjsModule(function (module) {
         level: 0
       }, _config.room = {
         color: '#33f'
-      }, _config.plants = [{
-        id: 'aaa',
-        name: 'Plant AAA'
-      }, {
-        id: 'bbb',
-        name: 'Plant BBB'
-      }], _config),
+      }, _config.plants = [], _config),
       data: {},
       assetMap: {},
       roomMap: {},
@@ -1586,7 +1580,6 @@ var rastercoords = createCommonjsModule(function (module) {
     }];
     var maps = [];
     var levels = [];
-    var buildings = [];
     var assetMap = {};
     var roomMap = {};
     Object.values(collection).forEach(function (assets) {
@@ -1609,9 +1602,6 @@ var rastercoords = createCommonjsModule(function (module) {
           if (!levels.includes(asset.level)) {
             levels.push(asset.level);
           }
-        }
-        if (null != asset.building && '' !== asset.building) {
-          buildings.add(asset.building);
         }
         if (null != asset.map && '' !== asset.map) {
           if (!maps.includes(asset.map)) {
