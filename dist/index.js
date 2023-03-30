@@ -215,7 +215,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.7.3";
+var version = "1.7.5";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
