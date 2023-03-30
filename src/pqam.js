@@ -185,10 +185,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             headers: {
               'Authorization': 'Bearer ' + self.config.apikey,
 	    },
-	    fetch: {
-              // mode: 'cors',
-              credentials: 'include',
-            },
           }
         },
         timeout: 44444,
