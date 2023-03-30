@@ -212,7 +212,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.7.0";
+var version = "1.7.1";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -1584,9 +1584,9 @@ var rastercoords = createCommonjsModule(function (module) {
         return ROOM_ATYPE[asset.atype];
       }
     }];
-    var maps = new Set();
-    var levels = new Set();
-    var buildings = new Set();
+    var maps = [];
+    var levels = [];
+    var buildings = [];
     var assetMap = {};
     var roomMap = {};
     Object.values(collection).forEach(function (assets) {
@@ -1606,13 +1606,17 @@ var rastercoords = createCommonjsModule(function (module) {
         asset.level = asset.level;
         asset.building = asset.building || asset.building_id;
         if (null != asset.level && '' !== asset.level) {
-          levels.add(asset.level);
+          if (!levels.includes(asset.level)) {
+            levels.push(asset.level);
+          }
         }
         if (null != asset.building && '' !== asset.building) {
           buildings.add(asset.building);
         }
         if (null != asset.map && '' !== asset.map) {
-          maps.add(asset.map);
+          if (!maps.includes(asset.map)) {
+            maps.push(asset.map);
+          }
         }
         relate.forEach(function (r) {
           if (r.cp && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
@@ -1631,14 +1635,10 @@ var rastercoords = createCommonjsModule(function (module) {
         });
       });
     });
-    maps = [].concat(maps);
-    levels = [].concat(levels);
-    buildings = [].concat(buildings);
     return {
       deps: deps,
       maps: maps,
       levels: levels,
-      buildings: buildings,
       assetMap: assetMap,
       roomMap: roomMap
     };

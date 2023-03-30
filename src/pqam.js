@@ -1496,9 +1496,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       { cp: true, p: 'room', c: 'asset', exclude: (asset) => ROOM_ATYPE[asset.atype] },
     ]
 
-    let maps = new Set()
-    let levels = new Set()
-    let buildings = new Set()
+    let maps = []
+    let levels = []
+    let buildings = []
     
     let assetMap = {}
     let roomMap = {}
@@ -1528,15 +1528,21 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
 
         if (null != asset.level && '' !== asset.level) {
-          levels.add(asset.level)
+          if(!levels.includes(asset.level)) {
+            levels.push(asset.level)
+          }
+          
         }
 
         if (null != asset.building && '' !== asset.building) {
+          
           buildings.add(asset.building)
         }
 
         if (null != asset.map && '' !== asset.map) {
-          maps.add(asset.map)
+          if(!maps.includes(asset.map)) {
+            maps.push(asset.map)
+          }
         }
 
 
@@ -1576,15 +1582,15 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     
    })
 
-    maps = [...maps]
-    levels = [...levels]
-    buildings = [...buildings]
+    // maps = [...maps]
+    // levels = [...levels]
+    // buildings = [...buildings]
 
     return {
       deps,
       maps,
       levels,
-      buildings,
+      // buildings,
       assetMap,
       roomMap
     }
