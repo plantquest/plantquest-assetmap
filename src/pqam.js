@@ -330,7 +330,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       .message('srv:plantquest,part:assetmap,list:asset', async function(msg, reply) {
         let { query } = msg
-        query = query || {}
+        query = query || {
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        }
         // console.error(msg)
         let assets = await this.post('aim: web, on: assetmap, list: asset', { query, } )
         
@@ -345,7 +349,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       })
       .message('srv:plantquest,part:assetmap,list:room', async function(msg, reply) {
         let { query } = msg
-        query = query || {}
+        query = query || {
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        }
         // console.error(msg)
         let rooms = await this.post('aim: web, on: assetmap, list: room', { query, } )
         
@@ -360,7 +368,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       })
       .message('srv:plantquest,part:assetmap,list:building', async function(msg, reply) {
         let { query } = msg
-        query = query || {}
+        query = query || {
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        }
         // console.error(msg)
         let buildings = await this.post('aim: web, on: assetmap, list: building', { query, } )
         

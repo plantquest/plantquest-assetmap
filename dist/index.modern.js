@@ -212,7 +212,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.7.2";
+var version = "1.7.3";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -746,7 +746,11 @@ var rastercoords = createCommonjsModule(function (module) {
               try {
                 var _this8 = this;
                 var query = msg.query;
-                query = query || {};
+                query = query || {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                };
                 return Promise.resolve(_this8.post('aim: web, on: assetmap, list: asset', {
                   query: query
                 })).then(function (assets) {
@@ -765,7 +769,11 @@ var rastercoords = createCommonjsModule(function (module) {
               try {
                 var _this9 = this;
                 var query = msg.query;
-                query = query || {};
+                query = query || {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                };
                 return Promise.resolve(_this9.post('aim: web, on: assetmap, list: room', {
                   query: query
                 })).then(function (rooms) {
@@ -784,7 +792,11 @@ var rastercoords = createCommonjsModule(function (module) {
               try {
                 var _this10 = this;
                 var query = msg.query;
-                query = query || {};
+                query = query || {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                };
                 return Promise.resolve(_this10.post('aim: web, on: assetmap, list: building', {
                   query: query
                 })).then(function (buildings) {
