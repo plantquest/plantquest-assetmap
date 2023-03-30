@@ -14,6 +14,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 
 ;(function(W, D) {
+
+  window.PLANTQUEST_ASSETMAP_DEBUG = {}
+  
   const log = (...args) => {
     if(true === window.PLANTQUEST_ASSETMAP_LOG || 'ERROR' === args[1]) {
       console.log.apply(null, args)
@@ -248,6 +251,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       seneca.message('srv:plantquest,part:assetmap,save:asset', async function(msg, reply) {
         let { asset } = msg
         asset = asset || {}
+        asset = { ...asset, ...{
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        } }
         asset = await this.post('aim: web, on: assetmap, save: asset', { asset: {...asset}, } )
         
         self.emit({
@@ -262,6 +270,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       .message('srv:plantquest,part:assetmap,save:room', async function(msg, reply) {
         let { room } = msg
         room = room || {}
+        room = { ...room, ...{
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        } }
         room = await this.post('aim: web, on: assetmap, save: room', { room: {...room}, } )
         
         self.emit({
@@ -276,6 +289,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       .message('srv:plantquest,part:assetmap,save:building', async function(msg, reply) {
         let { building } = msg
         building = building || {}
+        building = { ...building, ...{
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        } }
         building = await this.post('aim: web, on: assetmap, save: building', { building: {...building}, } )
         
         self.emit({
@@ -523,7 +541,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // console.log("CPU USED: ", Date.now() - start )
         
         self.data.buildings = buildings
-        self.data.levels = levels.reverse()
+        self.data.levels = levels
         /*self.config.levels.map(v=>{
           return v.name
         })
@@ -595,6 +613,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       root.style.position = 'relative'
       root.innerHTML = buildContainer()
       self.target.appendChild(root)
+      
 
       setTimeout(()=>{
         self.vis.map.elem = $('#plantquest-assetmap-map')
@@ -1305,6 +1324,69 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
         self.leaflet.maptile.addTo(self.map)
         self.loc.map = mapIndex
+        
+        // Define a custom control
+        function createDebugLog(content) {
+          let debugLog = L.Control.extend({
+            options: {
+              position: 'topleft',
+            },
+
+            onAdd: function (map) {
+              let container = L.DomUtil.create('div', 'control-panel')
+
+
+              let _div = document.createElement('div')
+    
+              _div.textContent = content
+              container.appendChild(_div)
+    
+    
+              L.DomEvent.disableClickPropagation(container)
+              L.DomEvent.disableScrollPropagation(container)
+
+              return container
+            }
+          })
+          return new debugLog()
+        }
+        
+        
+        if(window.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
+        
+	  self.listen((msg) => {
+	    if(msg.show == 'asset') {
+	      let { asset } = msg
+	      let content = ''
+	      if(self.leaflet.debugLog) {
+	        self.leaflet.debugLog.remove()
+	        self.leaflet.debugLog = null
+	      }
+	      if(asset) {
+	        let asset_data = {}
+	        asset_data.tag = asset.tag
+	        asset_data.xco = asset.xco
+	        asset_data.yco = asset.yco
+	        content = JSON.stringify(asset_data)
+	      }
+	      self.leaflet.debugLog = createDebugLog(content)
+	      // Add the custom control to the map
+              self.map.addControl(self.leaflet.debugLog)
+	    }
+	    else {
+	      if(self.leaflet.debugLog) {
+	        self.leaflet.debugLog.remove()
+	        self.leaflet.debugLog = null
+	      }
+	      self.leaflet.debugLog = createDebugLog('DEBUG LOG')
+	      
+              self.map.addControl(self.leaflet.debugLog)
+	    }
+	  
+	  })
+	
+	}
+	
 
         self.unselectRoom()
 
@@ -1697,6 +1779,23 @@ div.plantquest-assetmap-asset-label-red {
 
 .leaflet-toolbar-0>li>.leaflet-toolbar-icon {
   width: 80px;
+}
+
+.control-panel {
+  position: absolute;
+  top: 0em;
+  left: 5em;
+  background-color: white;
+  border: 1px solid black;
+  width: 10em;
+  height: 6em;
+  padding: 10px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  word-wrap: break-word;
+  height: fit-content;
+  width: fit-content;
+  /*block-size: fit-content;*/
 }
 
 
