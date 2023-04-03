@@ -1122,66 +1122,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
                 // color: self.resolveRoomColor(roomState.alarm,'lo')
                 color: self.config.room.color
               })
-              
-              
-            
-            
-	
-		let layer = self.loc.poly
-		
-/*
-  	  		var labelContent = '<div style="background-color: red; width: 100px; height: 40px;">My Polygon</div>';
-
-// Create the tooltip with the initial content
-var tooltip = L.tooltip({
-    permanent: true,
-    direction: 'center',
-    
-    // direction: 'sticky',
-    opacity: 1,
-    className: 'class1',
-}).setContent(labelContent);
-
-// Bind the tooltip to the polygon
-layer.bindTooltip(tooltip);
-
-    // Get the new size of the polygon
-    var bounds = layer.getBounds();
-    var size = self.map.latLngToLayerPoint(bounds.getNorthEast())._subtract(self.map.latLngToLayerPoint(bounds.getSouthWest()));
-    
-    // Update the tooltip content with the new size
-    if(self.map.getZoom() >= 4) {
-    tooltip.setContent('<div style="background-color: transparent; width: ' + size.x + 'px; height: ' + size.y + 'px;">My Polygon</div>');
-    } else {
-      tooltip.setContent('');
-    }
-    
-// Listen to the zoomend event of the map
-self.map.on('zoomend', function() {
-    // Get the new size of the polygon
-    if(self.map.getZoom() >= 4) {
-      var bounds = layer.getBounds();
-      var size = self.map.latLngToLayerPoint(bounds.getNorthEast())._subtract(self.map.latLngToLayerPoint(bounds.getSouthWest()));
-    
-      // Update the tooltip content with the new size
-      console.log(size.x, size.y)
-      tooltip.setContent('<div style="background-color: transparent; width: ' + size.x + 'px; height: ' + size.y + 'px;">My Polygon</div>');
-    } else {
-      tooltip.setContent('');
-    }
-});
-
-// Listen to the zoomend event of the map
-self.map.on('zoomstart', function() {
-    // Get the new size of the polygon
-    if(self.map.getZoom() < 4) {
-    	tooltip.setContent('');
-    } else {
-      
-    }
-});
-
-*/
 
 
             self.loc.poly.on('click', ()=>self.selectRoom(room.room))
