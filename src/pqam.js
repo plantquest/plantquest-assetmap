@@ -1011,12 +1011,14 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       let pos = (1+self.loc.map)
       
+      self.poly_labels = self.poly_labels || {}
+      
       let labels = self.poly_labels[pos] || []
       self.prev_labels = self.prev_labels || []
       
       
       
-      if (zoom >= 3) {
+      if (zoom >= 6) {
         for(let label of self.prev_labels) {
           label.remove()
         }
