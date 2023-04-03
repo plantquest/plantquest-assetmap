@@ -758,7 +758,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }).addTo(self.map)
       // self.layer.asset = L.layerGroup().addTo(self.map)
       
-       self.map.on('layeradd', event=> { // zoom-in
+      self.map.on('layeradd', event=> { // zoom-in
         let layer = event.layer // , circle, latlng, index, asset, arr, assetName
 
 	if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
@@ -825,6 +825,73 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	}
       
       })
+      
+      // TODO: move to generate
+      function generate_labels() {
+        self.poly_labels = self.poly_labels || {}
+
+        for (let room of self.data.rooms) {
+          let poly_labels = self.poly_labels[room.map] = self.poly_labels[room.map] || []
+
+
+          if (self.data.roomMap[room.room] && room.area === '1') {
+            // console.log(room.area)
+
+            let place;
+            // place = c_asset_coords({x: room.xco, y: room.yco}
+            // console.log( ) )
+
+            let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
+
+
+            let poly = L.polygon(
+              room_poly, {
+                color: 'transparent'
+              })
+
+
+
+            // Create the tooltip with the initial content
+            var tooltip = L.tooltip({
+              permanent: true,
+              direction: 'center',
+
+              // direction: 'sticky',
+              opacity: 1,
+              className: 'polygon-labels',
+
+            })
+
+            // Bind the tooltip to the polygon
+            poly.bindTooltip(tooltip);
+            let _c = poly.getBounds().getCenter()
+
+            tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
+            /*
+                          setTimeout(() => {
+                            const label = L.marker(place, {
+                              icon: L.divIcon({
+                                // iconSize: [90, 30], // default size
+                                className: 'polygon-labels',
+                                html: `<div> ${room.room} </div>`
+                              })
+                            })
+                            // .addTo(self.map);
+
+                          }, 11)
+
+            */
+            // poly.addTo(self.map)
+
+            poly_labels.push(poly)
+
+          }
+
+
+        }
+
+      }
+      generate_labels()
        
       self.map.on('mousemove', (mev)=>{
         let {xco, yco} = convert_latlng(mev.latlng)
@@ -939,124 +1006,43 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
     self.zoomEndRender = function() {
       let zoom = self.map.getZoom()
-      if(null == zoom) return;
+      if (null == zoom) return;
       // console.log('end: ', zoom)
+
+      let pos = (1+self.loc.map)
       
-      if(zoom >= 6) {
-        
-              // if(mapIndex !== self.loc.map) {
-        if(!self.leaflet.maptilepanel) {
-          // self.leaflet.maptilepanel.remove(self.map)
-        
-        // let mapurl = self.config.map[mapIndex]
-        // let bounds = [[0, 0], [...self.config.mapBounds]]
-        
-        /*
-        self.map.createPane('labels');
-        self.map.getPane('labels').style.zIndex = 650;
-        self.map.getPane('labels').style.pointerEvents = 'none';
-        */
-        
-        self.leaflet.maptilepanel = L.tileLayer('http://localhost:8888/api/label-1/' + '/{z}/{x}/{y}.png', {
-          // noWrap: true,
-          // maxNativeZoom: rc.zoomLevel(),
-          // pane: 'labels',
-          bounds: self.rc.getMaxBounds(),
-          minZoom: self.config.mapMinZoom,
-          maxZoom: self.config.mapMaxZoom,
-        })
-        
-        // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
-        self.leaflet.maptilepanel.addTo(self.map)
-        
-        
-        self.polys = self.polys || []
-                for(let room of self.data.rooms) {
-        
-        if((1+self.loc.map) != room.map) {
-          continue
+      let labels = self.poly_labels[pos] || []
+      self.prev_labels = self.prev_labels || []
+      
+      
+      
+      if (zoom >= 3) {
+        for(let label of self.prev_labels) {
+          label.remove()
         }
-
         
-        if(self.data.roomMap[room.room] && room.area === '1') {
-              // console.log(room.area)
-              
-              let place;
-              // place = c_asset_coords({x: room.xco, y: room.yco}
-              // console.log( ) )
-              
-              let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
-
-
-            let poly = L.polygon(
-              room_poly, {
-                color: 'transparent'
-              })
-              
-              
-              // Create the tooltip with the initial content
-var tooltip = L.tooltip({
-    permanent: true,
-    direction: 'center',
-
-    // direction: 'sticky',
-    opacity: 1,
-    className: 'polygon-labels',
-  
-})
-
-// Bind the tooltip to the polygon
-poly.bindTooltip(tooltip);
-let _c = poly.getBounds().getCenter()
-
-tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
-
-setTimeout(()=>{
-        const label = L.marker(place, {
-          icon: L.divIcon({
-            // iconSize: [90, 30], // default size
-            className: 'polygon-labels',
-            html: `<div> ${room.room} </div>`
-          })
-        })
-        // .addTo(self.map);
         
-}, 11)
-
-
-poly.addTo(self.map)
-
-self.polys.push(poly)
-
-setTimeout(()=>{
-
-//console.log('tooltip: ', tooltip)
-//console.log('poly: ', poly)
-}, 11)
-
-
-  }
-
-
-  }
-  
-        
+        for(let label of labels) {
+          label.remove()
+          label.addTo(self.map)
         }
-    
-      } else {
-        if(self.leaflet.maptilepanel) {
-          self.leaflet.maptilepanel.remove()
-          self.leaflet.maptilepanel = null
           
-          if(self.polys) {
-            for(let poly of self.polys) {
-              poly.remove()
-            }
-          }
-          
+        self.setLabel = true
+        self.prev_labels = labels
+
+      } 
+      else {
+        for(let label of self.prev_labels) {
+          label.remove()
         }
         
-      }
+        for (let label of labels) {
+          label.remove()
+        }
+
+        self.setLabel = false
+
+     }
       
 
       /*
@@ -1616,6 +1602,9 @@ self.map.on('zoomstart', function() {
         // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
         self.leaflet.maptile.addTo(self.map)
         self.loc.map = mapIndex
+        
+        // render labels
+        self.zoomEndRender()
         
         
 
