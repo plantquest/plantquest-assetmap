@@ -2,6 +2,9 @@
 
 import L from 'leaflet'
 import './leaflet.toolbar.min.js'
+import 'leaflet.markercluster'
+
+
 import Pkg from '../package.json'
 
 
@@ -569,10 +572,15 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           const skript = document.createElement('script')
           skript.setAttribute('src', self.config.data)
           head.appendChild(skript)
+          
+
+          
 
           let waiter = setInterval(()=>{
             self.log('loading data...')
             if(window.PLANTQUEST_ASSETMAP_DATA) {
+              window.PLANTQUEST_ASSETMAP_DATA = {}
+              window.PLANTQUEST_ASSETMAP_DATA = require('./test_data.json')
 	      // console.log('self.config: ', self.config)
 
               clearInterval(waiter)
@@ -730,8 +738,94 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       // L.imageOverlay(ms.mapurl, ms.bounds).addTo(self.map);
 
       self.layer.room = L.layerGroup().addTo(self.map)
-      self.layer.asset = L.layerGroup().addTo(self.map)
       
+      
+      self.layer.circles = L.layerGroup().addTo(self.map)
+      self.layer.asset = L.markerClusterGroup({
+        spiderfyOnMaxZoom: false,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        // singleMarkerMode: true,
+        // spiderfyDistanceMultiplier: -100,
+        maxClusterRadius: 40,
+        chunkedLoading: true,
+
+        spiderLegPolylineOptions: { weight: 1.5, color: 'black', opacity: 2.5 },
+
+        spiderfyLinear: false,
+        spiderfyLinearDistance: 30,
+        spiderfyLinearSeparation: 45,
+      }).addTo(self.map)
+      // self.layer.asset = L.layerGroup().addTo(self.map)
+      
+       self.map.on('layeradd', event=> { // zoom-in
+        let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+
+	if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
+	  
+	  let assetCurrent = self.current.asset[layer.assetID]
+	  
+	  if(assetCurrent) {
+	    console.log('layeradd: ', assetCurrent)
+	    setTimeout(()=>{
+	      let lem = assetCurrent.label.getElement()
+              console.log('lem: ', lem.style)
+              lem.style.width = ''
+              lem.style.height = ''
+              lem.style.fontSize = ''
+              
+              
+              assetCurrent.poly.addTo(self.layer.circles)
+         
+              // state: asset blink
+              assetCurrent.blinkId = setInterval(function blink() {
+                if(assetCurrent.poly) {
+                  if(assetCurrent.blink) {
+                    if(true === assetCurrent.blinkState) {
+                      assetCurrent.poly.addTo(self.layer.circles)
+                      assetCurrent.blinkState = false
+                    }
+                    else {
+                      assetCurrent.poly.remove(self.layer.circles)
+                      assetCurrent.blinkState = true
+                    }
+                  }
+                }
+              }, self.config.mapInterval)
+        
+	    }, 11)
+	    
+	  }
+	}
+      
+      })
+      
+      self.map.on('layerremove', event=> { // zoom-in
+        let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+
+	if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
+	  
+	  let assetCurrent = self.current.asset[layer.assetID]
+	  
+	  if(assetCurrent) {
+	    console.log('layerremove: ', assetCurrent)
+	    setTimeout(()=>{
+	      if(assetCurrent.poly) {
+	        assetCurrent.poly.remove()
+	      }
+	      
+	      if(assetCurrent.blinkId) {
+	        clearInterval(assetCurrent.blinkId)
+	      }
+        
+	    }, 11)
+	    
+	    
+	  }
+	}
+      
+      })
+       
       self.map.on('mousemove', (mev)=>{
         let {xco, yco} = convert_latlng(mev.latlng)
         self.loc.x = xco
@@ -822,12 +916,69 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     self.zoomStartRender = function() {
       let zoom = self.map.getZoom()
       if(null == zoom) return;
+      // console.log('start', zoom)
+      
+      
+
+        
+        
+      if(zoom != 4) {
+      /*
+        if(self.polys) {
+          for(let poly of self.polys) {
+            poly.remove()
+          }
+        
+        }
+        */
+        
+      }
+
     }
 
 
     self.zoomEndRender = function() {
       let zoom = self.map.getZoom()
       if(null == zoom) return;
+      // console.log('end: ', zoom)
+      
+      if(zoom >= 4) {
+        
+              // if(mapIndex !== self.loc.map) {
+        if(!self.leaflet.maptilepanel) {
+          // self.leaflet.maptilepanel.remove(self.map)
+        
+        // let mapurl = self.config.map[mapIndex]
+        // let bounds = [[0, 0], [...self.config.mapBounds]]
+        
+        /*
+        self.map.createPane('labels');
+        self.map.getPane('labels').style.zIndex = 650;
+        self.map.getPane('labels').style.pointerEvents = 'none';
+        */
+        
+        self.leaflet.maptilepanel = L.tileLayer('http://localhost:8888/api/label-1/' + '/{z}/{x}/{y}.png', {
+          // noWrap: true,
+          // maxNativeZoom: rc.zoomLevel(),
+          // pane: 'labels',
+          bounds: self.rc.getMaxBounds(),
+          minZoom: self.config.mapMinZoom,
+          maxZoom: self.config.mapMaxZoom,
+        })
+        
+        // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
+        self.leaflet.maptilepanel.addTo(self.map)
+        
+        }
+    
+      } else {
+        if(self.leaflet.maptilepanel) {
+          self.leaflet.maptilepanel.remove()
+          self.leaflet.maptilepanel = null
+        }
+        
+      }
+      
 
       /*
       if(self.config.assetFontHideZoom < zoom) {
@@ -876,7 +1027,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         let inside = room.poly && pointInPolygon([yco,xco], room.poly)
         let alreadyShown = room === self.loc.room || room === self.loc.chosen.room
         let drawRoom = inside && !alreadyShown && 'red' !== alarmState
-
+        
         
         if(!drawRoom && !inside && self.loc.room === room) {
           if(self.loc.poly) {
@@ -904,6 +1055,67 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
                 // color: self.resolveRoomColor(roomState.alarm,'lo')
                 color: self.config.room.color
               })
+              
+              
+            
+            
+	
+		let layer = self.loc.poly
+		
+/*
+  	  		var labelContent = '<div style="background-color: red; width: 100px; height: 40px;">My Polygon</div>';
+
+// Create the tooltip with the initial content
+var tooltip = L.tooltip({
+    permanent: true,
+    direction: 'center',
+    
+    // direction: 'sticky',
+    opacity: 1,
+    className: 'class1',
+}).setContent(labelContent);
+
+// Bind the tooltip to the polygon
+layer.bindTooltip(tooltip);
+
+    // Get the new size of the polygon
+    var bounds = layer.getBounds();
+    var size = self.map.latLngToLayerPoint(bounds.getNorthEast())._subtract(self.map.latLngToLayerPoint(bounds.getSouthWest()));
+    
+    // Update the tooltip content with the new size
+    if(self.map.getZoom() >= 4) {
+    tooltip.setContent('<div style="background-color: transparent; width: ' + size.x + 'px; height: ' + size.y + 'px;">My Polygon</div>');
+    } else {
+      tooltip.setContent('');
+    }
+    
+// Listen to the zoomend event of the map
+self.map.on('zoomend', function() {
+    // Get the new size of the polygon
+    if(self.map.getZoom() >= 4) {
+      var bounds = layer.getBounds();
+      var size = self.map.latLngToLayerPoint(bounds.getNorthEast())._subtract(self.map.latLngToLayerPoint(bounds.getSouthWest()));
+    
+      // Update the tooltip content with the new size
+      console.log(size.x, size.y)
+      tooltip.setContent('<div style="background-color: transparent; width: ' + size.x + 'px; height: ' + size.y + 'px;">My Polygon</div>');
+    } else {
+      tooltip.setContent('');
+    }
+});
+
+// Listen to the zoomend event of the map
+self.map.on('zoomstart', function() {
+    // Get the new size of the polygon
+    if(self.map.getZoom() < 4) {
+    	tooltip.setContent('');
+    } else {
+      
+    }
+});
+
+*/
+
 
             self.loc.poly.on('click', ()=>self.selectRoom(room.room))
             
@@ -915,20 +1127,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         }
       }
 
-      Object.values(self.current.asset).map((assetState)=>{
-        if(assetState.poly) {
-          if(assetState.blink) {
-            if(true === assetState.blinkState) {
-              assetState.poly.addTo(self.layer.asset)
-              assetState.blinkState = false
-            }
-            else {
-              assetState.poly.remove(self.layer.asset)
-              assetState.blinkState = true
-            }
-          }
-        }
-      })
+
     }        
 
 
@@ -1175,6 +1374,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       let assetProps = self.data.assetMap[assetID]
       
       
+      
       self.log('showAsset', assetID, stateName, stateDef, 'hide', hide, 'blink', blink, assetProps)
       
       if(null == assetProps) {
@@ -1187,7 +1387,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
 
       if(assetCurrent.label) {
-        assetCurrent.label.remove(self.layer.asset)
+        // assetCurrent.label.remove(self.layer.asset)
+        self.layer.asset.removeLayer(assetCurrent.label)
         assetCurrent.label = null
       }
 
@@ -1232,8 +1433,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           })
       }
 
-      assetCurrent.poly.addTo(self.layer.asset)
-
+      // assetCurrent.poly.addTo(self.layer.asset)
+      
       assetCurrent.blink = null == blink ? false : blink
       
       setTimeout(()=>{
@@ -1243,11 +1444,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         if(assetCurrent.label != null) {
           return
         }
-      
+        
+        /*
         assetCurrent.label = L.marker([ay-20,ax-20], {icon: L.divIcon({
           className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-'+stateName,
           html
         })})
+        */
         
         assetCurrent.label = L.marker(
           c_asset_coords({x: ax+1, y: ay+20 }),
@@ -1256,13 +1459,23 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             html
           })
         })
-
+        
+        // TODO: parse out from the css
+        assetCurrent.label.setOpacity(0.7);
+        
+        
+        assetCurrent.label.assetID = assetID
         assetCurrent.label.addTo(self.layer.asset)
-
-        let lem = assetCurrent.label.getElement()
+       
+       try{
+	// console.error('label: ', assetCurrent.label)
+        // let lem = assetCurrent.label.getElement()
+        /*
         lem.style.width = ''
         lem.style.height = ''
         lem.style.fontSize = ''
+        */
+       }catch(err) {}
       
         self.zoomEndRender()
       }, 50)
@@ -1324,6 +1537,175 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
         self.leaflet.maptile.addTo(self.map)
         self.loc.map = mapIndex
+        
+        
+        for(let room of self.data.rooms) {
+        
+        if((1+self.loc.map) != room.map) {
+          continue
+        }
+
+        if(self.data.roomMap[room.room]) {
+              let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
+
+
+            let poly = L.polygon(
+              room_poly, {
+                color: 'transparent'
+              })
+              
+              
+              // Create the tooltip with the initial content
+var tooltip = L.tooltip({
+    permanent: true,
+    direction: 'center',
+
+    // direction: 'sticky',
+    opacity: 1,
+    className: 'polygon-labels',
+  
+})
+
+// Bind the tooltip to the polygon
+poly.bindTooltip(tooltip);
+let _c = poly.getBounds().getCenter()
+
+tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
+
+setTimeout(()=>{
+        const label = L.marker(_c, {
+          icon: L.divIcon({
+            iconSize: [30, 30], // default size
+            className: "label",
+            html: "<div>" + 'aaaa' + "</div>"
+          })
+        })
+        // .addTo(self.map);
+        
+}, 11)
+
+
+// tooltip.fitBounds(poly.getBounds())
+let inside = false
+poly.addTo(self.map)
+
+setTimeout(()=>{
+
+//console.log('tooltip: ', tooltip)
+//console.log('poly: ', poly)
+}, 11)
+
+
+  }
+
+
+  }
+
+        
+        // create the polygon data
+var polygonData = {
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    
+    
+    "coordinates": [[[106.40625, -67.84375],[110.3125, -67.84375],[110.3125, -69.75],[106.40625, -69.75 ]]],
+    // "coordinates": [[[-67.84375, 106.40625],[-67.84375, 110.3125],[-69.75, 110.3125],[-69.75, 106.40625]]],
+  }
+};
+
+
+
+// create the polygon layer with a custom style
+var polygonLayer = L.geoJSON(polygonData, {
+  style: {
+    // fillColor: "#3388ff",
+    // fillOpacity: 0.5,
+    // strokeColor: "#3388ff",
+    // strokeOpacity: 1,
+    // weight: 2
+  },
+  	onEachFeature: function (feature, layer) {
+  	  console.log('geoJSON: ', feature, layer)
+  	  
+
+
+  	  /*
+  	  layer.bindTooltip(`<div style="background-color: red">My polygon</div>`, {
+  permanent: true,
+  direction: "center",
+  opacity: 0.5,
+});
+*/
+
+
+/*
+var bounds = layer.getBounds();
+var size = [bounds.getNorth()-bounds.getSouth(), bounds.getEast()-bounds.getWest()];
+var label = L.marker(bounds.getCenter(), {
+  icon: L.divIcon({
+    className: 'label',
+    html: `<div style="background-color: red">My polygon</div>`,
+    iconSize: size
+  })
+}).addTo(self.map);
+*/	  
+  	  
+  	  /*
+
+	  // layer.bindPopup(feature.properties.description);
+	    var center = layer.getBounds().getCenter();
+    var label = L.marker(center, {
+      icon: L.divIcon({
+        className: "polygon-label",
+        html: `<span style="font-size: 1em;padding: 0.5em; width:fit-content;">My Polygon Label</span>`
+      }),
+      draggable: false,
+      clickable: false
+    }).addTo(self.map);
+    
+// Add an offset to the marker position
+var offset = L.point(-1.5, 0.6);
+var position = label.getLatLng();
+position = L.latLng(position.lat + offset.y, position.lng + offset.x);
+label.setLatLng(position);
+*/
+    
+    
+    /*
+    
+        // add a text element to the layer
+    var text = L.divIcon({
+      className: "text-label",
+      html: "This is a text label"
+    });
+    var textMarker = L.marker(layer.getBounds().getCenter(), {
+      icon: text,
+      clickable: false,
+      opacity: 1
+    });
+    textMarker.addTo(self.map);
+    */
+
+
+    
+    
+    /*
+    self.map.on('zoomstart', function () {
+  // hide the text marker when the map is zoomed in
+  textMarker.setOpacity(1);
+});
+
+    self.map.on('zoomend', function () {
+  // hide the text marker when the map is zoomed in
+  textMarker.setOpacity(0);
+  });
+  */
+  
+
+    
+	}
+}).addTo(self.map);
         
         // Define a custom control
         function createDebugLog(content) {
@@ -1776,6 +2158,81 @@ div.plantquest-assetmap-asset-label-red {
 
 /* MIT LICENSE, Copyright (c) 2014-2015, Justin Manley */
 .leaflet-toolbar-0{list-style:none;padding-left:0;border:2px solid rgba(0,0,0,.2);border-radius:4px}.leaflet-toolbar-0>li{position:relative}.leaflet-toolbar-0>li>.leaflet-toolbar-icon{display:block;width:30px;height:30px;line-height:30px;margin-right:0;padding-right:0;border-right:0;text-align:center;text-decoration:none;background-color:#fff}.leaflet-toolbar-0>li>.leaflet-toolbar-icon:hover{background-color:#f4f4f4}.leaflet-toolbar-0 .leaflet-toolbar-1{display:none;list-style:none}.leaflet-toolbar-tip-container{margin:-16px auto 0;height:16px;position:relative;overflow:hidden}.leaflet-toolbar-tip{width:16px;height:16px;margin:-8px auto 0;background-color:#fff;border:2px solid rgba(0,0,0,.2);background-clip:content-box;-webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg);border-radius:4px}.leaflet-control-toolbar .leaflet-toolbar-1>li:last-child>.leaflet-toolbar-icon,.leaflet-popup-toolbar>li:last-child>.leaflet-toolbar-icon{border-top-right-radius:4px;border-bottom-right-radius:4px}.leaflet-control-toolbar>li>.leaflet-toolbar-icon{border-bottom:1px solid #ccc}.leaflet-control-toolbar>li:first-child>.leaflet-toolbar-icon{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-control-toolbar>li:last-child>.leaflet-toolbar-icon{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom-width:0}.leaflet-control-toolbar .leaflet-toolbar-1{margin:0;padding:0;position:absolute;left:30px;top:0;white-space:nowrap;height:30px}.leaflet-control-toolbar .leaflet-toolbar-1>li{display:inline-block}.leaflet-control-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon{display:block;background-color:#919187;border-left:1px solid #aaa;color:#fff;font:11px/19px "Helvetica Neue",Arial,Helvetica,sans-serif;line-height:30px;text-decoration:none;padding-left:10px;padding-right:10px;height:30px}.leaflet-control-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon:hover{background-color:#a0a098}.leaflet-popup-toolbar{position:relative;box-sizing:content-box}.leaflet-popup-toolbar>li{float:left}.leaflet-popup-toolbar>li>.leaflet-toolbar-icon{border-right:1px solid #ccc}.leaflet-popup-toolbar>li:first-child>.leaflet-toolbar-icon{border-top-left-radius:4px;border-bottom-left-radius:4px}.leaflet-popup-toolbar>li:last-child>.leaflet-toolbar-icon{border-bottom-width:0;border-right:none}.leaflet-popup-toolbar .leaflet-toolbar-1{position:absolute;top:30px;left:0;padding-left:0}.leaflet-popup-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon{position:relative;float:left;width:30px;height:30px}
+.marker-cluster-small {
+	background-color: rgba(181, 226, 140, 0.6);
+	}
+.marker-cluster-small div {
+	background-color: rgba(110, 204, 57, 0.6);
+	}
+
+.marker-cluster-medium {
+	background-color: rgba(241, 211, 87, 0.6);
+	}
+.marker-cluster-medium div {
+	background-color: rgba(240, 194, 12, 0.6);
+	}
+
+.marker-cluster-large {
+	background-color: rgba(253, 156, 115, 0.6);
+	}
+.marker-cluster-large div {
+	background-color: rgba(241, 128, 23, 0.6);
+	}
+
+	/* IE 6-8 fallback colors */
+.leaflet-oldie .marker-cluster-small {
+	background-color: rgb(181, 226, 140);
+	}
+.leaflet-oldie .marker-cluster-small div {
+	background-color: rgb(110, 204, 57);
+	}
+
+.leaflet-oldie .marker-cluster-medium {
+	background-color: rgb(241, 211, 87);
+	}
+.leaflet-oldie .marker-cluster-medium div {
+	background-color: rgb(240, 194, 12);
+	}
+
+.leaflet-oldie .marker-cluster-large {
+	background-color: rgb(253, 156, 115);
+	}
+.leaflet-oldie .marker-cluster-large div {
+	background-color: rgb(241, 128, 23);
+}
+
+.marker-cluster {
+	background-clip: padding-box;
+	border-radius: 20px;
+	}
+.marker-cluster div {
+	width: 30px;
+	height: 30px;
+	margin-left: 5px;
+	margin-top: 5px;
+
+	text-align: center;
+	border-radius: 15px;
+	font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+	}
+.marker-cluster span {
+	line-height: 30px;
+	}
+.leaflet-cluster-anim .leaflet-marker-icon, .leaflet-cluster-anim .leaflet-marker-shadow {
+	-webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in;
+	-moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in;
+	-o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in;
+	transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+}
+
+.leaflet-cluster-spider-leg {
+	/* stroke-dashoffset (duration and function) should match with leaflet-marker-icon transform in order to track it exactly */
+	-webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in;
+	-moz-transition: -moz-stroke-dashoffset 0.3s ease-out, -moz-stroke-opacity 0.3s ease-in;
+	-o-transition: -o-stroke-dashoffset 0.3s ease-out, -o-stroke-opacity 0.3s ease-in;
+	transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
+}
+
 
 .leaflet-toolbar-0>li>.leaflet-toolbar-icon {
   width: 80px;
@@ -1798,6 +2255,21 @@ div.plantquest-assetmap-asset-label-red {
   /*block-size: fit-content;*/
 }
 
+
+.class1 {
+    background-color: transparent;
+    border: 0;
+    box-shadow: none;
+} 
+
+.polygon-labels {
+  background-color: transparent;
+  font-weight: bold;
+  color: #000000;
+  border: 0;
+  box-shadow: none;
+  font-size: .9em;
+}
 
 `
     head.appendChild(style)
