@@ -942,7 +942,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       if(null == zoom) return;
       // console.log('end: ', zoom)
       
-      if(zoom >= 4) {
+      if(zoom >= 6) {
         
               // if(mapIndex !== self.loc.map) {
         if(!self.leaflet.maptilepanel) {
@@ -969,12 +969,91 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
         self.leaflet.maptilepanel.addTo(self.map)
         
+        
+        self.polys = self.polys || []
+                for(let room of self.data.rooms) {
+        
+        if((1+self.loc.map) != room.map) {
+          continue
+        }
+
+        
+        if(self.data.roomMap[room.room] && room.area === '1') {
+              // console.log(room.area)
+              
+              let place;
+              // place = c_asset_coords({x: room.xco, y: room.yco}
+              // console.log( ) )
+              
+              let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
+
+
+            let poly = L.polygon(
+              room_poly, {
+                color: 'transparent'
+              })
+              
+              
+              // Create the tooltip with the initial content
+var tooltip = L.tooltip({
+    permanent: true,
+    direction: 'center',
+
+    // direction: 'sticky',
+    opacity: 1,
+    className: 'polygon-labels',
+  
+})
+
+// Bind the tooltip to the polygon
+poly.bindTooltip(tooltip);
+let _c = poly.getBounds().getCenter()
+
+tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
+
+setTimeout(()=>{
+        const label = L.marker(place, {
+          icon: L.divIcon({
+            // iconSize: [90, 30], // default size
+            className: 'polygon-labels',
+            html: `<div> ${room.room} </div>`
+          })
+        })
+        // .addTo(self.map);
+        
+}, 11)
+
+
+poly.addTo(self.map)
+
+self.polys.push(poly)
+
+setTimeout(()=>{
+
+//console.log('tooltip: ', tooltip)
+//console.log('poly: ', poly)
+}, 11)
+
+
+  }
+
+
+  }
+  
+        
         }
     
       } else {
         if(self.leaflet.maptilepanel) {
           self.leaflet.maptilepanel.remove()
           self.leaflet.maptilepanel = null
+          
+          if(self.polys) {
+            for(let poly of self.polys) {
+              poly.remove()
+            }
+          }
+          
         }
         
       }
@@ -1539,173 +1618,7 @@ self.map.on('zoomstart', function() {
         self.loc.map = mapIndex
         
         
-        for(let room of self.data.rooms) {
-        
-        if((1+self.loc.map) != room.map) {
-          continue
-        }
 
-        if(self.data.roomMap[room.room]) {
-              let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
-
-
-            let poly = L.polygon(
-              room_poly, {
-                color: 'transparent'
-              })
-              
-              
-              // Create the tooltip with the initial content
-var tooltip = L.tooltip({
-    permanent: true,
-    direction: 'center',
-
-    // direction: 'sticky',
-    opacity: 1,
-    className: 'polygon-labels',
-  
-})
-
-// Bind the tooltip to the polygon
-poly.bindTooltip(tooltip);
-let _c = poly.getBounds().getCenter()
-
-tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
-
-setTimeout(()=>{
-        const label = L.marker(_c, {
-          icon: L.divIcon({
-            iconSize: [30, 30], // default size
-            className: "label",
-            html: "<div>" + 'aaaa' + "</div>"
-          })
-        })
-        // .addTo(self.map);
-        
-}, 11)
-
-
-// tooltip.fitBounds(poly.getBounds())
-let inside = false
-poly.addTo(self.map)
-
-setTimeout(()=>{
-
-//console.log('tooltip: ', tooltip)
-//console.log('poly: ', poly)
-}, 11)
-
-
-  }
-
-
-  }
-
-        
-        // create the polygon data
-var polygonData = {
-  "type": "Feature",
-  "geometry": {
-    "type": "Polygon",
-    
-    
-    "coordinates": [[[106.40625, -67.84375],[110.3125, -67.84375],[110.3125, -69.75],[106.40625, -69.75 ]]],
-    // "coordinates": [[[-67.84375, 106.40625],[-67.84375, 110.3125],[-69.75, 110.3125],[-69.75, 106.40625]]],
-  }
-};
-
-
-
-// create the polygon layer with a custom style
-var polygonLayer = L.geoJSON(polygonData, {
-  style: {
-    // fillColor: "#3388ff",
-    // fillOpacity: 0.5,
-    // strokeColor: "#3388ff",
-    // strokeOpacity: 1,
-    // weight: 2
-  },
-  	onEachFeature: function (feature, layer) {
-  	  console.log('geoJSON: ', feature, layer)
-  	  
-
-
-  	  /*
-  	  layer.bindTooltip(`<div style="background-color: red">My polygon</div>`, {
-  permanent: true,
-  direction: "center",
-  opacity: 0.5,
-});
-*/
-
-
-/*
-var bounds = layer.getBounds();
-var size = [bounds.getNorth()-bounds.getSouth(), bounds.getEast()-bounds.getWest()];
-var label = L.marker(bounds.getCenter(), {
-  icon: L.divIcon({
-    className: 'label',
-    html: `<div style="background-color: red">My polygon</div>`,
-    iconSize: size
-  })
-}).addTo(self.map);
-*/	  
-  	  
-  	  /*
-
-	  // layer.bindPopup(feature.properties.description);
-	    var center = layer.getBounds().getCenter();
-    var label = L.marker(center, {
-      icon: L.divIcon({
-        className: "polygon-label",
-        html: `<span style="font-size: 1em;padding: 0.5em; width:fit-content;">My Polygon Label</span>`
-      }),
-      draggable: false,
-      clickable: false
-    }).addTo(self.map);
-    
-// Add an offset to the marker position
-var offset = L.point(-1.5, 0.6);
-var position = label.getLatLng();
-position = L.latLng(position.lat + offset.y, position.lng + offset.x);
-label.setLatLng(position);
-*/
-    
-    
-    /*
-    
-        // add a text element to the layer
-    var text = L.divIcon({
-      className: "text-label",
-      html: "This is a text label"
-    });
-    var textMarker = L.marker(layer.getBounds().getCenter(), {
-      icon: text,
-      clickable: false,
-      opacity: 1
-    });
-    textMarker.addTo(self.map);
-    */
-
-
-    
-    
-    /*
-    self.map.on('zoomstart', function () {
-  // hide the text marker when the map is zoomed in
-  textMarker.setOpacity(1);
-});
-
-    self.map.on('zoomend', function () {
-  // hide the text marker when the map is zoomed in
-  textMarker.setOpacity(0);
-  });
-  */
-  
-
-    
-	}
-}).addTo(self.map);
         
         // Define a custom control
         function createDebugLog(content) {
