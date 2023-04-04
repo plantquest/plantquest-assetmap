@@ -235,20 +235,53 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       window.seneca = self.seneca = seneca
       
       function assetShow(msg) {
-        let assetRoom = self.data.deps.cp.asset[msg.asset]
-        let assetData = self.data.assetMap[msg.asset]
-        if(assetRoom) {
-          self.emit({
-            srv:'plantquest',
-            part:'assetmap',
-            show:'asset',
-            before:true,
-            asset: assetData,
-          })
-          self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
+        if(Array.isArray(msg.asset) || msg.asset === null) {
+          msg.asset = msg.asset || Object.values(self.data.assetMap)
+          
+          for(let asset of msg.asset) {
+            let stateName = msg.state
+            
+            const assetID = asset?.id || asset
+            
+            let assetData = self.data.assetMap[assetID]
+            
+            assetData = Object.values(self.data.assetMap).find(asset=>asset.id == assetID)
+            // assetData = await seneca.post('aim: web, on: assetmap, load: asset', { assetID, } )
+            
+            // console.error(asset)
+            // console.error(assetData)
+            // console.error('asset: ', self.data.assetMap)
+          
+          
+            self.emit({
+              srv:'plantquest',
+              part:'assetmap',
+              show:'asset',
+              before:true,
+              asset: assetData,
+            })
+            self.showAsset(assetData?.tag, stateName, 'asset' === msg.hide, !!msg.blink)
+            
+            // let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
+          }
+          
         }
-        else {
-          self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
+        else { 
+          let assetRoom = self.data.deps.cp.asset[msg.asset]
+          let assetData = self.data.assetMap[msg.asset]
+          if(assetRoom) {
+            self.emit({
+              srv:'plantquest',
+              part:'assetmap',
+              show:'asset',
+              before:true,
+              asset: assetData,
+            })
+            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink)
+          }
+          else {
+            self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
+          }
         }
       }
       
@@ -766,12 +799,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	  
 	  let assetCurrent = self.current.asset[layer.assetID]
-	  
 	  if(assetCurrent) {
-	    console.log('layeradd: ', assetCurrent)
+	    // console.log('layeradd: ', assetCurrent)
 	    setTimeout(()=>{
 	      let lem = assetCurrent.label.getElement()
-              console.log('lem: ', lem.style)
+              // console.log('lem: ', lem)
               lem.style.width = ''
               lem.style.height = ''
               lem.style.fontSize = ''
@@ -810,7 +842,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	  let assetCurrent = self.current.asset[layer.assetID]
 	  
 	  if(assetCurrent) {
-	    console.log('layerremove: ', assetCurrent)
+	    // console.log('layerremove: ', assetCurrent)
 	    setTimeout(()=>{
 	      if(assetCurrent.poly) {
 	        assetCurrent.poly.remove()
@@ -1374,7 +1406,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     }
     
 
-    self.showAsset = function(assetID, stateName, hide, blink) {
+    self.showAsset = function(assetID, stateName, hide, blink, showRoom) {
       let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
 
       stateName = stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
@@ -1400,15 +1432,17 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         self.layer.asset.removeLayer(assetCurrent.label)
         assetCurrent.label = null
       }
-
-      self.showRoom(assetProps.room, stateName)
       
-      // Only draw polys if room is chosen or not hiding
-      if(hide ||
-         (null == self.loc.chosen.room ||
-          assetProps.room !== self.loc.chosen.room.room))
-      {
-        return
+      if(showRoom) {
+        self.showRoom(assetProps.room, stateName)
+      
+        // Only draw polys if room is chosen or not hiding
+        if(hide ||
+          (null == self.loc.chosen.room ||
+            assetProps.room !== self.loc.chosen.room.room))
+          {
+            return
+          }
       }
       
       
@@ -1446,7 +1480,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       assetCurrent.blink = null == blink ? false : blink
       
-      setTimeout(()=>{
+      //setTimeout(()=>{
         let html = $('#plantquest-assetmap-assetinfo').innerHTML
         
         
@@ -1487,7 +1521,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
        }catch(err) {}
       
         self.zoomEndRender()
-      }, 50)
+      //}, 50)
     }
 
     
