@@ -55,10 +55,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
-        mapStart: [2925, 3900],
+        // mapStart: [0, 3900],
         mapImg: [7800, 5850],
-        mapStart: [2925,3900],
-        mapStartZoom: -4,
+        mapStart: [3000, 2200],
+        mapStartZoom: 2,
         mapRoomFocusZoom: 5,
         mapMinZoom: 2,
         mapMaxZoom: 6,
@@ -118,7 +118,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       if(self.current.started) {
         self.clearRoomAssets()
         self.unselectRoom()
-        self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
+        
+        self.map.setView(self.config.mapStart, self.config.mapStartZoom)
         return
       }
       
@@ -446,7 +447,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         self.showMap(msg.map)
         self.clearRoomAssets()
         self.unselectRoom()
-        self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
+        self.map.setView(self.config.mapStart, self.config.mapStartZoom)
         
       })
       .message('srv:plantquest,part:assetmap,show:asset', async function(msg, reply) {
@@ -732,7 +733,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       self.map.on('zoomend', self.zoomEndRender)
       
       setTimeout(()=>{
-        self.map.setView([...self.config.mapStart], self.config.mapStartZoom)
+        let mapStart = c_asset_coords({x: self.config.mapStart[0], y: self.config.mapImg[1]-self.config.mapStart[1]})
+        self.map.setView(mapStart, self.config.mapStartZoom)
       },self.config.mapInterval/2)
 
       // L.imageOverlay(ms.mapurl, ms.bounds).addTo(self.map);
