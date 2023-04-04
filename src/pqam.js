@@ -2112,7 +2112,7 @@ div.plantquest-assetmap-asset-label-red {
   color: #000000;
   border: 0;
   box-shadow: none;
-  font-size: .9em;
+  font-size: 1em;
 }
 
 `
