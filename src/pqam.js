@@ -1854,7 +1854,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
     let maps = []
     let levels = []
-    let buildings = []
+    let buildings = new Set()
     
     let assetMap = {}
     let roomMap = {}
@@ -1891,8 +1891,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         }
 
         if (null != asset.building && '' !== asset.building) {
-          
-          // buildings.add(asset.building)
+          buildings.add(asset.building)
         }
 
         if (null != asset.map && '' !== asset.map) {
@@ -1940,13 +1939,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
     // maps = [...maps]
     // levels = [...levels]
-    // buildings = [...buildings]
+    buildings = Array.from(buildings)
 
     return {
       deps,
       maps,
       levels,
-      // buildings,
+      buildings,
       assetMap,
       roomMap
     }
