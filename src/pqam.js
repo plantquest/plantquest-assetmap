@@ -613,10 +613,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           let waiter = setInterval(()=>{
             self.log('loading data...')
             if(window.PLANTQUEST_ASSETMAP_DATA) {
-              window.PLANTQUEST_ASSETMAP_DATA = {}
-              window.PLANTQUEST_ASSETMAP_DATA = require('./test_data.json')
-	      // console.log('self.config: ', self.config)
-
+            
               clearInterval(waiter)
               processData(window.PLANTQUEST_ASSETMAP_DATA)
             }
