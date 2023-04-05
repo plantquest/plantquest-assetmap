@@ -1,0 +1,69 @@
+._MarkerCluster__leaflet-cluster-anim__3H1QI ._MarkerCluster__leaflet-marker-icon__2SYPv, ._MarkerCluster__leaflet-cluster-anim__3H1QI ._MarkerCluster__leaflet-marker-shadow__1CaVJ {
+	transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+}
+
+._MarkerCluster__leaflet-cluster-spider-leg__3sv2g {
+	/* stroke-dashoffset (duration and function) should match with leaflet-marker-icon transform in order to track it exactly */
+	transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
+}
+
+._MarkerCluster-Default__marker-cluster-small__1ZJu3 {
+	background-color: rgba(181, 226, 140, 0.6);
+	}
+._MarkerCluster-Default__marker-cluster-small__1ZJu3 div {
+	background-color: rgba(110, 204, 57, 0.6);
+	}
+
+._MarkerCluster-Default__marker-cluster-medium__j5dnP {
+	background-color: rgba(241, 211, 87, 0.6);
+	}
+._MarkerCluster-Default__marker-cluster-medium__j5dnP div {
+	background-color: rgba(240, 194, 12, 0.6);
+	}
+
+._MarkerCluster-Default__marker-cluster-large__25yuo {
+	background-color: rgba(253, 156, 115, 0.6);
+	}
+._MarkerCluster-Default__marker-cluster-large__25yuo div {
+	background-color: rgba(241, 128, 23, 0.6);
+	}
+
+	/* IE 6-8 fallback colors */
+._MarkerCluster-Default__leaflet-oldie__iBT2r ._MarkerCluster-Default__marker-cluster-small__1ZJu3 {
+	background-color: rgb(181, 226, 140);
+	}
+._MarkerCluster-Default__leaflet-oldie__iBT2r ._MarkerCluster-Default__marker-cluster-small__1ZJu3 div {
+	background-color: rgb(110, 204, 57);
+	}
+
+._MarkerCluster-Default__leaflet-oldie__iBT2r ._MarkerCluster-Default__marker-cluster-medium__j5dnP {
+	background-color: rgb(241, 211, 87);
+	}
+._MarkerCluster-Default__leaflet-oldie__iBT2r ._MarkerCluster-Default__marker-cluster-medium__j5dnP div {
+	background-color: rgb(240, 194, 12);
+	}
+
+._MarkerCluster-Default__leaflet-oldie__iBT2r ._MarkerCluster-Default__marker-cluster-large__25yuo {
+	background-color: rgb(253, 156, 115);
+	}
+._MarkerCluster-Default__leaflet-oldie__iBT2r ._MarkerCluster-Default__marker-cluster-large__25yuo div {
+	background-color: rgb(241, 128, 23);
+}
+
+._MarkerCluster-Default__marker-cluster__1I1z5 {
+	background-clip: padding-box;
+	border-radius: 20px;
+	}
+._MarkerCluster-Default__marker-cluster__1I1z5 div {
+	width: 30px;
+	height: 30px;
+	margin-left: 5px;
+	margin-top: 5px;
+
+	text-align: center;
+	border-radius: 15px;
+	font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+	}
+._MarkerCluster-Default__marker-cluster__1I1z5 span {
+	line-height: 30px;
+	}
