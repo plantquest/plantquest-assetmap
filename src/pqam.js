@@ -50,8 +50,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       // default config
       config: {
-        width: '600px',
-        height: '400px',
+        // width: '600px',
+        // height: '400px',
+        width: '100%',
+        height: '100%',
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
