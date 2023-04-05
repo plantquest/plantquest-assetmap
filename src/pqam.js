@@ -804,9 +804,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	    setTimeout(()=>{
 	      let lem = assetCurrent.label.getElement()
               // console.log('lem: ', lem)
-              lem.style.width = ''
-              lem.style.height = ''
-              lem.style.fontSize = ''
+              try{
+                lem.style.width = ''
+                lem.style.height = ''
+                lem.style.fontSize = ''
+              }catch(err) {}
               
               
               assetCurrent.poly.addTo(self.layer.circles)
@@ -1570,6 +1572,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     
     self.showMap = function(mapIndex) {
       self.log('showMap', mapIndex, self.loc)
+      
       if(mapIndex !== self.loc.map) {
         if(self.leaflet.maptile) {
           self.leaflet.maptile.remove(self.map)
