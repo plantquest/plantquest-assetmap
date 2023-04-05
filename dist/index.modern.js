@@ -213,7 +213,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.8.0";
+var version = "1.8.1";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -401,8 +401,8 @@ var rastercoords = createCommonjsModule(function (module) {
     var self = {
       id: ('' + Math.random()).substring(2, 8),
       config: {
-        width: '600px',
-        height: '400px',
+        width: '100%',
+        height: '100%',
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
@@ -590,6 +590,10 @@ var rastercoords = createCommonjsModule(function (module) {
             }
             var loadData = function loadData() {
               try {
+                if (self.dataLoaded) {
+                  done(self.data);
+                  return Promise.resolve();
+                }
                 var query = {
                   project_id: self.config.project_id,
                   plant_id: self.config.plant_id,
@@ -625,6 +629,7 @@ var rastercoords = createCommonjsModule(function (module) {
                       self.data.assetMap = assetMap;
                       self.data.roomMap = roomMap;
                       self.data.deps = deps;
+                      self.dataLoaded = true;
                       done(self.data);
                     });
                   });
@@ -1557,6 +1562,24 @@ var rastercoords = createCommonjsModule(function (module) {
         self.leaflet.maptile.addTo(self.map);
         self.loc.map = mapIndex;
         self.zoomEndRender();
+        if (!self.debugClick) {
+          self.map.on('click', function (mev) {
+            var _convert_latlng2 = convert_latlng(mev.latlng),
+              xco = _convert_latlng2.xco,
+              yco = _convert_latlng2.yco;
+            var content = '';
+            if (self.leaflet.debugLog) {
+              self.leaflet.debugLog.remove();
+              self.leaflet.debugLog = null;
+            }
+            var asset_data = {};
+            asset_data.xco = xco;
+            asset_data.yco = yco;
+            content = JSON.stringify(asset_data);
+            self.leaflet.debugLog = createDebugLog(content);
+            self.map.addControl(self.leaflet.debugLog);
+          });
+        }
         if (window.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
           self.listen(function (msg) {
             if (msg.show == 'asset') {
