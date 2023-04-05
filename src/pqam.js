@@ -546,6 +546,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
       
       async function loadData() {
+        if(self.dataLoaded) {
+          done(self.data)
+          return
+        }
         
         let query = {
           project_id: self.config.project_id,
@@ -594,6 +598,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // depsUnitTest(deps)
         
         self.data.deps = deps
+        self.dataLoaded = true
         
         done(self.data)
         
@@ -1613,7 +1618,26 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           return new debugLog()
         }
         
-        
+        if(!self.debugClick) {
+          self.map.on('click', (mev)=>{
+            let {xco, yco} = convert_latlng(mev.latlng)
+            
+            let content = ''
+	    if(self.leaflet.debugLog) {
+	      self.leaflet.debugLog.remove()
+	      self.leaflet.debugLog = null
+	    }
+	    let asset_data = {}
+	    asset_data.xco = xco
+	    asset_data.yco = yco
+	    content = JSON.stringify(asset_data)
+	    
+	    self.leaflet.debugLog = createDebugLog(content)
+	    // Add the custom control to the map
+            self.map.addControl(self.leaflet.debugLog)
+              
+          })
+        }
         if(window.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
         
 	  self.listen((msg) => {
