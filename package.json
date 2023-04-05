@@ -54,6 +54,7 @@
   "dependencies": {
     "leaflet": "1.8.0",
     "leaflet-rastercoords": "1.0.5",
+    "leaflet.markercluster": "1.5.3",
     "seneca-browser": "4.0.1",
     "seneca-entity": "18.4.0",
     "seneca-mem-store": "7.0.1"
