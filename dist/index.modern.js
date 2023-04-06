@@ -1,4 +1,5 @@
 import L$1 from 'leaflet';
+import 'leaflet.markercluster';
 import Seneca from 'seneca-browser';
 import SenecaEntity from 'seneca-entity';
 import SenecaMemStore from 'seneca-mem-store';
@@ -212,7 +213,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.7.0";
+var version = "1.8.2";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -266,6 +267,7 @@ var files = [
 var dependencies = {
 	leaflet: "1.8.0",
 	"leaflet-rastercoords": "1.0.5",
+	"leaflet.markercluster": "1.5.3",
 	"seneca-browser": "4.0.1",
 	"seneca-entity": "18.4.0",
 	"seneca-mem-store": "7.0.1"
@@ -374,6 +376,7 @@ var rastercoords = createCommonjsModule(function (module) {
 });
 
 (function (W, D) {
+  window.PLANTQUEST_ASSETMAP_DEBUG = {};
   var log = function log() {
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -395,50 +398,60 @@ var rastercoords = createCommonjsModule(function (module) {
   var Element = D.createElement.bind(D);
   var rc;
   function PlantQuestAssetMap() {
-    var _config;
     var self = {
       id: ('' + Math.random()).substring(2, 8),
-      config: (_config = {
-        width: '600px',
-        height: '400px',
+      config: {
+        width: '100%',
+        height: '100%',
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
-        mapStart: [2925, 3900],
-        mapImg: [7800, 5850]
-      }, _config["mapStart"] = [2925, 3900], _config.mapStartZoom = -4, _config.mapRoomFocusZoom = 5, _config.mapMinZoom = 2, _config.mapMaxZoom = 6, _config.assetFontScaleRoom = 10, _config.assetFontScaleZoom = 4, _config.assetFontHideZoom = -1, _config.data = 'https://demo.plantquest.app/sample-data.js', _config.mode = 'demo', _config.apikey = '<API KEY>', _config.endpoint = '/', _config.tilesEndPoint = 'https://demo.plantquest.app/tiles', _config.states = {
-        up: {
-          color: '#99f',
-          name: 'Up',
-          marker: 'standard'
+        mapImg: [7800, 5850],
+        mapStart: [3000, 2200],
+        mapStartZoom: 2,
+        mapRoomFocusZoom: 5,
+        mapMinZoom: 2,
+        mapMaxZoom: 6,
+        assetFontScaleRoom: 10,
+        assetFontScaleZoom: 4,
+        assetFontHideZoom: -1,
+        data: 'https://demo.plantquest.app/sample-data.js',
+        mode: 'demo',
+        apikey: '<API KEY>',
+        endpoint: '/',
+        tilesEndPoint: 'https://demo.plantquest.app/tiles',
+        states: {
+          up: {
+            color: '#99f',
+            name: 'Up',
+            marker: 'standard'
+          },
+          down: {
+            color: '#666',
+            name: 'Down',
+            marker: 'standard'
+          },
+          missing: {
+            color: '#f9f',
+            name: 'Missing',
+            marker: 'alert'
+          },
+          alarm: {
+            color: '#f99',
+            name: 'Alarm',
+            marker: 'alert'
+          }
         },
-        down: {
-          color: '#666',
-          name: 'Down',
-          marker: 'standard'
+        map: [],
+        start: {
+          map: 0,
+          level: 0
         },
-        missing: {
-          color: '#f9f',
-          name: 'Missing',
-          marker: 'alert'
+        room: {
+          color: '#33f'
         },
-        alarm: {
-          color: '#f99',
-          name: 'Alarm',
-          marker: 'alert'
-        }
-      }, _config.map = [], _config.start = {
-        map: 0,
-        level: 0
-      }, _config.room = {
-        color: '#33f'
-      }, _config.plants = [{
-        id: 'aaa',
-        name: 'Plant AAA'
-      }, {
-        id: 'bbb',
-        name: 'Plant BBB'
-      }], _config),
+        plants: []
+      },
       data: {},
       assetMap: {},
       roomMap: {},
@@ -463,7 +476,7 @@ var rastercoords = createCommonjsModule(function (module) {
       if (self.current.started) {
         self.clearRoomAssets();
         self.unselectRoom();
-        self.map.setView([].concat(self.config.mapStart), self.config.mapStartZoom);
+        self.map.setView(self.config.mapStart, self.config.mapStartZoom);
         return;
       }
       self.config = _extends({}, self.config, config || {});
@@ -535,23 +548,52 @@ var rastercoords = createCommonjsModule(function (module) {
             pin: ['aim:web', 'aim:web,on:assetmap,get:info', 'aim:web,on:assetmap,list:asset', 'aim:web,on:assetmap,load:asset', 'aim:web,on:assetmap,save:asset', 'aim:web,on:assetmap,list:room', 'aim:web,on:assetmap,load:room', 'aim:web,on:assetmap,save:room', 'aim:web,on:assetmap,list:building', 'aim:web,on:assetmap,load:building', 'aim:web,on:assetmap,save:building']
           })).then(function () {
             function assetShow(msg) {
-              var assetRoom = self.data.deps.cp.asset[msg.asset];
-              var assetData = self.data.assetMap[msg.asset];
-              if (assetRoom) {
-                self.emit({
-                  srv: 'plantquest',
-                  part: 'assetmap',
-                  show: 'asset',
-                  before: true,
-                  asset: assetData
-                });
-                self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink);
+              if (Array.isArray(msg.asset) || msg.asset === null) {
+                msg.asset = msg.asset || Object.values(self.data.assetMap);
+                var _loop = function _loop() {
+                  var _assetData;
+                  var asset = _step.value;
+                  var stateName = msg.state;
+                  var assetID = (asset === null || asset === void 0 ? void 0 : asset.id) || asset;
+                  var assetData = self.data.assetMap[assetID];
+                  assetData = Object.values(self.data.assetMap).find(function (asset) {
+                    return asset.id == assetID;
+                  });
+                  self.emit({
+                    srv: 'plantquest',
+                    part: 'assetmap',
+                    show: 'asset',
+                    before: true,
+                    asset: assetData
+                  });
+                  self.showAsset((_assetData = assetData) === null || _assetData === void 0 ? void 0 : _assetData.tag, stateName, 'asset' === msg.hide, !!msg.blink);
+                };
+                for (var _iterator = _createForOfIteratorHelperLoose(msg.asset), _step; !(_step = _iterator()).done;) {
+                  _loop();
+                }
               } else {
-                self.log('ERROR', 'send', 'asset', 'unknown-asset', msg);
+                var assetRoom = self.data.deps.cp.asset[msg.asset];
+                var assetData = self.data.assetMap[msg.asset];
+                if (assetRoom) {
+                  self.emit({
+                    srv: 'plantquest',
+                    part: 'assetmap',
+                    show: 'asset',
+                    before: true,
+                    asset: assetData
+                  });
+                  self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink);
+                } else {
+                  self.log('ERROR', 'send', 'asset', 'unknown-asset', msg);
+                }
               }
             }
             var loadData = function loadData() {
               try {
+                if (self.dataLoaded) {
+                  done(self.data);
+                  return Promise.resolve();
+                }
                 var query = {
                   project_id: self.config.project_id,
                   plant_id: self.config.plant_id,
@@ -582,11 +624,12 @@ var rastercoords = createCommonjsModule(function (module) {
                         assetMap = _generate.assetMap,
                         roomMap = _generate.roomMap;
                       self.data.buildings = buildings;
-                      self.data.levels = levels.reverse();
+                      self.data.levels = levels;
                       self.data.maps = maps;
                       self.data.assetMap = assetMap;
                       self.data.roomMap = roomMap;
                       self.data.deps = deps;
+                      self.dataLoaded = true;
                       done(self.data);
                     });
                   });
@@ -601,7 +644,7 @@ var rastercoords = createCommonjsModule(function (module) {
                 var assets = [];
                 var assetMap = {};
                 var assetProps = self.data.assets[0];
-                var _loop = function _loop() {
+                var _loop2 = function _loop2() {
                   var row = self.data.assets[rowI];
                   var assetID = row[0];
                   assetMap[assetID] = assetProps.reduce(function (a, p, i) {
@@ -609,7 +652,7 @@ var rastercoords = createCommonjsModule(function (module) {
                   }, {});
                 };
                 for (var rowI = 1; rowI < self.data.assets.length; rowI++) {
-                  _loop();
+                  _loop2();
                 }
                 self.data.assetMap = assetMap;
                 var roomMap = self.data.rooms.reduce(function (a, r) {
@@ -639,6 +682,11 @@ var rastercoords = createCommonjsModule(function (module) {
                 var _this2 = this;
                 var asset = msg.asset;
                 asset = asset || {};
+                asset = _extends({}, asset, {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                });
                 return Promise.resolve(_this2.post('aim: web, on: assetmap, save: asset', {
                   asset: _extends({}, asset)
                 })).then(function (_this2$post) {
@@ -659,6 +707,11 @@ var rastercoords = createCommonjsModule(function (module) {
                 var _this3 = this;
                 var room = msg.room;
                 room = room || {};
+                room = _extends({}, room, {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                });
                 return Promise.resolve(_this3.post('aim: web, on: assetmap, save: room', {
                   room: _extends({}, room)
                 })).then(function (_this3$post) {
@@ -679,6 +732,11 @@ var rastercoords = createCommonjsModule(function (module) {
                 var _this4 = this;
                 var building = msg.building;
                 building = building || {};
+                building = _extends({}, building, {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                });
                 return Promise.resolve(_this4.post('aim: web, on: assetmap, save: building', {
                   building: _extends({}, building)
                 })).then(function (_this4$post) {
@@ -752,7 +810,11 @@ var rastercoords = createCommonjsModule(function (module) {
               try {
                 var _this8 = this;
                 var query = msg.query;
-                query = query || {};
+                query = query || {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                };
                 return Promise.resolve(_this8.post('aim: web, on: assetmap, list: asset', {
                   query: query
                 })).then(function (assets) {
@@ -771,7 +833,11 @@ var rastercoords = createCommonjsModule(function (module) {
               try {
                 var _this9 = this;
                 var query = msg.query;
-                query = query || {};
+                query = query || {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                };
                 return Promise.resolve(_this9.post('aim: web, on: assetmap, list: room', {
                   query: query
                 })).then(function (rooms) {
@@ -790,7 +856,11 @@ var rastercoords = createCommonjsModule(function (module) {
               try {
                 var _this10 = this;
                 var query = msg.query;
-                query = query || {};
+                query = query || {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage
+                };
                 return Promise.resolve(_this10.post('aim: web, on: assetmap, list: building', {
                   query: query
                 })).then(function (buildings) {
@@ -818,8 +888,8 @@ var rastercoords = createCommonjsModule(function (module) {
                 if (room) {
                   if (msg.assets) {
                     if (msg.assets) {
-                      for (var _iterator = _createForOfIteratorHelperLoose(msg.assets), _step; !(_step = _iterator()).done;) {
-                        var asset = _step.value;
+                      for (var _iterator2 = _createForOfIteratorHelperLoose(msg.assets), _step2; !(_step2 = _iterator2()).done;) {
+                        var asset = _step2.value;
                         self.showAsset(asset.asset, asset.state);
                       }
                     }
@@ -848,7 +918,7 @@ var rastercoords = createCommonjsModule(function (module) {
                 self.showMap(msg.map);
                 self.clearRoomAssets();
                 self.unselectRoom();
-                self.map.setView([].concat(self.config.mapStart), self.config.mapStartZoom);
+                self.map.setView(self.config.mapStart, self.config.mapStartZoom);
                 return Promise.resolve();
               } catch (e) {
                 return Promise.reject(e);
@@ -1009,10 +1079,99 @@ var rastercoords = createCommonjsModule(function (module) {
       self.map.on('zoomstart', self.zoomStartRender);
       self.map.on('zoomend', self.zoomEndRender);
       setTimeout(function () {
-        self.map.setView([].concat(self.config.mapStart), self.config.mapStartZoom);
+        var mapStart = c_asset_coords({
+          x: self.config.mapStart[0],
+          y: self.config.mapImg[1] - self.config.mapStart[1]
+        });
+        self.map.setView(mapStart, self.config.mapStartZoom);
       }, self.config.mapInterval / 2);
       self.layer.room = L$1.layerGroup().addTo(self.map);
-      self.layer.asset = L$1.layerGroup().addTo(self.map);
+      self.layer.circles = L$1.layerGroup().addTo(self.map);
+      self.layer.asset = L$1.markerClusterGroup({
+        spiderfyOnMaxZoom: false,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        maxClusterRadius: 40,
+        chunkedLoading: true,
+        spiderLegPolylineOptions: {
+          weight: 1.5,
+          color: 'black',
+          opacity: 2.5
+        },
+        spiderfyLinear: false,
+        spiderfyLinearDistance: 30,
+        spiderfyLinearSeparation: 45
+      }).addTo(self.map);
+      self.map.on('layeradd', function (event) {
+        var layer = event.layer;
+        if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
+          var _assetCurrent = self.current.asset[layer.assetID];
+          if (_assetCurrent) {
+            setTimeout(function () {
+              var lem = _assetCurrent.label.getElement();
+              try {
+                lem.style.width = '';
+                lem.style.height = '';
+                lem.style.fontSize = '';
+              } catch (err) {}
+              _assetCurrent.poly.addTo(self.layer.circles);
+              _assetCurrent.blinkId = setInterval(function blink() {
+                if (_assetCurrent.poly) {
+                  if (_assetCurrent.blink) {
+                    if (true === _assetCurrent.blinkState) {
+                      _assetCurrent.poly.addTo(self.layer.circles);
+                      _assetCurrent.blinkState = false;
+                    } else {
+                      _assetCurrent.poly.remove(self.layer.circles);
+                      _assetCurrent.blinkState = true;
+                    }
+                  }
+                }
+              }, self.config.mapInterval);
+            }, 11);
+          }
+        }
+      });
+      self.map.on('layerremove', function (event) {
+        var layer = event.layer;
+        if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
+          var _assetCurrent2 = self.current.asset[layer.assetID];
+          if (_assetCurrent2) {
+            setTimeout(function () {
+              if (_assetCurrent2.poly) {
+                _assetCurrent2.poly.remove();
+              }
+              if (_assetCurrent2.blinkId) {
+                clearInterval(_assetCurrent2.blinkId);
+              }
+            }, 11);
+          }
+        }
+      });
+      function generate_labels() {
+        self.poly_labels = self.poly_labels || {};
+        for (var _iterator3 = _createForOfIteratorHelperLoose(self.data.rooms), _step3; !(_step3 = _iterator3()).done;) {
+          var room = _step3.value;
+          var poly_labels = self.poly_labels[room.map] = self.poly_labels[room.map] || [];
+          if (self.data.roomMap[room.room] && room.area === '1') {
+            var room_poly = convertRoomPoly(self.config.mapImg, room.poly);
+            var poly = L$1.polygon(room_poly, {
+              color: 'transparent'
+            });
+            var tooltip = L$1.tooltip({
+              permanent: true,
+              direction: 'center',
+              opacity: 1,
+              className: 'polygon-labels'
+            });
+            poly.bindTooltip(tooltip);
+            var _c = poly.getBounds().getCenter();
+            tooltip.setContent("<div class=\"leaflet-zoom-animted\"> " + room.room + " </div>");
+            poly_labels.push(poly);
+          }
+        }
+      }
+      generate_labels();
       self.map.on('mousemove', function (mev) {
         var _convert_latlng = convert_latlng(mev.latlng),
           xco = _convert_latlng.xco,
@@ -1058,12 +1217,39 @@ var rastercoords = createCommonjsModule(function (module) {
     self.zoomEndRender = function () {
       var zoom = self.map.getZoom();
       if (null == zoom) return;
+      var pos = 1 + self.loc.map;
+      self.poly_labels = self.poly_labels || {};
+      var labels = self.poly_labels[pos] || [];
+      self.prev_labels = self.prev_labels || [];
+      if (zoom >= 6) {
+        for (var _iterator4 = _createForOfIteratorHelperLoose(self.prev_labels), _step4; !(_step4 = _iterator4()).done;) {
+          var label = _step4.value;
+          label.remove();
+        }
+        for (var _iterator5 = _createForOfIteratorHelperLoose(labels), _step5; !(_step5 = _iterator5()).done;) {
+          var _label = _step5.value;
+          _label.remove();
+          _label.addTo(self.map);
+        }
+        self.setLabel = true;
+        self.prev_labels = labels;
+      } else {
+        for (var _iterator6 = _createForOfIteratorHelperLoose(self.prev_labels), _step6; !(_step6 = _iterator6()).done;) {
+          var _label2 = _step6.value;
+          _label2.remove();
+        }
+        for (var _iterator7 = _createForOfIteratorHelperLoose(labels), _step7; !(_step7 = _iterator7()).done;) {
+          var _label3 = _step7.value;
+          _label3.remove();
+        }
+        self.setLabel = false;
+      }
     };
     self.checkRooms = function () {
       var xco = self.loc.x;
       var yco = convert_poly_y(self.config.mapImg, self.loc.y);
       var rooms = Object.values(self.data.rooms);
-      var _loop2 = function _loop2() {
+      var _loop3 = function _loop3() {
         var room = _rooms[_i];
         if (1 + self.loc.map != room.map) {
           return "continue";
@@ -1102,22 +1288,9 @@ var rastercoords = createCommonjsModule(function (module) {
         }
       };
       for (var _i = 0, _rooms = rooms; _i < _rooms.length; _i++) {
-        var _ret = _loop2();
+        var _ret = _loop3();
         if (_ret === "continue") continue;
       }
-      Object.values(self.current.asset).map(function (assetState) {
-        if (assetState.poly) {
-          if (assetState.blink) {
-            if (true === assetState.blinkState) {
-              assetState.poly.addTo(self.layer.asset);
-              assetState.blinkState = false;
-            } else {
-              assetState.poly.remove(self.layer.asset);
-              assetState.blinkState = true;
-            }
-          }
-        }
-      });
     };
     self.selectRoom = function (roomId, opts) {
       opts = opts || {};
@@ -1206,8 +1379,8 @@ var rastercoords = createCommonjsModule(function (module) {
     self.focusRoom = function (room) {
       if (null == room) return;
       var roomlatlng = [0, 0];
-      for (var _iterator2 = _createForOfIteratorHelperLoose(room.poly), _step2; !(_step2 = _iterator2()).done;) {
-        var point = _step2.value;
+      for (var _iterator8 = _createForOfIteratorHelperLoose(room.poly), _step8; !(_step8 = _iterator8()).done;) {
+        var point = _step8.value;
         if (point[0] > roomlatlng[0]) {
           roomlatlng[0] = point[0];
           roomlatlng[1] = point[1];
@@ -1253,8 +1426,8 @@ var rastercoords = createCommonjsModule(function (module) {
       var actualStateDef = newStateDef;
       var newPriority = Object.keys(self.config.states).indexOf(newStateDef.stateName);
       var assets = (self.data.deps.pc.room[roomID] ? self.data.deps.pc.room[roomID].asset : []) || [];
-      for (var _iterator3 = _createForOfIteratorHelperLoose(assets), _step3; !(_step3 = _iterator3()).done;) {
-        var assetID = _step3.value;
+      for (var _iterator9 = _createForOfIteratorHelperLoose(assets), _step9; !(_step9 = _iterator9()).done;) {
+        var assetID = _step9.value;
         var assetState = self.current.asset[assetID];
         if (assetState && assetState.stateName) {
           var stateDef = self.config.states[assetState.stateName];
@@ -1268,7 +1441,7 @@ var rastercoords = createCommonjsModule(function (module) {
       }
       return actualStateDef;
     };
-    self.showAsset = function (assetID, stateName, hide, blink) {
+    self.showAsset = function (assetID, stateName, hide, blink, showRoom) {
       var assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID] = {});
       stateName = stateName || assetCurrent.stateName || Object.keys(self.config.states)[0];
       var stateDef = self.config.states[stateName];
@@ -1282,11 +1455,16 @@ var rastercoords = createCommonjsModule(function (module) {
         assetCurrent.poly = null;
       }
       if (assetCurrent.label) {
-        assetCurrent.label.remove(self.layer.asset);
+        self.layer.asset.removeLayer(assetCurrent.label);
         assetCurrent.label = null;
       }
-      self.showRoom(assetProps.room, stateName);
-      if (hide || null == self.loc.chosen.room || assetProps.room !== self.loc.chosen.room.room) {
+      if (showRoom) {
+        self.showRoom(assetProps.room, stateName);
+        if (hide || null == self.loc.chosen.room || assetProps.room !== self.loc.chosen.room.room) {
+          return;
+        }
+      }
+      if (hide) {
         return;
       }
       var assetPoint = [assetProps.yco, assetProps.xco];
@@ -1309,56 +1487,45 @@ var rastercoords = createCommonjsModule(function (module) {
           color: color
         });
       }
-      assetCurrent.poly.addTo(self.layer.asset);
       assetCurrent.blink = null == blink ? false : blink;
-      setTimeout(function () {
-        var html = $('#plantquest-assetmap-assetinfo').innerHTML;
-        if (assetCurrent.label != null) {
-          return;
-        }
-        assetCurrent.label = L$1.marker([ay - 20, ax - 20], {
-          icon: L$1.divIcon({
-            className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-' + stateName,
-            html: html
-          })
-        });
-        assetCurrent.label = L$1.marker(c_asset_coords({
-          x: ax + 1,
-          y: ay + 20
-        }), {
-          icon: L$1.divIcon({
-            className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-' + stateName,
-            html: html
-          })
-        });
-        assetCurrent.label.addTo(self.layer.asset);
-        var lem = assetCurrent.label.getElement();
-        lem.style.width = '';
-        lem.style.height = '';
-        lem.style.fontSize = '';
-        self.zoomEndRender();
-      }, 50);
+      var html = $('#plantquest-assetmap-assetinfo').innerHTML;
+      if (assetCurrent.label != null) {
+        return;
+      }
+      assetCurrent.label = L$1.marker(c_asset_coords({
+        x: ax + 1,
+        y: ay + 20
+      }), {
+        icon: L$1.divIcon({
+          className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-' + stateName,
+          html: html
+        })
+      });
+      assetCurrent.label.setOpacity(0.7);
+      assetCurrent.label.assetID = assetID;
+      assetCurrent.label.addTo(self.layer.asset);
+      self.zoomEndRender();
     };
     self.clearRoomAssets = function (roomID) {
       for (var assetID in self.current.asset) {
-        var _assetCurrent = self.current.asset[assetID];
+        var _assetCurrent3 = self.current.asset[assetID];
         if (self.data.deps.cp.asset[assetID].room !== roomID) {
-          if (_assetCurrent.poly) {
-            _assetCurrent.poly.remove(self.layer.asset);
+          if (_assetCurrent3.poly) {
+            _assetCurrent3.poly.remove(self.layer.asset);
           }
-          if (_assetCurrent.label) {
-            _assetCurrent.label.remove(self.layer.asset);
+          if (_assetCurrent3.label) {
+            _assetCurrent3.label.remove(self.layer.asset);
           }
         }
       }
     };
     self.showRoomAssets = function (roomID) {
       var assets = (self.data.deps.pc.room[roomID] ? self.data.deps.pc.room[roomID].asset : []) || [];
-      for (var _iterator4 = _createForOfIteratorHelperLoose(assets), _step4; !(_step4 = _iterator4()).done;) {
-        var assetID = _step4.value;
-        var _assetCurrent2 = self.current.asset[assetID];
-        if (_assetCurrent2 && _assetCurrent2.alarm) {
-          self.showAsset(assetID, _assetCurrent2.alarm);
+      for (var _iterator10 = _createForOfIteratorHelperLoose(assets), _step10; !(_step10 = _iterator10()).done;) {
+        var assetID = _step10.value;
+        var _assetCurrent4 = self.current.asset[assetID];
+        if (_assetCurrent4 && _assetCurrent4.alarm) {
+          self.showAsset(assetID, _assetCurrent4.alarm);
         }
       }
     };
@@ -1374,12 +1541,76 @@ var rastercoords = createCommonjsModule(function (module) {
     }, self.showMap = function (mapIndex) {
       self.log('showMap', mapIndex, self.loc);
       if (mapIndex !== self.loc.map) {
+        var createDebugLog = function createDebugLog(content) {
+          var debugLog = L$1.Control.extend({
+            options: {
+              position: 'topleft'
+            },
+            onAdd: function onAdd(map) {
+              var container = L$1.DomUtil.create('div', 'control-panel');
+              var _div = document.createElement('div');
+              _div.textContent = content;
+              container.appendChild(_div);
+              L$1.DomEvent.disableClickPropagation(container);
+              L$1.DomEvent.disableScrollPropagation(container);
+              return container;
+            }
+          });
+          return new debugLog();
+        };
         if (self.leaflet.maptile) {
           self.leaflet.maptile.remove(self.map);
         }
         self.leaflet.maptile = self.createTile(mapIndex + 1);
         self.leaflet.maptile.addTo(self.map);
         self.loc.map = mapIndex;
+        self.zoomEndRender();
+        if (!self.debugClick) {
+          self.map.on('click', function (mev) {
+            var _convert_latlng2 = convert_latlng(mev.latlng),
+              xco = _convert_latlng2.xco,
+              yco = _convert_latlng2.yco;
+            var content = '';
+            if (self.leaflet.debugLog) {
+              self.leaflet.debugLog.remove();
+              self.leaflet.debugLog = null;
+            }
+            var asset_data = {};
+            asset_data.xco = xco;
+            asset_data.yco = yco;
+            content = JSON.stringify(asset_data);
+            self.leaflet.debugLog = createDebugLog(content);
+            self.map.addControl(self.leaflet.debugLog);
+          });
+        }
+        if (window.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
+          self.listen(function (msg) {
+            if (msg.show == 'asset') {
+              var asset = msg.asset;
+              var content = '';
+              if (self.leaflet.debugLog) {
+                self.leaflet.debugLog.remove();
+                self.leaflet.debugLog = null;
+              }
+              if (asset) {
+                var asset_data = {};
+                asset_data.tag = asset.tag;
+                asset_data.xco = asset.xco;
+                asset_data.yco = asset.yco;
+                content = JSON.stringify(asset_data);
+              }
+              self.leaflet.debugLog = createDebugLog(content);
+              self.map.addControl(self.leaflet.debugLog);
+            } else {
+              if (self.leaflet.debugLog) {
+                self.leaflet.debugLog.remove();
+                self.leaflet.debugLog = null;
+              }
+              self.leaflet.debugLog = createDebugLog('DEBUG LOG');
+              self.map.addControl(self.leaflet.debugLog);
+            }
+          });
+        }
         self.unselectRoom();
         if (self.loc.poly) {
           self.loc.poly.remove(self.layer.room);
@@ -1468,8 +1699,8 @@ var rastercoords = createCommonjsModule(function (module) {
   }
   function convertRoomPoly(img, poly) {
     var p = [];
-    for (var _iterator5 = _createForOfIteratorHelperLoose(poly), _step5; !(_step5 = _iterator5()).done;) {
-      var part = _step5.value;
+    for (var _iterator11 = _createForOfIteratorHelperLoose(poly), _step11; !(_step11 = _iterator11()).done;) {
+      var part = _step11.value;
       p.push(rc.unproject({
         x: part[1],
         y: img[1] - part[0]
@@ -1584,8 +1815,8 @@ var rastercoords = createCommonjsModule(function (module) {
         return ROOM_ATYPE[asset.atype];
       }
     }];
-    var maps = new Set();
-    var levels = new Set();
+    var maps = [];
+    var levels = [];
     var buildings = new Set();
     var assetMap = {};
     var roomMap = {};
@@ -1606,13 +1837,17 @@ var rastercoords = createCommonjsModule(function (module) {
         asset.level = asset.level;
         asset.building = asset.building || asset.building_id;
         if (null != asset.level && '' !== asset.level) {
-          levels.add(asset.level);
+          if (!levels.includes(asset.level)) {
+            levels.push(asset.level);
+          }
         }
         if (null != asset.building && '' !== asset.building) {
           buildings.add(asset.building);
         }
         if (null != asset.map && '' !== asset.map) {
-          maps.add(asset.map);
+          if (!maps.includes(asset.map)) {
+            maps.push(asset.map);
+          }
         }
         relate.forEach(function (r) {
           if (r.cp && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
@@ -1631,9 +1866,7 @@ var rastercoords = createCommonjsModule(function (module) {
         });
       });
     });
-    maps = [].concat(maps);
-    levels = [].concat(levels);
-    buildings = [].concat(buildings);
+    buildings = Array.from(buildings);
     return {
       deps: deps,
       maps: maps,
@@ -1647,7 +1880,7 @@ var rastercoords = createCommonjsModule(function (module) {
   function injectStyle() {
     var head = $('head');
     var style = document.createElement('style');
-    style.innerHTML = "\n\n#plantquest-assetmap {\n    background-color: rgb(203,211,144);\n}\n\n#plantquest-assetmap-map {\n    width: 100%;\n    height: 100%;\n    margin: 0;\n    padding: 0;\n    background-color: rgb(203,211,144);\n}\n\n\ndiv.plantquest-assetmap-vis {\n    position: absolute;\n    top: 0;\n    left: 0;\n    z-index: 100;\n}\n\n\nimg.plantquest-assetmap-logo {\n    cursor: pointer;\n}\n\n\ndiv.plantquest-assetmap-asset-label {\n    xwidth: 96px;\n    xheight: 48px;\n    font-size: 16px;\n    xoverflow: hidden;\n}\n\ndiv.plantquest-assetmap-asset-label-green {\n    xcolor: #696;\n    color: white;\n    border: 2px solid #696;\n    border-radius: 4px;\n    background-color: rgba(102,153,102,0.8);\n}\n\ndiv.plantquest-assetmap-asset-label-red {\n    xcolor: #f66;\n    color: white;\n    border: 2px solid #f66;\n    border-radius: 4px;\n    background-color: rgba(255,102,102,0.8);\n}\n\n#plantquest-assetmap-assetinfo {\n    display: none;\n}\n\n\n\n/* \n * Leaflet 1.8.0, a JS library for interactive maps. https://leafletjs.com\n * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade\n * BSD 2-Clause License, See https://leafletjs.com/\n */\n\n.leaflet-tile,.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-image-layer,.leaflet-layer,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane,.leaflet-pane>canvas,.leaflet-pane>svg,.leaflet-tile,.leaflet-tile-container,.leaflet-zoom-box{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent;background:#ddd;outline:0;font:12px/1.5 \"Helvetica Neue\",Arial,Helvetica,sans-serif}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-overlay-pane svg,.leaflet-tooltip{-moz-user-select:none}.leaflet-tile::selection{background:0 0}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-control-layers label,.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-overlay-pane svg,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer{max-width:none!important;max-height:none!important}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,0.4);color:#0078a8}.leaflet-tile{filter:inherit}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane,.leaflet-pane{z-index:400}.leaflet-map-pane svg,.leaflet-tile-pane{z-index:200}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto;float:left;clear:both}.leaflet-bottom,.leaflet-top{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-right .leaflet-control{float:right;margin-right:10px}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-fade-anim .leaflet-tile{will-change:opacity}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}.leaflet-zoom-anim .leaflet-zoom-animated{will-change:transform;-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-pan-anim .leaflet-tile,.leaflet-zoom-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-control,.leaflet-popup-pane{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-image-layer,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-image-layer.leaflet-interactive,.leaflet-marker-icon.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container a.leaflet-active{outline:orange solid 2px}.leaflet-zoom-box{border:2px dotted #38f;background:rgba(255,255,255,.5)}.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}.leaflet-bar a,.leaflet-bar a:hover{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:bold 18px 'Lucida Console',Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px rgba(0,0,0,.4);background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(images/layers.png);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(images/layers-2x.png);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(images/marker-icon.png)}.leaflet-container .leaflet-control-attribution{background:rgba(255,255,255,.7);margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover{text-decoration:underline}.leaflet-container .leaflet-control-attribution,.leaflet-container .leaflet-control-scale{font-size:11px}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;font-size:11px;white-space:nowrap;overflow:hidden;-moz-box-sizing:border-box;box-sizing:border-box;background:rgba(255,255,255,.5)}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-bar,.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers{box-shadow:none}.leaflet-touch .leaflet-bar,.leaflet-touch .leaflet-control-layers{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 19px;line-height:1.4}.leaflet-popup-content p{margin:18px 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 4px 0 0;border:none;text-align:center;width:18px;height:14px;font:700 16px/14px Tahoma,Verdana,sans-serif;color:#c3c3c3;text-decoration:none;background:0 0}.leaflet-container a.leaflet-popup-close-button:hover{color:#999}.leaflet-popup-scrolled{overflow:auto;border-bottom:1px solid #ddd;border-top:1px solid #ddd}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto}.leaflet-oldie .leaflet-popup-tip-container{margin-top:-1px}.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}.leaflet-tooltip.leaflet-clickable{cursor:pointer;pointer-events:auto}.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before,.leaflet-tooltip-top:before{position:absolute;pointer-events:none;border:6px solid transparent;background:0 0;content:\"\"}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}\n\n/* MIT LICENSE, Copyright (c) 2014-2015, Justin Manley */\n.leaflet-toolbar-0{list-style:none;padding-left:0;border:2px solid rgba(0,0,0,.2);border-radius:4px}.leaflet-toolbar-0>li{position:relative}.leaflet-toolbar-0>li>.leaflet-toolbar-icon{display:block;width:30px;height:30px;line-height:30px;margin-right:0;padding-right:0;border-right:0;text-align:center;text-decoration:none;background-color:#fff}.leaflet-toolbar-0>li>.leaflet-toolbar-icon:hover{background-color:#f4f4f4}.leaflet-toolbar-0 .leaflet-toolbar-1{display:none;list-style:none}.leaflet-toolbar-tip-container{margin:-16px auto 0;height:16px;position:relative;overflow:hidden}.leaflet-toolbar-tip{width:16px;height:16px;margin:-8px auto 0;background-color:#fff;border:2px solid rgba(0,0,0,.2);background-clip:content-box;-webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg);border-radius:4px}.leaflet-control-toolbar .leaflet-toolbar-1>li:last-child>.leaflet-toolbar-icon,.leaflet-popup-toolbar>li:last-child>.leaflet-toolbar-icon{border-top-right-radius:4px;border-bottom-right-radius:4px}.leaflet-control-toolbar>li>.leaflet-toolbar-icon{border-bottom:1px solid #ccc}.leaflet-control-toolbar>li:first-child>.leaflet-toolbar-icon{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-control-toolbar>li:last-child>.leaflet-toolbar-icon{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom-width:0}.leaflet-control-toolbar .leaflet-toolbar-1{margin:0;padding:0;position:absolute;left:30px;top:0;white-space:nowrap;height:30px}.leaflet-control-toolbar .leaflet-toolbar-1>li{display:inline-block}.leaflet-control-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon{display:block;background-color:#919187;border-left:1px solid #aaa;color:#fff;font:11px/19px \"Helvetica Neue\",Arial,Helvetica,sans-serif;line-height:30px;text-decoration:none;padding-left:10px;padding-right:10px;height:30px}.leaflet-control-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon:hover{background-color:#a0a098}.leaflet-popup-toolbar{position:relative;box-sizing:content-box}.leaflet-popup-toolbar>li{float:left}.leaflet-popup-toolbar>li>.leaflet-toolbar-icon{border-right:1px solid #ccc}.leaflet-popup-toolbar>li:first-child>.leaflet-toolbar-icon{border-top-left-radius:4px;border-bottom-left-radius:4px}.leaflet-popup-toolbar>li:last-child>.leaflet-toolbar-icon{border-bottom-width:0;border-right:none}.leaflet-popup-toolbar .leaflet-toolbar-1{position:absolute;top:30px;left:0;padding-left:0}.leaflet-popup-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon{position:relative;float:left;width:30px;height:30px}\n\n.leaflet-toolbar-0>li>.leaflet-toolbar-icon {\n  width: 80px;\n}\n\n\n";
+    style.innerHTML = "\n\n#plantquest-assetmap {\n    background-color: rgb(203,211,144);\n}\n\n#plantquest-assetmap-map {\n    width: 100%;\n    height: 100%;\n    margin: 0;\n    padding: 0;\n    background-color: rgb(203,211,144);\n}\n\n\ndiv.plantquest-assetmap-vis {\n    position: absolute;\n    top: 0;\n    left: 0;\n    z-index: 100;\n}\n\n\nimg.plantquest-assetmap-logo {\n    cursor: pointer;\n}\n\n\ndiv.plantquest-assetmap-asset-label {\n    xwidth: 96px;\n    xheight: 48px;\n    font-size: 16px;\n    xoverflow: hidden;\n}\n\ndiv.plantquest-assetmap-asset-label-green {\n    xcolor: #696;\n    color: white;\n    border: 2px solid #696;\n    border-radius: 4px;\n    background-color: rgba(102,153,102,0.8);\n}\n\ndiv.plantquest-assetmap-asset-label-red {\n    xcolor: #f66;\n    color: white;\n    border: 2px solid #f66;\n    border-radius: 4px;\n    background-color: rgba(255,102,102,0.8);\n}\n\n#plantquest-assetmap-assetinfo {\n    display: none;\n}\n\n\n\n/* \n * Leaflet 1.8.0, a JS library for interactive maps. https://leafletjs.com\n * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade\n * BSD 2-Clause License, See https://leafletjs.com/\n */\n\n.leaflet-tile,.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-image-layer,.leaflet-layer,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane,.leaflet-pane>canvas,.leaflet-pane>svg,.leaflet-tile,.leaflet-tile-container,.leaflet-zoom-box{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent;background:#ddd;outline:0;font:12px/1.5 \"Helvetica Neue\",Arial,Helvetica,sans-serif}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-overlay-pane svg,.leaflet-tooltip{-moz-user-select:none}.leaflet-tile::selection{background:0 0}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-control-layers label,.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-overlay-pane svg,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer{max-width:none!important;max-height:none!important}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,0.4);color:#0078a8}.leaflet-tile{filter:inherit}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane,.leaflet-pane{z-index:400}.leaflet-map-pane svg,.leaflet-tile-pane{z-index:200}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto;float:left;clear:both}.leaflet-bottom,.leaflet-top{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-right .leaflet-control{float:right;margin-right:10px}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-fade-anim .leaflet-tile{will-change:opacity}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}.leaflet-zoom-anim .leaflet-zoom-animated{will-change:transform;-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-pan-anim .leaflet-tile,.leaflet-zoom-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-control,.leaflet-popup-pane{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-image-layer,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-image-layer.leaflet-interactive,.leaflet-marker-icon.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container a.leaflet-active{outline:orange solid 2px}.leaflet-zoom-box{border:2px dotted #38f;background:rgba(255,255,255,.5)}.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}.leaflet-bar a,.leaflet-bar a:hover{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:bold 18px 'Lucida Console',Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px rgba(0,0,0,.4);background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(images/layers.png);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(images/layers-2x.png);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(images/marker-icon.png)}.leaflet-container .leaflet-control-attribution{background:rgba(255,255,255,.7);margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover{text-decoration:underline}.leaflet-container .leaflet-control-attribution,.leaflet-container .leaflet-control-scale{font-size:11px}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;font-size:11px;white-space:nowrap;overflow:hidden;-moz-box-sizing:border-box;box-sizing:border-box;background:rgba(255,255,255,.5)}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-bar,.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers{box-shadow:none}.leaflet-touch .leaflet-bar,.leaflet-touch .leaflet-control-layers{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 19px;line-height:1.4}.leaflet-popup-content p{margin:18px 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 4px 0 0;border:none;text-align:center;width:18px;height:14px;font:700 16px/14px Tahoma,Verdana,sans-serif;color:#c3c3c3;text-decoration:none;background:0 0}.leaflet-container a.leaflet-popup-close-button:hover{color:#999}.leaflet-popup-scrolled{overflow:auto;border-bottom:1px solid #ddd;border-top:1px solid #ddd}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto}.leaflet-oldie .leaflet-popup-tip-container{margin-top:-1px}.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}.leaflet-tooltip.leaflet-clickable{cursor:pointer;pointer-events:auto}.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before,.leaflet-tooltip-top:before{position:absolute;pointer-events:none;border:6px solid transparent;background:0 0;content:\"\"}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}\n\n/* MIT LICENSE, Copyright (c) 2014-2015, Justin Manley */\n.leaflet-toolbar-0{list-style:none;padding-left:0;border:2px solid rgba(0,0,0,.2);border-radius:4px}.leaflet-toolbar-0>li{position:relative}.leaflet-toolbar-0>li>.leaflet-toolbar-icon{display:block;width:30px;height:30px;line-height:30px;margin-right:0;padding-right:0;border-right:0;text-align:center;text-decoration:none;background-color:#fff}.leaflet-toolbar-0>li>.leaflet-toolbar-icon:hover{background-color:#f4f4f4}.leaflet-toolbar-0 .leaflet-toolbar-1{display:none;list-style:none}.leaflet-toolbar-tip-container{margin:-16px auto 0;height:16px;position:relative;overflow:hidden}.leaflet-toolbar-tip{width:16px;height:16px;margin:-8px auto 0;background-color:#fff;border:2px solid rgba(0,0,0,.2);background-clip:content-box;-webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg);border-radius:4px}.leaflet-control-toolbar .leaflet-toolbar-1>li:last-child>.leaflet-toolbar-icon,.leaflet-popup-toolbar>li:last-child>.leaflet-toolbar-icon{border-top-right-radius:4px;border-bottom-right-radius:4px}.leaflet-control-toolbar>li>.leaflet-toolbar-icon{border-bottom:1px solid #ccc}.leaflet-control-toolbar>li:first-child>.leaflet-toolbar-icon{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-control-toolbar>li:last-child>.leaflet-toolbar-icon{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom-width:0}.leaflet-control-toolbar .leaflet-toolbar-1{margin:0;padding:0;position:absolute;left:30px;top:0;white-space:nowrap;height:30px}.leaflet-control-toolbar .leaflet-toolbar-1>li{display:inline-block}.leaflet-control-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon{display:block;background-color:#919187;border-left:1px solid #aaa;color:#fff;font:11px/19px \"Helvetica Neue\",Arial,Helvetica,sans-serif;line-height:30px;text-decoration:none;padding-left:10px;padding-right:10px;height:30px}.leaflet-control-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon:hover{background-color:#a0a098}.leaflet-popup-toolbar{position:relative;box-sizing:content-box}.leaflet-popup-toolbar>li{float:left}.leaflet-popup-toolbar>li>.leaflet-toolbar-icon{border-right:1px solid #ccc}.leaflet-popup-toolbar>li:first-child>.leaflet-toolbar-icon{border-top-left-radius:4px;border-bottom-left-radius:4px}.leaflet-popup-toolbar>li:last-child>.leaflet-toolbar-icon{border-bottom-width:0;border-right:none}.leaflet-popup-toolbar .leaflet-toolbar-1{position:absolute;top:30px;left:0;padding-left:0}.leaflet-popup-toolbar .leaflet-toolbar-1>li>.leaflet-toolbar-icon{position:relative;float:left;width:30px;height:30px}\n.marker-cluster-small {\n\tbackground-color: rgba(181, 226, 140, 0.6);\n\t}\n.marker-cluster-small div {\n\tbackground-color: rgba(110, 204, 57, 0.6);\n\t}\n\n.marker-cluster-medium {\n\tbackground-color: rgba(241, 211, 87, 0.6);\n\t}\n.marker-cluster-medium div {\n\tbackground-color: rgba(240, 194, 12, 0.6);\n\t}\n\n.marker-cluster-large {\n\tbackground-color: rgba(253, 156, 115, 0.6);\n\t}\n.marker-cluster-large div {\n\tbackground-color: rgba(241, 128, 23, 0.6);\n\t}\n\n\t/* IE 6-8 fallback colors */\n.leaflet-oldie .marker-cluster-small {\n\tbackground-color: rgb(181, 226, 140);\n\t}\n.leaflet-oldie .marker-cluster-small div {\n\tbackground-color: rgb(110, 204, 57);\n\t}\n\n.leaflet-oldie .marker-cluster-medium {\n\tbackground-color: rgb(241, 211, 87);\n\t}\n.leaflet-oldie .marker-cluster-medium div {\n\tbackground-color: rgb(240, 194, 12);\n\t}\n\n.leaflet-oldie .marker-cluster-large {\n\tbackground-color: rgb(253, 156, 115);\n\t}\n.leaflet-oldie .marker-cluster-large div {\n\tbackground-color: rgb(241, 128, 23);\n}\n\n.marker-cluster {\n\tbackground-clip: padding-box;\n\tborder-radius: 20px;\n\t}\n.marker-cluster div {\n\twidth: 30px;\n\theight: 30px;\n\tmargin-left: 5px;\n\tmargin-top: 5px;\n\n\ttext-align: center;\n\tborder-radius: 15px;\n\tfont: 12px \"Helvetica Neue\", Arial, Helvetica, sans-serif;\n\t}\n.marker-cluster span {\n\tline-height: 30px;\n\t}\n.leaflet-cluster-anim .leaflet-marker-icon, .leaflet-cluster-anim .leaflet-marker-shadow {\n\t-webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in;\n\t-moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in;\n\t-o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in;\n\ttransition: transform 0.3s ease-out, opacity 0.3s ease-in;\n}\n\n.leaflet-cluster-spider-leg {\n\t/* stroke-dashoffset (duration and function) should match with leaflet-marker-icon transform in order to track it exactly */\n\t-webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in;\n\t-moz-transition: -moz-stroke-dashoffset 0.3s ease-out, -moz-stroke-opacity 0.3s ease-in;\n\t-o-transition: -o-stroke-dashoffset 0.3s ease-out, -o-stroke-opacity 0.3s ease-in;\n\ttransition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;\n}\n\n\n.leaflet-toolbar-0>li>.leaflet-toolbar-icon {\n  width: 80px;\n}\n\n.control-panel {\n  position: absolute;\n  top: 0em;\n  left: 5em;\n  background-color: white;\n  border: 1px solid black;\n  width: 10em;\n  height: 6em;\n  padding: 10px;\n  font-size: 14px;\n  font-family: Arial, sans-serif;\n  word-wrap: break-word;\n  height: fit-content;\n  width: fit-content;\n  /*block-size: fit-content;*/\n}\n\n\n.class1 {\n    background-color: transparent;\n    border: 0;\n    box-shadow: none;\n} \n\n.polygon-labels {\n  background-color: transparent;\n  font-weight: bold;\n  color: #000000;\n  border: 0;\n  box-shadow: none;\n  font-size: 1em;\n}\n\n";
     head.appendChild(style);
   }
 })(window, document);
