@@ -4,8 +4,6 @@ var L$1 = _interopDefault(require('leaflet'));
 require('leaflet.markercluster');
 var Seneca = _interopDefault(require('seneca-browser'));
 var SenecaEntity = _interopDefault(require('seneca-entity'));
-var SenecaMemStore = require('seneca-mem-store');
-var SenecaMemStore__default = _interopDefault(SenecaMemStore);
 
 function _extends() {
   _extends = Object.assign ? Object.assign.bind() : function (target) {
@@ -216,7 +214,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.8.2";
+var version = "1.9.0";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -225,28 +223,25 @@ var main = "dist/index.js";
 var module$1 = "dist/index.modern.js";
 var types = "plantquest-assetmap.d.ts";
 var source = "src/pqam.js";
-var engines = {
-	node: ">=14"
-};
 var scripts = {
 	serve: "serve -p 3030 dist",
 	build: "microbundle-crl --no-compress --format modern,cjs",
 	start: "microbundle-crl watch --no-compress --format modern,cjs",
 	prepare: "run-s build",
-	test: "run-s test:build test:unit",
+	test: "echo test",
 	"test:build": "run-s build",
 	"test:lint": "eslint .",
-	"test:unit": "",
+	"test:unit": "echo test-unit",
 	"test:watch": "",
 	clean: "rm -rf node_modules yarn.lock package-lock.json",
-	reset: "npm run clean && npm install && npm test:unit",
+	reset: "npm run clean && npm install && npm test:build && npm test:unit",
 	"repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags",
 	"repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
 	"repo-publish-quick": "npm run build && npm run test:unit && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
 };
 var devDependencies = {
 	"babel-eslint": "10.0.3",
-	"cross-env": "7.0.2",
+	"cross-env": "7.0.3",
 	eslint: "6.8.0",
 	"eslint-config-prettier": "6.7.0",
 	"eslint-config-standard": "14.1.0",
@@ -272,8 +267,8 @@ var dependencies = {
 	"leaflet-rastercoords": "1.0.5",
 	"leaflet.markercluster": "1.5.3",
 	"seneca-browser": "4.0.1",
-	"seneca-entity": "18.4.0",
-	"seneca-mem-store": "7.0.1"
+	"seneca-entity": "21.1.0",
+	"seneca-mem-store": "8.0.1"
 };
 var resolutions = {
 	"react-error-overlay": "6.0.9"
@@ -289,7 +284,6 @@ var Pkg = {
 	module: module$1,
 	types: types,
 	source: source,
-	engines: engines,
 	scripts: scripts,
 	devDependencies: devDependencies,
 	files: files,
@@ -540,7 +534,7 @@ var rastercoords = createCommonjsModule(function (module) {
           },
           timeout: 44444
         });
-        seneca.test().use(SenecaEntity).use(SenecaMemStore__default).ready(function () {
+        seneca.test().use(SenecaEntity).ready(function () {
           var _this = this;
           var seneca = _this;
           return Promise.resolve();
@@ -1009,10 +1003,11 @@ var rastercoords = createCommonjsModule(function (module) {
     self.send = function (msg) {
       try {
         self.log('send', 'in', msg);
-        return Promise.resolve(self.seneca.post(msg)).then(function () {
+        return Promise.resolve(self.seneca.post(msg)).then(function (result) {
           if (null != msg.zoom) {
             self.map.setZoom(msg.zoom);
           }
+          return result;
         });
       } catch (e) {
         return Promise.reject(e);
