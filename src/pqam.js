@@ -10,9 +10,7 @@ import Pkg from '../package.json'
 
 import Seneca from 'seneca-browser'
 import SenecaEntity from 'seneca-entity'
-import SenecaMemStore from 'seneca-mem-store'
 
-import { intern } from 'seneca-mem-store'
 import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 
@@ -202,7 +200,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       seneca
         .test()
         .use(SenecaEntity)
-        .use(SenecaMemStore)
         .ready(async function() {
           const seneca = this
           // console.log('seneca ready')
