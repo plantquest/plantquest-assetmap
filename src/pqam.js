@@ -1,4 +1,4 @@
-/* Copyright 2022 PlantQuest Ltd, MIT License */
+/* Copyright 2022-2023 PlantQuest Ltd, MIT License */
 
 import L from 'leaflet'
 import './leaflet.toolbar.min.js'
@@ -9,7 +9,6 @@ import Seneca from 'seneca-browser'
 import SenecaEntity from 'seneca-entity'
 import SenecaMemStore from 'seneca-mem-store'
 
-import { intern } from 'seneca-mem-store'
 import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 
@@ -595,12 +594,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     self.send = async function(msg) {
       self.log('send', 'in', msg)
       
-      await self.seneca.post(msg) // use seneca messages instead of 'if chain'
+      let result = await self.seneca.post(msg) // use seneca messages instead of 'if chain'
       
       if(null != msg.zoom) {
         self.map.setZoom(msg.zoom)
       }
-      
+
+      return result
     }
 
     self.listen = function(listener) {

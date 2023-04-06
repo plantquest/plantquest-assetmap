@@ -9,9 +9,6 @@
   "module": "dist/index.modern.js",
   "types": "plantquest-assetmap.d.ts",
   "source": "src/pqam.js",
-  "engines": {
-    "node": ">=14"
-  },
   "scripts": {
     "serve": "serve -p 3030 dist",
     "build": "microbundle-crl --no-compress --format modern,cjs",
