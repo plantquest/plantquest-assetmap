@@ -1451,6 +1451,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           }
       }
       
+      if(hide) {
+        return
+      }
       
       let assetPoint = [
         assetProps.yco,
