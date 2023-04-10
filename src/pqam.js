@@ -795,6 +795,25 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }).addTo(self.map)
       // self.layer.asset = L.layerGroup().addTo(self.map)
       
+      self.layer.asset.on('clusterclick', mev=>{
+        let layer = mev.layer
+        let {xco, yco} = convert_latlng(mev.latlng)
+        
+        let assetlist = layer.getAllChildMarkers().map(marker=>{
+          return self.data.assetMap[marker.assetID]
+        })
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          event: 'clusterclick',
+          xco, yco,
+          assetlist,
+          
+        })
+        
+      })
+      
       self.map.on('layeradd', event=> { // zoom-in
         let layer = event.layer // , circle, latlng, index, asset, arr, assetName
 
@@ -932,6 +951,112 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       }
       generate_labels()
+      
+      
+      // Define a custom control
+      function createDebugLog(content) {
+        let debugLog = L.Control.extend({
+          options: {
+            position: 'topleft',
+          },
+
+          onAdd: function (map) {
+            let container = L.DomUtil.create('div', 'control-panel')
+
+
+            let _div = document.createElement('div')
+    
+            _div.textContent = content
+            container.appendChild(_div)
+    
+    
+            L.DomEvent.disableClickPropagation(container)
+            L.DomEvent.disableScrollPropagation(container)
+
+            return container
+          }
+        })
+        return new debugLog()
+      }
+        
+      if(!self.debugClick) {
+        self.map.on('click', (mev)=>{
+          let {xco, yco} = convert_latlng(mev.latlng)
+            
+          let content = ''
+	  if(self.leaflet.debugLog) {
+	    self.leaflet.debugLog.remove()
+	    self.leaflet.debugLog = null
+	  }
+	  let asset_data = {}
+	  asset_data.xco = xco
+	  asset_data.yco = yco
+	  content = JSON.stringify(asset_data)
+	    
+	  self.leaflet.debugLog = createDebugLog(content)
+	  // Add the custom control to the map
+          self.map.addControl(self.leaflet.debugLog)
+            
+          self.emit({
+            srv:'plantquest',
+            part:'assetmap',
+            event: 'click',
+            asset_meta: asset_data,
+          })
+            
+        })
+      }
+      
+      if(window.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
+      
+        self.listen((msg) => {
+	  if(msg.show == 'asset') {
+	    let { asset } = msg
+	    let content = ''
+	    if(self.leaflet.debugLog) {
+	      self.leaflet.debugLog.remove()
+	      self.leaflet.debugLog = null
+	    }
+	    if(asset) {
+	      let asset_data = {}
+	      asset_data.tag = asset.tag
+	      asset_data.id = asset.id
+	      asset_data.xco = asset.xco
+	      asset_data.yco = asset.yco
+	      content = JSON.stringify(asset_data)
+	    }
+	    self.leaflet.debugLog = createDebugLog(content)
+	    // Add the custom control to the map
+            self.map.addControl(self.leaflet.debugLog)
+	  }
+	  else if(msg.event == 'click') {
+	    let asset_meta = msg.asset_meta
+	      
+	    let asset_data = {}
+	    let content = ''
+	    if(self.leaflet.debugLog) {
+	      self.leaflet.debugLog.remove()
+	      self.leaflet.debugLog = null
+	    }
+	    asset_data.xco = asset_meta.xco
+	    asset_data.yco = asset_meta.yco
+	    content = JSON.stringify(asset_data)
+	    self.leaflet.debugLog = createDebugLog(content)
+            self.map.addControl(self.leaflet.debugLog)
+	      
+	  }
+	  else {
+	    if(self.leaflet.debugLog) {
+	      self.leaflet.debugLog.remove()
+	      self.leaflet.debugLog = null
+	    }
+	    self.leaflet.debugLog = createDebugLog('DEBUG LOG')
+	      
+            self.map.addControl(self.leaflet.debugLog)
+	  }
+	  
+	})
+      }
        
       self.map.on('mousemove', (mev)=>{
         let {xco, yco} = convert_latlng(mev.latlng)
@@ -1595,114 +1720,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         
         // render labels
         self.zoomEndRender()
-        
-        
 
-        
-        // Define a custom control
-        function createDebugLog(content) {
-          let debugLog = L.Control.extend({
-            options: {
-              position: 'topleft',
-            },
-
-            onAdd: function (map) {
-              let container = L.DomUtil.create('div', 'control-panel')
-
-
-              let _div = document.createElement('div')
-    
-              _div.textContent = content
-              container.appendChild(_div)
-    
-    
-              L.DomEvent.disableClickPropagation(container)
-              L.DomEvent.disableScrollPropagation(container)
-
-              return container
-            }
-          })
-          return new debugLog()
-        }
-        
-        if(!self.debugClick) {
-          self.map.on('click', (mev)=>{
-            let {xco, yco} = convert_latlng(mev.latlng)
-            
-            let content = ''
-	    if(self.leaflet.debugLog) {
-	      self.leaflet.debugLog.remove()
-	      self.leaflet.debugLog = null
-	    }
-	    let asset_data = {}
-	    asset_data.xco = xco
-	    asset_data.yco = yco
-	    content = JSON.stringify(asset_data)
-	    
-	    self.leaflet.debugLog = createDebugLog(content)
-	    // Add the custom control to the map
-            self.map.addControl(self.leaflet.debugLog)
-            
-            self.emit({
-              srv:'plantquest',
-              part:'assetmap',
-              event: 'click',
-              asset_meta: asset_data,
-            })
-            
-          })
-        }
-        if(window.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
-        
-	  self.listen((msg) => {
-	    if(msg.show == 'asset') {
-	      let { asset } = msg
-	      let content = ''
-	      if(self.leaflet.debugLog) {
-	        self.leaflet.debugLog.remove()
-	        self.leaflet.debugLog = null
-	      }
-	      if(asset) {
-	        let asset_data = {}
-	        asset_data.tag = asset.tag
-	        asset_data.id = asset.id
-	        asset_data.xco = asset.xco
-	        asset_data.yco = asset.yco
-	        content = JSON.stringify(asset_data)
-	      }
-	      self.leaflet.debugLog = createDebugLog(content)
-	      // Add the custom control to the map
-              self.map.addControl(self.leaflet.debugLog)
-	    }
-	    else if(msg.event == 'click') {
-	      let asset_meta = msg.asset_meta
-	      
-	      let asset_data = {}
-	      let content = ''
-	      if(self.leaflet.debugLog) {
-	        self.leaflet.debugLog.remove()
-	        self.leaflet.debugLog = null
-	      }
-	      asset_data.xco = asset_meta.xco
-	      asset_data.yco = asset_meta.yco
-	      content = JSON.stringify(asset_data)
-	      self.leaflet.debugLog = createDebugLog(content)
-              self.map.addControl(self.leaflet.debugLog)
-	      
-	    }
-	    else {
-	      if(self.leaflet.debugLog) {
-	        self.leaflet.debugLog.remove()
-	        self.leaflet.debugLog = null
-	      }
-	      self.leaflet.debugLog = createDebugLog('DEBUG LOG')
-	      
-              self.map.addControl(self.leaflet.debugLog)
-	    }
-	  
-	  })
-	
-	}
 	
 
         self.unselectRoom()
