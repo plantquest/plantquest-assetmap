@@ -1654,6 +1654,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	      if(asset) {
 	        let asset_data = {}
 	        asset_data.tag = asset.tag
+	        asset_data.id = asset.id
 	        asset_data.xco = asset.xco
 	        asset_data.yco = asset.yco
 	        content = JSON.stringify(asset_data)
@@ -1894,7 +1895,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
         if (!ROOM_ATYPE[asset.atype]) {
           asset.asset = asset.tag || asset.asset
-          asset.room = asset.room || asset.room_id
+          asset.room = asset.room
           assetMap[asset.tag] = asset
         
           asset.xco = asset.xco || asset.xval
@@ -2158,6 +2159,7 @@ div.plantquest-assetmap-asset-label-red {
   word-wrap: break-word;
   height: fit-content;
   width: fit-content;
+  opacity: 0.5;
   /*block-size: fit-content;*/
 }
 
