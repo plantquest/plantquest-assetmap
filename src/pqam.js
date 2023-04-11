@@ -45,6 +45,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
   function PlantQuestAssetMap() {
     const self = {
       id: (''+Math.random()).substring(2,8),
+      info: {
+        name: '@plantquest/assetmap',
+        version: Pkg.version,
+      },
       
       // default config
       config: {
@@ -237,20 +241,23 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         if(Array.isArray(msg.asset) || msg.asset === null) {
           msg.asset = msg.asset || Object.values(self.data.assetMap)
           
-          for(let asset of msg.asset) {
+          for(let assetID of msg.asset) {
             let stateName = msg.state
             
-            const assetID = asset?.id || asset
+            // const assetID = asset?.id || asset
             
             let assetData = self.data.assetMap[assetID]
             
-            assetData = Object.values(self.data.assetMap).find(asset=>asset.id == assetID)
             // assetData = await seneca.post('aim: web, on: assetmap, load: asset', { assetID, } )
             
             // console.error(asset)
             // console.error(assetData)
             // console.error('asset: ', self.data.assetMap)
-          
+            
+            if(assetData == null) {
+              self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID)
+              continue
+            }
           
             self.emit({
               srv:'plantquest',
@@ -259,7 +266,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               before:true,
               asset: assetData,
             })
-            self.showAsset(assetData?.tag, stateName, 'asset' === msg.hide, !!msg.blink, false, msg.showLabel)
+            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink)
             
             // let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
           }
@@ -1939,9 +1946,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // asset = { ...asset }
       
         if (!ROOM_ATYPE[asset.atype]) {
-          asset.asset = asset.tag || asset.asset
-          asset.room = asset.room
-          assetMap[asset.tag] = asset
+          asset.asset = asset.id // asset.tag || asset.asset
+          asset.room = asset.room || asset.room_id
+          assetMap[asset.id] = asset
+          
         
           asset.xco = asset.xco || asset.xval
           asset.yco = asset.yco || asset.yval

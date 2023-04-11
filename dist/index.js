@@ -214,7 +214,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.9.1";
+var version = "1.9.5";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -397,6 +397,10 @@ var rastercoords = createCommonjsModule(function (module) {
   function PlantQuestAssetMap() {
     var self = {
       id: ('' + Math.random()).substring(2, 8),
+      info: {
+        name: '@plantquest/assetmap',
+        version: Pkg.version
+      },
       config: {
         width: '100%',
         height: '100%',
@@ -547,15 +551,14 @@ var rastercoords = createCommonjsModule(function (module) {
             function assetShow(msg) {
               if (Array.isArray(msg.asset) || msg.asset === null) {
                 msg.asset = msg.asset || Object.values(self.data.assetMap);
-                var _loop = function _loop() {
-                  var _assetData;
-                  var asset = _step.value;
+                for (var _iterator = _createForOfIteratorHelperLoose(msg.asset), _step; !(_step = _iterator()).done;) {
+                  var assetID = _step.value;
                   var stateName = msg.state;
-                  var assetID = (asset === null || asset === void 0 ? void 0 : asset.id) || asset;
                   var assetData = self.data.assetMap[assetID];
-                  assetData = Object.values(self.data.assetMap).find(function (asset) {
-                    return asset.id == assetID;
-                  });
+                  if (assetData == null) {
+                    self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID);
+                    continue;
+                  }
                   self.emit({
                     srv: 'plantquest',
                     part: 'assetmap',
@@ -563,21 +566,18 @@ var rastercoords = createCommonjsModule(function (module) {
                     before: true,
                     asset: assetData
                   });
-                  self.showAsset((_assetData = assetData) === null || _assetData === void 0 ? void 0 : _assetData.tag, stateName, 'asset' === msg.hide, !!msg.blink);
-                };
-                for (var _iterator = _createForOfIteratorHelperLoose(msg.asset), _step; !(_step = _iterator()).done;) {
-                  _loop();
+                  self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink);
                 }
               } else {
                 var assetRoom = self.data.deps.cp.asset[msg.asset];
-                var assetData = self.data.assetMap[msg.asset];
+                var _assetData = self.data.assetMap[msg.asset];
                 if (assetRoom) {
                   self.emit({
                     srv: 'plantquest',
                     part: 'assetmap',
                     show: 'asset',
                     before: true,
-                    asset: assetData
+                    asset: _assetData
                   });
                   self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink);
                 } else {
@@ -641,7 +641,7 @@ var rastercoords = createCommonjsModule(function (module) {
                 var assets = [];
                 var assetMap = {};
                 var assetProps = self.data.assets[0];
-                var _loop2 = function _loop2() {
+                var _loop = function _loop() {
                   var row = self.data.assets[rowI];
                   var assetID = row[0];
                   assetMap[assetID] = assetProps.reduce(function (a, p, i) {
@@ -649,7 +649,7 @@ var rastercoords = createCommonjsModule(function (module) {
                   }, {});
                 };
                 for (var rowI = 1; rowI < self.data.assets.length; rowI++) {
-                  _loop2();
+                  _loop();
                 }
                 self.data.assetMap = assetMap;
                 var roomMap = self.data.rooms.reduce(function (a, r) {
@@ -1247,7 +1247,7 @@ var rastercoords = createCommonjsModule(function (module) {
       var xco = self.loc.x;
       var yco = convert_poly_y(self.config.mapImg, self.loc.y);
       var rooms = Object.values(self.data.rooms);
-      var _loop3 = function _loop3() {
+      var _loop2 = function _loop2() {
         var room = _rooms[_i];
         if (1 + self.loc.map != room.map) {
           return "continue";
@@ -1286,7 +1286,7 @@ var rastercoords = createCommonjsModule(function (module) {
         }
       };
       for (var _i = 0, _rooms = rooms; _i < _rooms.length; _i++) {
-        var _ret = _loop3();
+        var _ret = _loop2();
         if (_ret === "continue") continue;
       }
     };
@@ -1821,9 +1821,9 @@ var rastercoords = createCommonjsModule(function (module) {
     Object.values(collection).forEach(function (assets) {
       assets.forEach(function (asset) {
         if (!ROOM_ATYPE[asset.atype]) {
-          asset.asset = asset.tag || asset.asset;
+          asset.asset = asset.id;
           asset.room = asset.room || asset.room_id;
-          assetMap[asset.tag] = asset;
+          assetMap[asset.id] = asset;
           asset.xco = asset.xco || asset.xval;
           asset.yco = asset.yco || asset.yval;
         } else {
