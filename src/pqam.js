@@ -241,14 +241,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         if(Array.isArray(msg.asset) || msg.asset === null) {
           msg.asset = msg.asset || Object.values(self.data.assetMap)
           
-          for(let asset of msg.asset) {
+          for(let assetID of msg.asset) {
             let stateName = msg.state
             
-            const assetID = asset?.id || asset
+            // const assetID = asset?.id || asset
             
             let assetData = self.data.assetMap[assetID]
             
-            assetData = Object.values(self.data.assetMap).find(asset=>asset.id == assetID)
             // assetData = await seneca.post('aim: web, on: assetmap, load: asset', { assetID, } )
             
             // console.error(asset)
@@ -263,7 +262,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               before:true,
               asset: assetData,
             })
-            self.showAsset(assetData?.tag, stateName, 'asset' === msg.hide, !!msg.blink)
+            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink)
             
             // let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
           }
@@ -1897,9 +1896,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // asset = { ...asset }
       
         if (!ROOM_ATYPE[asset.atype]) {
-          asset.asset = asset.tag || asset.asset
+          asset.asset = asset.id // asset.tag || asset.asset
           asset.room = asset.room || asset.room_id
-          assetMap[asset.tag] = asset
+          assetMap[asset.id] = asset
         
           asset.xco = asset.xco || asset.xval
           asset.yco = asset.yco || asset.yval
