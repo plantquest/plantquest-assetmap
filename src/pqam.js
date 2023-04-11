@@ -253,7 +253,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             // console.error(asset)
             // console.error(assetData)
             // console.error('asset: ', self.data.assetMap)
-          
+            
+            if(assetData == null) {
+              self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID)
+              continue
+            }
           
             self.emit({
               srv:'plantquest',
