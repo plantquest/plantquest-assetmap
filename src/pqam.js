@@ -225,14 +225,17 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           'aim:web,on:assetmap,list:asset',
           'aim:web,on:assetmap,load:asset',
           'aim:web,on:assetmap,save:asset',
+          'aim:web,on:assetmap,remove:asset',
 
           'aim:web,on:assetmap,list:room',
           'aim:web,on:assetmap,load:room',
           'aim:web,on:assetmap,save:room',
+          'aim:web,on:assetmap,remove:room',
 
           'aim:web,on:assetmap,list:building',
           'aim:web,on:assetmap,load:building',
           'aim:web,on:assetmap,save:building',
+          'aim:web,on:assetmap,remove:building',
         ]
       })
       
@@ -309,6 +312,75 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           }
         }
       }
+      
+      seneca.message('srv:plantquest,part:assetmap,remove:asset', async function(msg, reply) {
+        let { id } = msg
+        let result
+        // asset = asset || {}
+        /*
+        asset = { ...asset, ...{
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        } }
+        */
+        result = await this.post('aim: web, on: assetmap, remove: asset', { id, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          remove:'asset',
+          asset: id,
+        })
+          
+        return result
+      })
+      
+      seneca.message('srv:plantquest,part:assetmap,remove:room', async function(msg, reply) {
+        let { id } = msg
+        let result
+        // asset = asset || {}
+        /*
+        asset = { ...asset, ...{
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        } }
+        */
+        result = await this.post('aim: web, on: assetmap, remove: room', { id, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          remove:'room',
+          room: id,
+        })
+          
+        return result
+      })
+      
+      seneca.message('srv:plantquest,part:assetmap,remove:building', async function(msg, reply) {
+        let { id } = msg
+        let result
+        // asset = asset || {}
+        /*
+        asset = { ...asset, ...{
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+        } }
+        */
+        result = await this.post('aim: web, on: assetmap, remove: building', { id, } )
+        
+        self.emit({
+          srv:'plantquest',
+          part:'assetmap',
+          remove:'building',
+          building: id,
+        })
+          
+        return result
+      })
       
       seneca.message('srv:plantquest,part:assetmap,save:asset', async function(msg, reply) {
         let { asset } = msg
