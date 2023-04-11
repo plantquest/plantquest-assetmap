@@ -45,6 +45,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
   function PlantQuestAssetMap() {
     const self = {
       id: (''+Math.random()).substring(2,8),
+      info: {
+        name: '@plantquest/assetmap',
+        version: Pkg.version,
+      },
       
       // default config
       config: {
