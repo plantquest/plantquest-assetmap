@@ -69,6 +69,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
+        showAllAssets: true,
         
         data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
@@ -239,7 +240,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       function assetShow(msg) {
         if(Array.isArray(msg.asset) || msg.asset === null) {
-          msg.asset = msg.asset || Object.values(self.data.assetMap)
+          msg.asset = msg.asset || Object.keys(self.data.assetMap)
           
           for(let assetID of msg.asset) {
             let stateName = msg.state
@@ -253,9 +254,14 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             // console.error(asset)
             // console.error(assetData)
             // console.error('asset: ', self.data.assetMap)
-            
+
             if(assetData == null) {
               self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID)
+              continue
+            }
+            
+            if(assetData.xco == null || assetData.yco == null) {
+              self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData)
               continue
             }
           
@@ -266,7 +272,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               before:true,
               asset: assetData,
             })
-            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink)
+            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, msg.showLabel)
             
             // let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
           }
@@ -275,14 +281,27 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         else { 
           let assetRoom = self.data.deps.cp.asset[msg.asset]
           let assetData = self.data.assetMap[msg.asset]
+          let zoom = msg.zoom || self.config.mapMaxZoom
+          
           if(assetRoom) {
             self.emit({
               srv:'plantquest',
               part:'assetmap',
               show:'asset',
               before:true,
+              focus: !!msg.focus,
+              zoom: zoom,
               asset: assetData,
             })
+            let coords = c_asset_coords({x: assetData.xco, y: assetData.yco})
+            
+            
+            setTimeout(()=>{
+              if(!!msg.focus) {
+                self.map.setView(coords, zoom)
+              }
+            }, 55)
+            
             self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, msg.showLabel)
           }
           else {
@@ -506,8 +525,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           relate: 'room-asset',
           relation: clone(self.data.deps.pc.room)
         })
-          
       })
+      // default
+      .message('srv:plantquest,part:assetmap', async function(msg, reply) {
+      
+      })
+          
+      
       
       function reset() {
         // reset
@@ -681,6 +705,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       if(null != msg.zoom) {
         self.map.setZoom(msg.zoom)
       }
+      
+      if(null != msg.view) {
+        self.map.setView(msg.view, msg.zoom || self.config.mapMinZoom)
+      }
 
       return result
     }
@@ -777,8 +805,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       setTimeout(()=>{
         let mapStart = c_asset_coords({x: self.config.mapStart[0], y: self.config.mapImg[1]-self.config.mapStart[1]})
         self.map.setView(mapStart, self.config.mapStartZoom)
+        
+        self.leaflet.mapCenter = self.map.getCenter()
+        
       },self.config.mapInterval/2)
-
+      
       // L.imageOverlay(ms.mapurl, ms.bounds).addTo(self.map);
 
       self.layer.room = L.layerGroup().addTo(self.map)
@@ -814,7 +845,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           srv:'plantquest',
           part:'assetmap',
           event: 'clusterclick',
-          xco, yco,
+          xco,
+          yco,
           assetlist,
           
         })
@@ -1063,6 +1095,15 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	  }
 	  
 	})
+      }
+      
+      if(self.config.showAllAssets) {
+        self.send({
+          srv:'plantquest',
+          part:'assetmap',
+          show: 'asset',
+          asset: null,
+        })
       }
        
       self.map.on('mousemove', (mev)=>{
