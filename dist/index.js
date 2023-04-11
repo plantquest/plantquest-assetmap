@@ -214,7 +214,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.9.1";
+var version = "1.9.2";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -397,6 +397,10 @@ var rastercoords = createCommonjsModule(function (module) {
   function PlantQuestAssetMap() {
     var self = {
       id: ('' + Math.random()).substring(2, 8),
+      info: {
+        name: '@plantquest/assetmap',
+        version: Pkg.version
+      },
       config: {
         width: '100%',
         height: '100%',
