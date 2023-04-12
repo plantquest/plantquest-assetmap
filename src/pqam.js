@@ -70,6 +70,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
         showAllAssets: true,
+        debugClick: true,
         
         data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
@@ -1090,7 +1091,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         return new debugLog()
       }
         
-      if(!self.debugClick) {
+      if(self.config.debugClick) {
         self.map.on('click', (mev)=>{
           let {xco, yco} = convert_latlng(mev.latlng)
             
