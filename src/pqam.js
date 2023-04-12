@@ -268,15 +268,19 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData)
               continue
             }
-          
-            self.emit({
+            
+           self.emit({
               srv:'plantquest',
               part:'assetmap',
               show:'asset',
               before:true,
               asset: assetData,
             })
+          
+
+            
             self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, msg.infobox)
+            
             
             // let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
           }
@@ -1739,11 +1743,12 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       assetCurrent.blink = null == blink ? false : blink
       
-      //setTimeout(()=>{
+      setTimeout(()=>{
         let html = $('#plantquest-assetmap-assetinfo').innerHTML
         
         
         if(assetCurrent.label != null) {
+        
           return
         }
         
@@ -1780,7 +1785,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
        }catch(err) {}
       
         self.zoomEndRender()
-      //}, 50)
+      }, 11)
     }
 
     
@@ -2346,6 +2351,42 @@ div.plantquest-assetmap-asset-label-red {
   border: 0;
   box-shadow: none;
   font-size: 1em;
+}
+
+div.plantquest-assetmap-asset-label {
+    width: 200px;
+}
+
+div.plantquest-assetmap-asset-state-up {
+    color: white;
+    border: 2px solid #696;
+    border-radius: 4px;
+    background-color: #696;
+    opacity: 0;
+}
+
+div.plantquest-assetmap-asset-state-down {
+    color: white;
+    border: 2px solid #666;
+    border-radius: 4px;
+    background-color: #666;
+    opacity: 0.7;
+}
+
+div.plantquest-assetmap-asset-state-missing {
+    color: white;
+    border: 2px solid #f3f;
+    border-radius: 4px;
+    background-color: #f3f;
+    opacity: 0.7;
+}
+
+div.plantquest-assetmap-asset-state-alarm {
+    color: white;
+    border: 2px solid #f33;
+    border-radius: 4px;
+    background-color: #f33;
+    opacity: 0.7;
 }
 
 `
