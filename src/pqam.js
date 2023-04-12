@@ -275,7 +275,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               before:true,
               asset: assetData,
             })
-            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, msg.showLabel)
+            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, msg.infobox)
             
             // let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
           }
@@ -305,7 +305,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               }
             }, 55)
             
-            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, msg.showLabel)
+            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, msg.infobox)
           }
           else {
             self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
@@ -931,14 +931,14 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	  
 	  let assetCurrent = self.current.asset[layer.assetID]
-	  let showLabel = assetCurrent.showLabel
+	  let infobox = assetCurrent.infobox
 	  if(assetCurrent) {
 	    // console.error('layeradd: ', assetCurrent)
 	    setTimeout(()=>{
 	      let lem = assetCurrent.label.getElement()
               // console.log('lem: ', lem)
               try{
-                lem.style.display = showLabel ? null : 'none'
+                lem.style.display = infobox ? null : 'none'
                 lem.style.width = ''
                 lem.style.height = ''
                 lem.style.fontSize = ''
@@ -1170,12 +1170,14 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
       
       if(self.config.showAllAssets) {
-        self.send({
-          srv:'plantquest',
-          part:'assetmap',
-          show: 'asset',
-          asset: null,
-        })
+        setTimeout( () => {
+          self.send({
+            srv:'plantquest',
+            part:'assetmap',
+            show: 'asset',
+            asset: null,
+          })
+        }, 11)
       }
        
       self.map.on('mousemove', (mev)=>{
@@ -1657,7 +1659,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     }
     
 
-    self.showAsset = function(assetID, stateName, hide, blink, showRoom, showLabel) {
+    self.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox) {
       let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
 
       stateName = stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
@@ -1665,7 +1667,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       let assetProps = self.data.assetMap[assetID]
       
-      assetCurrent.showLabel = showLabel == null ? true : showLabel
+      assetCurrent.infobox = infobox == null ? true : infobox
       
       
       
