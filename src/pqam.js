@@ -1112,7 +1112,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             srv:'plantquest',
             part:'assetmap',
             event: 'click',
-            asset_meta: asset_data,
+            meta: asset_data,
           })
             
         })
@@ -1141,7 +1141,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             self.map.addControl(self.leaflet.debugLog)
 	  }
 	  else if(msg.event == 'click') {
-	    let asset_meta = msg.asset_meta
+	    let meta = msg.meta
 	      
 	    let asset_data = {}
 	    let content = ''
@@ -1149,8 +1149,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	      self.leaflet.debugLog.remove()
 	      self.leaflet.debugLog = null
 	    }
-	    asset_data.xco = asset_meta.xco
-	    asset_data.yco = asset_meta.yco
+	    asset_data.xco = meta.xco
+	    asset_data.yco = meta.yco
 	    content = JSON.stringify(asset_data)
 	    self.leaflet.debugLog = createDebugLog(content)
             self.map.addControl(self.leaflet.debugLog)
