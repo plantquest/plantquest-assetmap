@@ -951,10 +951,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
                 lem.style.width = ''
                 lem.style.height = ''
                 lem.style.fontSize = ''
+                assetCurrent.poly.addTo(self.layer.circles)
               }catch(err) {}
               
               
-              assetCurrent.poly.addTo(self.layer.circles)
+              
          
               // state: asset blink
               assetCurrent.blinkId = setInterval(function blink() {
