@@ -71,6 +71,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         assetFontHideZoom: -1,
         showAllAssets: true,
         debugClick: true,
+        infobox: true,
         
         data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
@@ -276,10 +277,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               before:true,
               asset: assetData,
             })
-          
+            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox 
 
             
-            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, msg.infobox)
+            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, showInfoBox)
             
             
             // let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
@@ -310,7 +311,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               }
             }, 55)
             
-            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, msg.infobox)
+            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox
+            
+            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, showInfoBox)
           }
           else {
             self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
