@@ -212,7 +212,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "1.9.8";
+var version = "2.0.0";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -416,6 +416,7 @@ var rastercoords = createCommonjsModule(function (module) {
         assetFontHideZoom: -1,
         showAllAssets: true,
         debugClick: true,
+        infobox: true,
         data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
         apikey: '<API KEY>',
@@ -570,7 +571,8 @@ var rastercoords = createCommonjsModule(function (module) {
                     before: true,
                     asset: assetData
                   });
-                  self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, msg.infobox);
+                  var showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
+                  self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
                 }
               } else {
                 var assetRoom = self.data.deps.cp.asset[msg.asset];
@@ -595,7 +597,8 @@ var rastercoords = createCommonjsModule(function (module) {
                       self.map.setView(coords, zoom);
                     }
                   }, 55);
-                  self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, msg.infobox);
+                  var _showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
+                  self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, _showInfoBox);
                 } else {
                   self.log('ERROR', 'send', 'asset', 'unknown-asset', msg);
                 }
