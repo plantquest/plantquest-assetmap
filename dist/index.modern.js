@@ -212,7 +212,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "2.0.1";
+var version = "2.0.2";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -1218,8 +1218,8 @@ var rastercoords = createCommonjsModule(function (module) {
                 lem.style.width = '';
                 lem.style.height = '';
                 lem.style.fontSize = '';
+                _assetCurrent.poly.addTo(self.layer.circles);
               } catch (err) {}
-              _assetCurrent.poly.addTo(self.layer.circles);
               _assetCurrent.blinkId = setInterval(function blink() {
                 if (_assetCurrent.poly) {
                   if (_assetCurrent.blink) {
