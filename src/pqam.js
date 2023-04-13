@@ -943,9 +943,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	  if(assetCurrent) {
 	    // console.error('layeradd: ', assetCurrent)
 	    setTimeout(()=>{
-	      let lem = assetCurrent.label.getElement()
+	      
               // console.log('lem: ', lem)
               try{
+                let lem = assetCurrent.label.getElement()
                 lem.style.display = infobox ? null : 'none'
                 lem.style.width = ''
                 lem.style.height = ''
