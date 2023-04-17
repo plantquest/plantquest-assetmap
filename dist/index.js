@@ -417,7 +417,7 @@ var rastercoords = createCommonjsModule(function (module) {
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
         showAllAssets: true,
-        debugClick: true,
+        debugClick: false,
         infobox: true,
         data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
@@ -454,7 +454,13 @@ var rastercoords = createCommonjsModule(function (module) {
         room: {
           color: '#33f'
         },
-        plants: []
+        label: {
+          zoom: null
+        },
+        plants: [],
+        asset: {
+          cluster: true
+        }
       },
       data: {},
       assetMap: {},
@@ -685,15 +691,13 @@ var rastercoords = createCommonjsModule(function (module) {
               }
             };
             window.seneca = self.seneca = seneca;
-            seneca.message('srv:plantquest,part:assetmap,remove:asset', function (msg, reply) {
+            seneca.message('srv:plantquest,part:assetmap,remove:asset', function removeAsset(msg, reply) {
               try {
                 var _this2 = this;
                 var id = msg.id;
-                var result;
-                return Promise.resolve(_this2.post('aim: web, on: assetmap, remove: asset', {
+                return Promise.resolve(_this2.post('aim:web,on:assetmap,remove:asset', {
                   id: id
-                })).then(function (_this2$post) {
-                  result = _this2$post;
+                })).then(function (result) {
                   self.emit({
                     srv: 'plantquest',
                     part: 'assetmap',
@@ -710,11 +714,9 @@ var rastercoords = createCommonjsModule(function (module) {
               try {
                 var _this3 = this;
                 var id = msg.id;
-                var result;
                 return Promise.resolve(_this3.post('aim: web, on: assetmap, remove: room', {
                   id: id
-                })).then(function (_this3$post) {
-                  result = _this3$post;
+                })).then(function (result) {
                   self.emit({
                     srv: 'plantquest',
                     part: 'assetmap',
@@ -731,11 +733,9 @@ var rastercoords = createCommonjsModule(function (module) {
               try {
                 var _this4 = this;
                 var id = msg.id;
-                var result;
                 return Promise.resolve(_this4.post('aim: web, on: assetmap, remove: building', {
                   id: id
-                })).then(function (_this4$post) {
-                  result = _this4$post;
+                })).then(function (result) {
                   self.emit({
                     srv: 'plantquest',
                     part: 'assetmap',
@@ -1163,6 +1163,13 @@ var rastercoords = createCommonjsModule(function (module) {
         maxZoom: self.config.mapMaxZoom
       });
       rc = self.rc = new L$1.RasterCoords(self.map, self.config.mapImg);
+      self.map.createPane('labels');
+      self.map.getPane('labels').style.zIndex = 220;
+      self.map.getPane('labels').style.pointerEvents = 'none';
+      self.layer.room = L$1.layerGroup().addTo(self.map);
+      self.layer.room.name$ = 'room';
+      self.layer.label = L$1.layerGroup().addTo(self.map);
+      self.layer.label.name$ = 'label';
       self.map.on('zoomstart', self.zoomStartRender);
       self.map.on('zoomend', self.zoomEndRender);
       setTimeout(function () {
@@ -1173,88 +1180,91 @@ var rastercoords = createCommonjsModule(function (module) {
         self.map.setView(mapStart, self.config.mapStartZoom);
         self.leaflet.mapCenter = self.map.getCenter();
       }, self.config.mapInterval / 2);
-      self.layer.room = L$1.layerGroup().addTo(self.map);
-      self.layer.circles = L$1.layerGroup().addTo(self.map);
-      self.layer.asset = L$1.markerClusterGroup({
-        spiderfyOnMaxZoom: false,
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: true,
-        maxClusterRadius: 40,
-        chunkedLoading: true,
-        spiderLegPolylineOptions: {
-          weight: 1.5,
-          color: 'black',
-          opacity: 2.5
-        },
-        spiderfyLinear: false,
-        spiderfyLinearDistance: 30,
-        spiderfyLinearSeparation: 45
-      }).addTo(self.map);
-      self.layer.asset.on('clusterclick', function (mev) {
-        var layer = mev.layer;
-        var _convert_latlng = convert_latlng(mev.latlng),
-          xco = _convert_latlng.xco,
-          yco = _convert_latlng.yco;
-        var assetlist = layer.getAllChildMarkers().map(function (marker) {
-          return self.data.assetMap[marker.assetID];
+      if (self.config.asset.cluster) {
+        self.layer.circles = L$1.layerGroup().addTo(self.map);
+        self.layer.circles.name$ = 'circles';
+        self.layer.asset = L$1.markerClusterGroup({
+          spiderfyOnMaxZoom: false,
+          showCoverageOnHover: false,
+          zoomToBoundsOnClick: false,
+          maxClusterRadius: 40,
+          chunkedLoading: true,
+          spiderLegPolylineOptions: {
+            weight: 1.5,
+            color: 'black',
+            opacity: 2.5
+          },
+          spiderfyLinear: false,
+          spiderfyLinearDistance: 30,
+          spiderfyLinearSeparation: 45
+        }).addTo(self.map);
+        self.layer.asset.on('clusterclick', function (mev) {
+          var layer = mev.layer;
+          var _convert_latlng = convert_latlng(mev.latlng);
+          var assetlist = layer.getAllChildMarkers().map(function (marker) {
+            return self.data.assetMap[marker.assetID];
+          });
+          console.log('CLUSTER-CLICK', assetlist);
+          self.emit({
+            srv: 'plantquest',
+            part: 'assetmap',
+            event: 'clusterclick',
+            assetlist: assetlist
+          });
         });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          event: 'clusterclick',
-          xco: xco,
-          yco: yco,
-          assetlist: assetlist
-        });
-      });
-      self.map.on('layeradd', function (event) {
-        var layer = event.layer;
-        if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
-          var _assetCurrent = self.current.asset[layer.assetID];
-          var infobox = _assetCurrent.infobox;
-          if (_assetCurrent) {
-            setTimeout(function () {
-              try {
-                var lem = _assetCurrent.label.getElement();
-                lem.style.display = infobox ? null : 'none';
-                lem.style.width = '';
-                lem.style.height = '';
-                lem.style.fontSize = '';
-                _assetCurrent.poly.addTo(self.layer.circles);
-              } catch (err) {}
-              _assetCurrent.blinkId = setInterval(function blink() {
-                if (_assetCurrent.poly) {
-                  if (_assetCurrent.blink) {
-                    if (true === _assetCurrent.blinkState) {
-                      _assetCurrent.poly.addTo(self.layer.circles);
-                      _assetCurrent.blinkState = false;
-                    } else {
-                      _assetCurrent.poly.remove(self.layer.circles);
-                      _assetCurrent.blinkState = true;
+        self.map.on('layeradd', function (event) {
+          var layer = event.layer;
+          if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
+            var _assetCurrent = self.current.asset[layer.assetID];
+            var infobox = _assetCurrent.infobox;
+            if (_assetCurrent) {
+              setTimeout(function () {
+                try {
+                  var lem = _assetCurrent.label.getElement();
+                  lem.style.display = infobox ? null : 'none';
+                  lem.style.width = '';
+                  lem.style.height = '';
+                  lem.style.fontSize = '';
+                  _assetCurrent.poly.addTo(self.layer.circles);
+                } catch (err) {
+                  console.log(err);
+                }
+                _assetCurrent.blinkId = setInterval(function blink() {
+                  if (_assetCurrent.poly) {
+                    if (_assetCurrent.blink) {
+                      if (true === _assetCurrent.blinkState) {
+                        _assetCurrent.poly.addTo(self.layer.circles);
+                        _assetCurrent.blinkState = false;
+                      } else {
+                        _assetCurrent.poly.remove(self.layer.circles);
+                        _assetCurrent.blinkState = true;
+                      }
                     }
                   }
+                }, self.config.mapInterval);
+              }, 11);
+            }
+          }
+        });
+        self.map.on('layerremove', function (event) {
+          var layer = event.layer;
+          if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
+            var _assetCurrent2 = self.current.asset[layer.assetID];
+            if (_assetCurrent2) {
+              setTimeout(function () {
+                if (_assetCurrent2.poly) {
+                  _assetCurrent2.poly.remove();
                 }
-              }, self.config.mapInterval);
-            }, 11);
+                if (_assetCurrent2.blinkId) {
+                  clearInterval(_assetCurrent2.blinkId);
+                }
+              }, 11);
+            }
           }
-        }
-      });
-      self.map.on('layerremove', function (event) {
-        var layer = event.layer;
-        if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
-          var _assetCurrent2 = self.current.asset[layer.assetID];
-          if (_assetCurrent2) {
-            setTimeout(function () {
-              if (_assetCurrent2.poly) {
-                _assetCurrent2.poly.remove();
-              }
-              if (_assetCurrent2.blinkId) {
-                clearInterval(_assetCurrent2.blinkId);
-              }
-            }, 11);
-          }
-        }
-      });
+        });
+      } else {
+        self.layer.asset = L$1.layerGroup().addTo(self.map);
+      }
       function generate_labels() {
         self.poly_labels = self.poly_labels || {};
         for (var _iterator3 = _createForOfIteratorHelperLoose(self.data.rooms), _step3; !(_step3 = _iterator3()).done;) {
@@ -1263,8 +1273,10 @@ var rastercoords = createCommonjsModule(function (module) {
           if (self.data.roomMap[room.room] && room.area === '1') {
             var room_poly = convertRoomPoly(self.config.mapImg, room.poly);
             var poly = L$1.polygon(room_poly, {
-              color: 'transparent'
+              color: 'transparent',
+              pane: 'labels'
             });
+            poly.name$ = 'ROOM:' + room.room;
             var tooltip = L$1.tooltip({
               permanent: true,
               direction: 'center',
@@ -1379,7 +1391,6 @@ var rastercoords = createCommonjsModule(function (module) {
         self.loc.x = xco;
         self.loc.y = yco;
       });
-      setInterval(self.checkRooms, self.config.mapInterval);
       var levelActions = [];
       self.data.levels.forEach(function (level, index) {
         levelActions.push(L$1.Toolbar2.Action.extend({
@@ -1421,7 +1432,8 @@ var rastercoords = createCommonjsModule(function (module) {
       self.poly_labels = self.poly_labels || {};
       var labels = self.poly_labels[pos] || [];
       self.prev_labels = self.prev_labels || [];
-      if (zoom >= 6) {
+      var labelZoomLevel = null == self.config.label.zoom ? self.config.mapMaxZoom : self.config.label.zoom;
+      if (zoom >= labelZoomLevel) {
         for (var _iterator4 = _createForOfIteratorHelperLoose(self.prev_labels), _step4; !(_step4 = _iterator4()).done;) {
           var label = _step4.value;
           label.remove();
@@ -1429,7 +1441,7 @@ var rastercoords = createCommonjsModule(function (module) {
         for (var _iterator5 = _createForOfIteratorHelperLoose(labels), _step5; !(_step5 = _iterator5()).done;) {
           var _label = _step5.value;
           _label.remove();
-          _label.addTo(self.map);
+          _label.addTo(self.layer.label);
         }
         self.setLabel = true;
         self.prev_labels = labels;
@@ -1479,7 +1491,7 @@ var rastercoords = createCommonjsModule(function (module) {
               color: self.config.room.color
             });
             self.loc.poly.on('click', function () {
-              return self.selectRoom(room.room);
+              self.selectRoom(room.room);
             });
             self.loc.poly.addTo(self.layer.room);
           } catch (e) {
@@ -1685,21 +1697,33 @@ var rastercoords = createCommonjsModule(function (module) {
           y: ay
         }), {
           radius: 0.2,
-          color: color
+          color: color,
+          weight: 2
+        }).on('click', function () {
+          console.log('ASSET-CLICK', assetCurrent);
+          self.emit({
+            srv: 'plantquest',
+            part: 'assetmap',
+            event: 'click',
+            on: 'asset',
+            asset: assetProps
+          });
         });
       }
       assetCurrent.blink = null == blink ? false : blink;
       setTimeout(function () {
-        var html = $('#plantquest-assetmap-assetinfo').innerHTML;
-        if (assetCurrent.label != null) {
+        if (null != assetCurrent.label) {
           return;
         }
+        var elem = $('#plantquest-assetmap-assetinfo');
+        if (null == elem) return;
+        var html = elem.innerHTML;
         assetCurrent.label = L$1.marker(c_asset_coords({
           x: ax + 1,
           y: ay + 20
         }), {
           icon: L$1.divIcon({
-            className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-' + stateName,
+            className: 'plantquest-assetmap-asset-label ' + 'plantquest-assetmap-asset-state-' + stateName,
             html: html
           })
         });

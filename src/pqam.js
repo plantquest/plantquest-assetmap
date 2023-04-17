@@ -52,14 +52,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       // default config
       config: {
-        // width: '600px',
-        // height: '400px',
         width: '100%',
         height: '100%',
         domInterval: 111,
         mapInterval: 111,
         mapBounds: [5850, 7800],
-        // mapStart: [0, 3900],
         mapImg: [7800, 5850],
         mapStart: [3000, 2200],
         mapStartZoom: 2,
@@ -70,7 +67,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
         showAllAssets: true,
-        debugClick: true,
+
+        debugClick: false,
         infobox: true,
         
         data: 'https://demo.plantquest.app/sample-data.js',
@@ -93,13 +91,18 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         },
 
         room: {
-          color: '#33f'
+          color: '#33f',
         },
 
-        plants: [
-          // { id: 'aaa', name: 'Plant AAA' },
-          // { id: 'bbb', name: 'Plant BBB' }
-        ],
+        label: {
+          zoom: null // null => appear at mapMaxZoom
+        },
+
+        plants: [],
+
+        asset: {
+          cluster: true
+        }
       },
       data: {},
       assetMap: {},
@@ -249,17 +252,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           
           for(let assetID of msg.asset) {
             let stateName = msg.state
-            
-            // const assetID = asset?.id || asset
-            
             let assetData = self.data.assetMap[assetID]
             
-            // assetData = await seneca.post('aim: web, on: assetmap, load: asset', { assetID, } )
-            
-            // console.error(asset)
-            // console.error(assetData)
-            // console.error('asset: ', self.data.assetMap)
-
             if(assetData == null) {
               self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID)
               continue
@@ -270,22 +264,21 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               continue
             }
             
-           self.emit({
+            self.emit({
               srv:'plantquest',
               part:'assetmap',
               show:'asset',
               before:true,
               asset: assetData,
             })
-            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox 
+
+            let showInfoBox =
+                null == msg.infobox ? self.config.infobox : !!msg.infobox 
 
             
-            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, showInfoBox)
-            
-            
-            // let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
+            self.showAsset(assetData.id, stateName,
+                           'asset' === msg.hide, !!msg.blink, false, showInfoBox)
           }
-          
         }
         else { 
           let assetRoom = self.data.deps.cp.asset[msg.asset]
@@ -311,9 +304,13 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               }
             }, 55)
             
-            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox
+            let showInfoBox =
+                null == msg.infobox ? self.config.infobox : !!msg.infobox
             
-            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, showInfoBox)
+            self.showAsset(
+              msg.asset,
+              msg.state,
+              'asset' === msg.hide, !!msg.blink, false, showInfoBox)
           }
           else {
             self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
@@ -321,41 +318,25 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         }
       }
       
-      seneca.message('srv:plantquest,part:assetmap,remove:asset', async function(msg, reply) {
-        let { id } = msg
-        let result
-        // asset = asset || {}
-        /*
-        asset = { ...asset, ...{
-          project_id: self.config.project_id,
-          plant_id: self.config.plant_id,
-          stage: self.config.stage,
-        } }
-        */
-        result = await this.post('aim: web, on: assetmap, remove: asset', { id, } )
+      seneca.message(
+        'srv:plantquest,part:assetmap,remove:asset',
+        async function removeAsset(msg, reply) {
+          let { id } = msg
+          let result = await this.post('aim:web,on:assetmap,remove:asset', { id } )
         
-        self.emit({
-          srv:'plantquest',
-          part:'assetmap',
-          remove:'asset',
-          asset: id,
-        })
+          self.emit({
+            srv:'plantquest',
+            part:'assetmap',
+            remove:'asset',
+            asset: id,
+          })
           
-        return result
-      })
+          return result
+        })
       
       seneca.message('srv:plantquest,part:assetmap,remove:room', async function(msg, reply) {
         let { id } = msg
-        let result
-        // asset = asset || {}
-        /*
-        asset = { ...asset, ...{
-          project_id: self.config.project_id,
-          plant_id: self.config.plant_id,
-          stage: self.config.stage,
-        } }
-        */
-        result = await this.post('aim: web, on: assetmap, remove: room', { id, } )
+        let result = await this.post('aim: web, on: assetmap, remove: room', { id, } )
         
         self.emit({
           srv:'plantquest',
@@ -369,16 +350,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       seneca.message('srv:plantquest,part:assetmap,remove:building', async function(msg, reply) {
         let { id } = msg
-        let result
-        // asset = asset || {}
-        /*
-        asset = { ...asset, ...{
-          project_id: self.config.project_id,
-          plant_id: self.config.plant_id,
-          stage: self.config.stage,
-        } }
-        */
-        result = await this.post('aim: web, on: assetmap, remove: building', { id, } )
+        let result = await this.post('aim: web, on: assetmap, remove: building', { id, } )
         
         self.emit({
           srv:'plantquest',
@@ -879,6 +851,24 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       })
       rc = self.rc = new L.RasterCoords(self.map, self.config.mapImg)
 
+      // L.circle([-50,20], {
+      //   weight:10, color: '#000', radius: 20,
+      // }).on('click',()=>{
+      //   console.log('KKK')
+      // }).addTo(self.map)
+
+      // Place labels in separate Pane to ensure ordering below assets,
+      // prevents lost click events.
+      self.map.createPane('labels')
+      self.map.getPane('labels').style.zIndex = 220
+      self.map.getPane('labels').style.pointerEvents = 'none'
+      
+      self.layer.room = L.layerGroup().addTo(self.map)
+      self.layer.room.name$ = 'room'
+      
+      self.layer.label = L.layerGroup().addTo(self.map)
+      self.layer.label.name$ = 'label'
+      
       self.map.on('zoomstart', self.zoomStartRender)
       self.map.on('zoomend', self.zoomEndRender)
       
@@ -892,119 +882,142 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       
       // L.imageOverlay(ms.mapurl, ms.bounds).addTo(self.map);
 
-      self.layer.room = L.layerGroup().addTo(self.map)
-      
-      
-      self.layer.circles = L.layerGroup().addTo(self.map)
-      self.layer.asset = L.markerClusterGroup({
-        spiderfyOnMaxZoom: false,
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: true,
-        // singleMarkerMode: true,
-        // spiderfyDistanceMultiplier: -100,
-        maxClusterRadius: 40,
-        chunkedLoading: true,
 
-        spiderLegPolylineOptions: { weight: 1.5, color: 'black', opacity: 2.5 },
-
-        spiderfyLinear: false,
-        spiderfyLinearDistance: 30,
-        spiderfyLinearSeparation: 45,
-      }).addTo(self.map)
-      // self.layer.asset = L.layerGroup().addTo(self.map)
       
-      self.layer.asset.on('clusterclick', mev=>{
-        let layer = mev.layer
-        let {xco, yco} = convert_latlng(mev.latlng)
+
+      if( self.config.asset.cluster) {
+        self.layer.circles = L.layerGroup().addTo(self.map)
+        // self.layer.circles = L.featureGroup().addTo(self.map)
+        self.layer.circles.name$ = 'circles'
         
-        let assetlist = layer.getAllChildMarkers().map(marker=>{
-          return self.data.assetMap[marker.assetID]
+        // self.layer.circles = L.featureGroup().addTo(self.map)
+        // self.layer.circles.on('click',(event)=>{
+        //   console.log('CCC', event)
+        // })
+        
+        self.layer.asset = L.markerClusterGroup({
+          spiderfyOnMaxZoom: false,
+          showCoverageOnHover: false,
+          // zoomToBoundsOnClick: true,
+          zoomToBoundsOnClick: false,
+          // singleMarkerMode: true,
+          // spiderfyDistanceMultiplier: -100,
+          maxClusterRadius: 40,
+          chunkedLoading: true,
+
+          spiderLegPolylineOptions: { weight: 1.5, color: 'black', opacity: 2.5 },
+          
+          spiderfyLinear: false,
+          spiderfyLinearDistance: 30,
+          spiderfyLinearSeparation: 45,
+        }).addTo(self.map)
+
+        
+        self.layer.asset.on('clusterclick', mev=>{
+          let layer = mev.layer
+          let {xco, yco} = convert_latlng(mev.latlng)
+          
+          let assetlist = layer.getAllChildMarkers().map(marker=>{
+            return self.data.assetMap[marker.assetID]
+          })
+
+          console.log('CLUSTER-CLICK', assetlist)
+          
+          self.emit({
+            srv:'plantquest',
+            part:'assetmap',
+            event: 'clusterclick',
+            // xco,
+            // yco,
+            assetlist,
+          })
         })
+
         
-        self.emit({
-          srv:'plantquest',
-          part:'assetmap',
-          event: 'clusterclick',
-          xco,
-          yco,
-          assetlist,
+        self.map.on('layeradd', event=> { // zoom-in
+          let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+
+	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
+	    
+	    let assetCurrent = self.current.asset[layer.assetID]
+	    let infobox = assetCurrent.infobox
+	    if(assetCurrent) {
+	      // console.error('layeradd: ', assetCurrent)
+	      setTimeout(()=>{
+	        
+                // console.log('lem: ', lem)
+                try{
+                  let lem = assetCurrent.label.getElement()
+                  lem.style.display = infobox ? null : 'none'
+                  lem.style.width = ''
+                  lem.style.height = ''
+                  lem.style.fontSize = ''
+                  assetCurrent.poly.addTo(self.layer.circles)
+
+                }catch(err) {
+                  console.log(err)
+                }
+                
+                
+                
+                
+                // state: asset blink
+                assetCurrent.blinkId = setInterval(function blink() {
+                  if(assetCurrent.poly) {
+                    if(assetCurrent.blink) {
+                      if(true === assetCurrent.blinkState) {
+                        assetCurrent.poly.addTo(self.layer.circles)
+                        assetCurrent.blinkState = false
+                      }
+                      else {
+                        assetCurrent.poly.remove(self.layer.circles)
+                        assetCurrent.blinkState = true
+                      }
+                    }
+                  }
+                }, self.config.mapInterval)
+                
+	      }, 11)
+	      
+	    }
+	  }
           
         })
         
-      })
-      
-      self.map.on('layeradd', event=> { // zoom-in
-        let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+        self.map.on('layerremove', event=> { // zoom-in
+          let layer = event.layer // , circle, latlng, index, asset, arr, assetName
 
-	if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
-	  
-	  let assetCurrent = self.current.asset[layer.assetID]
-	  let infobox = assetCurrent.infobox
-	  if(assetCurrent) {
-	    // console.error('layeradd: ', assetCurrent)
-	    setTimeout(()=>{
-	      
-              // console.log('lem: ', lem)
-              try{
-                let lem = assetCurrent.label.getElement()
-                lem.style.display = infobox ? null : 'none'
-                lem.style.width = ''
-                lem.style.height = ''
-                lem.style.fontSize = ''
-                assetCurrent.poly.addTo(self.layer.circles)
-              }catch(err) {}
-              
-              
-              
-         
-              // state: asset blink
-              assetCurrent.blinkId = setInterval(function blink() {
-                if(assetCurrent.poly) {
-                  if(assetCurrent.blink) {
-                    if(true === assetCurrent.blinkState) {
-                      assetCurrent.poly.addTo(self.layer.circles)
-                      assetCurrent.blinkState = false
-                    }
-                    else {
-                      assetCurrent.poly.remove(self.layer.circles)
-                      assetCurrent.blinkState = true
-                    }
-                  }
-                }
-              }, self.config.mapInterval)
-        
-	    }, 11)
+	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	    
+	    let assetCurrent = self.current.asset[layer.assetID]
+	    
+	    if(assetCurrent) {
+	      // console.log('layerremove: ', assetCurrent)
+	      setTimeout(()=>{
+	        if(assetCurrent.poly) {
+	          assetCurrent.poly.remove()
+	        }
+	        
+	        if(assetCurrent.blinkId) {
+	          clearInterval(assetCurrent.blinkId)
+	        }
+                
+	      }, 11)
+	      
+	      
+	    }
 	  }
-	}
-      
-      })
-      
-      self.map.on('layerremove', event=> { // zoom-in
-        let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+          
+        })
+        
+      }
 
-	if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
-	  
-	  let assetCurrent = self.current.asset[layer.assetID]
-	  
-	  if(assetCurrent) {
-	    // console.log('layerremove: ', assetCurrent)
-	    setTimeout(()=>{
-	      if(assetCurrent.poly) {
-	        assetCurrent.poly.remove()
-	      }
-	      
-	      if(assetCurrent.blinkId) {
-	        clearInterval(assetCurrent.blinkId)
-	      }
-        
-	    }, 11)
-	    
-	    
-	  }
-	}
+      // No clustering
+      else {
+        self.layer.asset = L.layerGroup().addTo(self.map)
+      }
+
       
-      })
       
       // TODO: move to generate
       function generate_labels() {
@@ -1026,10 +1039,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
             let poly = L.polygon(
               room_poly, {
-                color: 'transparent'
+                color: 'transparent',
+                pane: 'labels',
               })
 
-
+            poly.name$ = 'ROOM:'+room.room
 
             // Create the tooltip with the initial content
             var tooltip = L.tooltip({
@@ -1197,7 +1211,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         // console.log(self.loc.x, self.loc.y)
       })
       
-      setInterval(self.checkRooms, self.config.mapInterval)
+
+      // setInterval(self.checkRooms, self.config.mapInterval)
 
 
       let levelActions = []
@@ -1314,8 +1329,12 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       self.prev_labels = self.prev_labels || []
       
       
+      let labelZoomLevel =
+          null == self.config.label.zoom ? self.config.mapMaxZoom : 
+          self.config.label.zoom
       
-      if (zoom >= 6) {
+      // if (zoom >= 6) {
+      if (zoom >= labelZoomLevel) {
         for(let label of self.prev_labels) {
           label.remove()
         }
@@ -1323,7 +1342,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         
         for(let label of labels) {
           label.remove()
-          label.addTo(self.map)
+          // label.addTo(self.map)
+          label.addTo(self.layer.label)
         }
           
         self.setLabel = true
@@ -1344,6 +1364,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
      }
       
 
+      // self.layer.label.bringToBack()
+      
       /*
       if(self.config.assetFontHideZoom < zoom) {
         let assetFontSize = self.config.assetFontScaleRoom +
@@ -1420,8 +1442,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
                 color: self.config.room.color
               })
 
-
-            self.loc.poly.on('click', ()=>self.selectRoom(room.room))
+            self.loc.poly.on('click', ()=>{
+              // console.log('SELECT ROOM', room)
+              self.selectRoom(room.room)
+            })
             
             self.loc.poly.addTo(self.layer.room)
           }
@@ -1597,6 +1621,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     self.showRoom = function(room, stateName) {
       self.log('showRoom', room, stateName)
 
+      
       stateName = stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
       let stateDef = self.config.states[stateName]
 
@@ -1670,18 +1695,19 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     
 
     self.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox) {
-      let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID]={})
+      let assetCurrent =
+          self.current.asset[assetID] || (self.current.asset[assetID]={})
 
-      stateName = stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
+      stateName =
+        stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
+
       let stateDef = self.config.states[stateName]
-
       let assetProps = self.data.assetMap[assetID]
       
       assetCurrent.infobox = infobox == null ? true : infobox
       
-      
-      
-      self.log('showAsset', assetID, stateName, stateDef, 'hide', hide, 'blink', blink, assetProps)
+      self.log('showAsset', assetID, stateName,
+               stateDef, 'hide', hide, 'blink', blink, assetProps)
       
       if(null == assetProps) {
         return
@@ -1693,7 +1719,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
 
       if(assetCurrent.label) {
-        // assetCurrent.label.remove(self.layer.asset)
         self.layer.asset.removeLayer(assetCurrent.label)
         assetCurrent.label = null
       }
@@ -1737,58 +1762,56 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         })
       }
       else {
-        assetCurrent.poly = L.circle(
-          c_asset_coords({x: ax, y: ay}), {
-            radius: 0.2,
-            color: color,
+        assetCurrent.poly =
+          L.circle(
+            c_asset_coords({x: ax, y: ay}), {
+              radius: 0.2,
+              color: color,
+              weight: 2,
+            })
+          .on('click', ()=>{
+            console.log('ASSET-CLICK', assetCurrent)
+            self.emit({
+              srv: 'plantquest',
+              part: 'assetmap',
+              event: 'click',
+              on: 'asset',
+              asset: assetProps
+            })
           })
       }
 
-      // assetCurrent.poly.addTo(self.layer.asset)
       
       assetCurrent.blink = null == blink ? false : blink
       
       setTimeout(()=>{
-        let html = $('#plantquest-assetmap-assetinfo').innerHTML
-        
-        
-        if(assetCurrent.label != null) {
-        
+        if(null != assetCurrent.label) {
           return
         }
+
+        let elem = $('#plantquest-assetmap-assetinfo')
+        if(null == elem) return;
         
-        /*
-        assetCurrent.label = L.marker([ay-20,ax-20], {icon: L.divIcon({
-          className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-'+stateName,
-          html
-        })})
-        */
+        let html = elem.innerHTML
         
         assetCurrent.label = L.marker(
           c_asset_coords({x: ax+1, y: ay+20 }),
-          {icon: L.divIcon({
-            className: 'plantquest-assetmap-asset-label plantquest-assetmap-asset-state-'+stateName,
-            html
-          })
-        })
+          {
+            icon: L.divIcon(
+              {
+                className: 'plantquest-assetmap-asset-label '+
+                  'plantquest-assetmap-asset-state-'+stateName,
+                html
+              }),
+          }
+        )
         
         // TODO: parse out from the css
         assetCurrent.label.setOpacity(0.7);
         
-        
         assetCurrent.label.assetID = assetID
         assetCurrent.label.addTo(self.layer.asset)
-       
-       try{
-	// console.error('label: ', assetCurrent.label)
-        // let lem = assetCurrent.label.getElement()
-        /*
-        lem.style.width = ''
-        lem.style.height = ''
-        lem.style.fontSize = ''
-        */
-       }catch(err) {}
-      
+             
         self.zoomEndRender()
       }, 11)
     }
