@@ -526,542 +526,123 @@ var rastercoords = createCommonjsModule(function (module) {
     };
     self.load = function (done) {
       try {
-        var endpoint = function endpoint(msg) {
-          var suffix = '/api/web' + '/public/' + msg.on;
-          var origin = self.config.endpoint;
-          var url = origin + suffix;
-          return url;
+        var reset = function reset() {
+          self.data.deps = {};
+          self.data.roomMap = {};
+          self.data.assetMap = {};
+          self.data.assets = [];
+          self.data.rooms = [];
+          self.data.buildings = [];
+          self.data.levels = [];
+          self.data.maps = [];
         };
-        var seneca = new Seneca({
-          log: {
-            logger: 'flat',
-            level: 'warn'
-          },
-          plugin: {
-            browser: {
-              endpoint: endpoint,
-              headers: {
-                'Authorization': 'Bearer ' + self.config.apikey
-              }
-            }
-          },
-          timeout: 44444
-        });
-        seneca.test().use(SenecaEntity).ready(function () {
-          var _this = this;
-          var seneca = _this;
-          return Promise.resolve();
-        });
-        return Promise.resolve(seneca.ready()).then(function () {
-          return Promise.resolve(seneca.client({
-            type: 'browser',
-            pin: ['aim:web', 'aim:web,on:assetmap,get:info', 'aim:web,on:assetmap,list:asset', 'aim:web,on:assetmap,load:asset', 'aim:web,on:assetmap,save:asset', 'aim:web,on:assetmap,remove:asset', 'aim:web,on:assetmap,list:room', 'aim:web,on:assetmap,load:room', 'aim:web,on:assetmap,save:room', 'aim:web,on:assetmap,remove:room', 'aim:web,on:assetmap,list:building', 'aim:web,on:assetmap,load:building', 'aim:web,on:assetmap,save:building', 'aim:web,on:assetmap,remove:building']
-          })).then(function () {
-            function assetShow(msg) {
-              if (Array.isArray(msg.asset) || msg.asset === null) {
-                msg.asset = msg.asset || Object.keys(self.data.assetMap);
-                for (var _iterator = _createForOfIteratorHelperLoose(msg.asset), _step; !(_step = _iterator()).done;) {
-                  var assetID = _step.value;
-                  var stateName = msg.state;
-                  var assetData = self.data.assetMap[assetID];
-                  if (assetData == null) {
-                    self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID);
-                    continue;
-                  }
-                  if (assetData.xco == null || assetData.yco == null) {
-                    self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData);
-                    continue;
-                  }
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    show: 'asset',
-                    before: true,
-                    asset: assetData
-                  });
-                  var showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
-                  self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
-                }
-              } else {
-                var assetRoom = self.data.deps.cp.asset[msg.asset];
-                var _assetData = self.data.assetMap[msg.asset];
-                var zoom = msg.zoom || self.config.mapMaxZoom;
-                if (assetRoom) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    show: 'asset',
-                    before: true,
-                    focus: !!msg.focus,
-                    zoom: zoom,
-                    asset: _assetData
-                  });
-                  var coords = c_asset_coords({
-                    x: _assetData.xco,
-                    y: _assetData.yco
-                  });
-                  setTimeout(function () {
-                    if (!!msg.focus) {
-                      self.map.setView(coords, zoom);
-                    }
-                  }, 55);
-                  var _showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
-                  self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, _showInfoBox);
-                } else {
-                  self.log('ERROR', 'send', 'asset', 'unknown-asset', msg);
-                }
-              }
-            }
-            var loadData = function loadData() {
-              try {
-                if (self.dataLoaded) {
-                  done(self.data);
-                  return Promise.resolve();
-                }
-                var query = {
-                  project_id: self.config.project_id,
-                  plant_id: self.config.plant_id,
-                  stage: self.config.stage
-                };
-                return Promise.resolve(seneca.post('srv:plantquest,part:assetmap,list:asset', {
-                  query: query
-                })).then(function (_ref) {
-                  var assets = _ref.assets;
-                  return Promise.resolve(seneca.post('srv:plantquest,part:assetmap,list:room', {
-                    query: query
-                  })).then(function (_ref2) {
-                    var rooms = _ref2.rooms;
-                    return Promise.resolve(seneca.post('srv:plantquest,part:assetmap,list:building', {
-                      query: query
-                    })).then(function (_ref3) {
-                      var buildings = _ref3.buildings;
-                      self.data.assets = assets;
-                      self.data.rooms = rooms;
-                      self.data.deps = {};
-                      var _generate = generate({
-                          assets: assets,
-                          rooms: rooms
-                        }),
-                        deps = _generate.deps,
-                        maps = _generate.maps,
-                        levels = _generate.levels,
-                        assetMap = _generate.assetMap,
-                        roomMap = _generate.roomMap;
-                      self.data.buildings = buildings;
-                      self.data.levels = levels;
-                      self.data.maps = maps;
-                      self.data.assetMap = assetMap;
-                      self.data.roomMap = roomMap;
-                      self.data.deps = deps;
-                      self.dataLoaded = true;
-                      done(self.data);
-                    });
-                  });
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
+        var processData = function processData(json) {
+          try {
+            self.data = json;
+            var assets = [];
+            var assetMap = {};
+            var assetProps = self.data.assets[0];
+            var _loop = function _loop() {
+              var row = self.data.assets[rowI];
+              var assetID = row[0];
+              assetMap[assetID] = assetProps.reduce(function (a, p, i) {
+                return a[p] = row[i], a;
+              }, {});
             };
-            var processData = function processData(json) {
-              try {
-                self.data = json;
-                var assets = [];
-                var assetMap = {};
-                var assetProps = self.data.assets[0];
-                var _loop = function _loop() {
-                  var row = self.data.assets[rowI];
-                  var assetID = row[0];
-                  assetMap[assetID] = assetProps.reduce(function (a, p, i) {
-                    return a[p] = row[i], a;
-                  }, {});
-                };
-                for (var rowI = 1; rowI < self.data.assets.length; rowI++) {
-                  _loop();
-                }
-                self.data.assetMap = assetMap;
-                var roomMap = self.data.rooms.reduce(function (a, r) {
-                  return a[r.room] = r, a;
-                }, {});
-                self.data.roomMap = roomMap;
-                self.log('data loaded');
-                done(json);
-                return Promise.resolve();
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            };
-            window.seneca = self.seneca = seneca;
-            seneca.message('srv:plantquest,part:assetmap,remove:asset', function removeAsset(msg, reply) {
-              try {
-                var _this2 = this;
-                var id = msg.id;
-                return Promise.resolve(_this2.post('aim:web,on:assetmap,remove:asset', {
-                  id: id
-                })).then(function (result) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    remove: 'asset',
-                    asset: id
-                  });
-                  return result;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            });
-            seneca.message('srv:plantquest,part:assetmap,remove:room', function (msg, reply) {
-              try {
-                var _this3 = this;
-                var id = msg.id;
-                return Promise.resolve(_this3.post('aim: web, on: assetmap, remove: room', {
-                  id: id
-                })).then(function (result) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    remove: 'room',
-                    room: id
-                  });
-                  return result;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            });
-            seneca.message('srv:plantquest,part:assetmap,remove:building', function (msg, reply) {
-              try {
-                var _this4 = this;
-                var id = msg.id;
-                return Promise.resolve(_this4.post('aim: web, on: assetmap, remove: building', {
-                  id: id
-                })).then(function (result) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    remove: 'building',
-                    building: id
-                  });
-                  return result;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            });
-            function reset() {
-              self.data.deps = {};
-              self.data.roomMap = {};
-              self.data.assetMap = {};
-              self.data.assets = [];
-              self.data.rooms = [];
-              self.data.buildings = [];
-              self.data.levels = [];
-              self.data.maps = [];
+            for (var rowI = 1; rowI < self.data.assets.length; rowI++) {
+              _loop();
             }
-            seneca.message('srv:plantquest,part:assetmap,save:asset', function (msg, reply) {
-              try {
-                var _this5 = this;
-                var asset = msg.asset;
-                asset = asset || {};
-                asset = _extends({}, asset, {
-                  project_id: self.config.project_id,
-                  plant_id: self.config.plant_id,
-                  stage: self.config.stage
-                });
-                return Promise.resolve(_this5.post('aim: web, on: assetmap, save: asset', {
-                  asset: _extends({}, asset)
-                })).then(function (_this5$post) {
-                  asset = _this5$post;
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    save: 'asset',
-                    asset: asset.asset
-                  });
-                  return asset;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,save:room', function (msg, reply) {
-              try {
-                var _this6 = this;
-                var room = msg.room;
-                room = room || {};
-                room = _extends({}, room, {
-                  project_id: self.config.project_id,
-                  plant_id: self.config.plant_id,
-                  stage: self.config.stage
-                });
-                return Promise.resolve(_this6.post('aim: web, on: assetmap, save: room', {
-                  room: _extends({}, room)
-                })).then(function (_this6$post) {
-                  room = _this6$post;
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    save: 'room',
-                    room: room.room
-                  });
-                  return room;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,save:building', function (msg, reply) {
-              try {
-                var _this7 = this;
-                var building = msg.building;
-                building = building || {};
-                building = _extends({}, building, {
-                  project_id: self.config.project_id,
-                  plant_id: self.config.plant_id,
-                  stage: self.config.stage
-                });
-                return Promise.resolve(_this7.post('aim: web, on: assetmap, save: building', {
-                  building: _extends({}, building)
-                })).then(function (_this7$post) {
-                  building = _this7$post;
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    save: 'building',
-                    building: building.building
-                  });
-                  return building;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,load:asset', function (msg, reply) {
-              try {
-                var _this8 = this;
-                var id = msg.id;
-                return Promise.resolve(_this8.post('aim: web, on: assetmap, load: asset', {
-                  id: id
-                })).then(function (asset) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    load: 'asset',
-                    asset: asset.asset
-                  });
-                  return asset;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,load:room', function (msg, reply) {
-              try {
-                var _this9 = this;
-                var id = msg.id;
-                return Promise.resolve(_this9.post('aim: web, on: assetmap, load: room', {
-                  id: id
-                })).then(function (room) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    load: 'room',
-                    room: room.room
-                  });
-                  return room;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,load:building', function (msg, reply) {
-              try {
-                var _this10 = this;
-                var id = msg.id;
-                return Promise.resolve(_this10.post('aim: web, on: assetmap, load: building', {
-                  id: id
-                })).then(function (building) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    load: 'building',
-                    building: building.building
-                  });
-                  return building;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,list:asset', function (msg, reply) {
-              try {
-                var _this11 = this;
-                var query = msg.query;
-                query = query || {
-                  project_id: self.config.project_id,
-                  plant_id: self.config.plant_id,
-                  stage: self.config.stage
-                };
-                return Promise.resolve(_this11.post('aim: web, on: assetmap, list: asset', {
-                  query: query
-                })).then(function (assets) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    list: 'asset',
-                    assets: assets.assets
-                  });
-                  return assets;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,list:room', function (msg, reply) {
-              try {
-                var _this12 = this;
-                var query = msg.query;
-                query = query || {
-                  project_id: self.config.project_id,
-                  plant_id: self.config.plant_id,
-                  stage: self.config.stage
-                };
-                return Promise.resolve(_this12.post('aim: web, on: assetmap, list: room', {
-                  query: query
-                })).then(function (rooms) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    list: 'room',
-                    rooms: rooms.rooms
-                  });
-                  return rooms;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,list:building', function (msg, reply) {
-              try {
-                var _this13 = this;
-                var query = msg.query;
-                query = query || {
-                  project_id: self.config.project_id,
-                  plant_id: self.config.plant_id,
-                  stage: self.config.stage
-                };
-                return Promise.resolve(_this13.post('aim: web, on: assetmap, list: building', {
-                  query: query
-                })).then(function (buildings) {
-                  self.emit({
-                    srv: 'plantquest',
-                    part: 'assetmap',
-                    list: 'building',
-                    buildings: buildings.buildings
-                  });
-                  return buildings;
-                });
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,show:map', function (msg, reply) {
-              try {
-                self.showMap(msg.map);
-                return Promise.resolve();
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,show:room', function (msg, reply) {
-              try {
-                var room = self.data.roomMap[msg.room];
-                if (room) {
-                  if (msg.assets) {
-                    if (msg.assets) {
-                      for (var _iterator2 = _createForOfIteratorHelperLoose(msg.assets), _step2; !(_step2 = _iterator2()).done;) {
-                        var asset = _step2.value;
-                        self.showAsset(asset.asset, asset.state);
-                      }
-                    }
-                  }
-                  if (msg.focus) {
-                    self.selectRoom(room.room, {
-                      mute: true
-                    });
-                  }
-                } else {
-                  self.log('ERROR', 'send', 'room', 'unknown-room', msg);
-                }
-                return Promise.resolve();
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,show:plant', function (msg, reply) {
-              try {
-                self.showMap(msg.plant);
-                return Promise.resolve();
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,show:floor', function (msg, reply) {
-              try {
-                self.showMap(msg.map);
-                self.clearRoomAssets();
-                self.unselectRoom();
-                self.map.setView(self.config.mapStart, self.config.mapStartZoom);
-                return Promise.resolve();
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,show:asset', function (msg, reply) {
-              try {
-                assetShow(msg);
-                return Promise.resolve();
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,hide:asset', function (msg, reply) {
-              try {
-                assetShow(msg);
-                return Promise.resolve();
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap,relate:room-asset', function (msg, reply) {
-              try {
-                self.emit({
-                  srv: 'plantquest',
-                  part: 'assetmap',
-                  relate: 'room-asset',
-                  relation: clone(self.data.deps.pc.room)
-                });
-                return Promise.resolve();
-              } catch (e) {
-                return Promise.reject(e);
-              }
-            }).message('srv:plantquest,part:assetmap', function (msg, reply) {
+            self.data.assetMap = assetMap;
+            var roomMap = self.data.rooms.reduce(function (a, r) {
+              return a[r.room] = r, a;
+            }, {});
+            self.data.roomMap = roomMap;
+            self.log('data loaded');
+            done(json);
+            return Promise.resolve();
+          } catch (e) {
+            return Promise.reject(e);
+          }
+        };
+        var loadData = function loadData() {
+          try {
+            if (self.dataLoaded) {
+              done(self.data);
               return Promise.resolve();
-            });
-            if (self.config.mode == 'demo') {
-              if ('https://demo.plantquest.app/sample-data.js' === self.config.data) {
-                var head = $('head');
-                var skript = document.createElement('script');
-                skript.setAttribute('src', self.config.data);
-                head.appendChild(skript);
-                var waiter = setInterval(function () {
-                  self.log('loading data...');
-                  if (window.PLANTQUEST_ASSETMAP_DATA) {
-                    clearInterval(waiter);
-                    processData(window.PLANTQUEST_ASSETMAP_DATA);
-                  }
-                }, 111);
-              } else {
-                fetch(self.config.data).then(function (response) {
-                  if (!response.ok) {
-                    throw new Error("HTTP error " + response.status);
-                  }
-                  return response.json();
-                }).then(function (json) {
-                  return processData(json);
-                })["catch"](function (err) {
-                  return self.log('ERROR', 'load', err);
-                });
-              }
-            } else if (self.config.mode == 'live') {
-              loadData();
             }
-          });
+            var query = {
+              project_id: self.config.project_id,
+              plant_id: self.config.plant_id,
+              stage: self.config.stage
+            };
+            return Promise.resolve(seneca.post('srv:plantquest,part:assetmap,list:asset', {
+              query: query
+            })).then(function (_ref) {
+              var assets = _ref.assets;
+              return Promise.resolve(seneca.post('srv:plantquest,part:assetmap,list:room', {
+                query: query
+              })).then(function (_ref2) {
+                var rooms = _ref2.rooms;
+                return Promise.resolve(seneca.post('srv:plantquest,part:assetmap,list:building', {
+                  query: query
+                })).then(function (_ref3) {
+                  var buildings = _ref3.buildings;
+                  self.data.assets = assets;
+                  self.data.rooms = rooms;
+                  self.data.deps = {};
+                  var _generate = generate({
+                      assets: assets,
+                      rooms: rooms
+                    }),
+                    deps = _generate.deps,
+                    maps = _generate.maps,
+                    levels = _generate.levels,
+                    assetMap = _generate.assetMap,
+                    roomMap = _generate.roomMap;
+                  self.data.buildings = buildings;
+                  self.data.levels = levels;
+                  self.data.maps = maps;
+                  self.data.assetMap = assetMap;
+                  self.data.roomMap = roomMap;
+                  self.data.deps = deps;
+                  self.dataLoaded = true;
+                  done(self.data);
+                });
+              });
+            });
+          } catch (e) {
+            return Promise.reject(e);
+          }
+        };
+        return Promise.resolve(self.getSeneca()).then(function (seneca) {
+          if (self.config.mode == 'demo') {
+            if ('https://demo.plantquest.app/sample-data.js' === self.config.data) {
+              var head = $('head');
+              var skript = document.createElement('script');
+              skript.setAttribute('src', self.config.data);
+              head.appendChild(skript);
+              var waiter = setInterval(function () {
+                self.log('loading data...');
+                if (window.PLANTQUEST_ASSETMAP_DATA) {
+                  clearInterval(waiter);
+                  processData(window.PLANTQUEST_ASSETMAP_DATA);
+                }
+              }, 111);
+            } else {
+              fetch(self.config.data).then(function (response) {
+                if (!response.ok) {
+                  throw new Error("HTTP error " + response.status);
+                }
+                return response.json();
+              }).then(function (json) {
+                return processData(json);
+              })["catch"](function (err) {
+                return self.log('ERROR', 'load', err);
+              });
+            }
+          } else if (self.config.mode == 'live') {
+            loadData();
+          }
         });
       } catch (e) {
         return Promise.reject(e);
@@ -1219,16 +800,14 @@ var rastercoords = createCommonjsModule(function (module) {
             var infobox = _assetCurrent.infobox;
             if (_assetCurrent) {
               setTimeout(function () {
-                try {
-                  var lem = _assetCurrent.label.getElement();
+                var lem = _assetCurrent.label.getElement();
+                if (null != lem) {
                   lem.style.display = infobox ? null : 'none';
                   lem.style.width = '';
                   lem.style.height = '';
                   lem.style.fontSize = '';
-                  _assetCurrent.poly.addTo(self.layer.circles);
-                } catch (err) {
-                  console.log(err);
                 }
+                _assetCurrent.poly.addTo(self.layer.circles);
                 _assetCurrent.blinkId = setInterval(function blink() {
                   if (_assetCurrent.poly) {
                     if (_assetCurrent.blink) {
@@ -1267,8 +846,8 @@ var rastercoords = createCommonjsModule(function (module) {
       }
       function generate_labels() {
         self.poly_labels = self.poly_labels || {};
-        for (var _iterator3 = _createForOfIteratorHelperLoose(self.data.rooms), _step3; !(_step3 = _iterator3()).done;) {
-          var room = _step3.value;
+        for (var _iterator = _createForOfIteratorHelperLoose(self.data.rooms), _step; !(_step = _iterator()).done;) {
+          var room = _step.value;
           var poly_labels = self.poly_labels[room.map] = self.poly_labels[room.map] || [];
           if (self.data.roomMap[room.room] && room.area === '1') {
             var room_poly = convertRoomPoly(self.config.mapImg, room.poly);
@@ -1434,24 +1013,24 @@ var rastercoords = createCommonjsModule(function (module) {
       self.prev_labels = self.prev_labels || [];
       var labelZoomLevel = null == self.config.label.zoom ? self.config.mapMaxZoom : self.config.label.zoom;
       if (zoom >= labelZoomLevel) {
-        for (var _iterator4 = _createForOfIteratorHelperLoose(self.prev_labels), _step4; !(_step4 = _iterator4()).done;) {
-          var label = _step4.value;
+        for (var _iterator2 = _createForOfIteratorHelperLoose(self.prev_labels), _step2; !(_step2 = _iterator2()).done;) {
+          var label = _step2.value;
           label.remove();
         }
-        for (var _iterator5 = _createForOfIteratorHelperLoose(labels), _step5; !(_step5 = _iterator5()).done;) {
-          var _label = _step5.value;
+        for (var _iterator3 = _createForOfIteratorHelperLoose(labels), _step3; !(_step3 = _iterator3()).done;) {
+          var _label = _step3.value;
           _label.remove();
           _label.addTo(self.layer.label);
         }
         self.setLabel = true;
         self.prev_labels = labels;
       } else {
-        for (var _iterator6 = _createForOfIteratorHelperLoose(self.prev_labels), _step6; !(_step6 = _iterator6()).done;) {
-          var _label2 = _step6.value;
+        for (var _iterator4 = _createForOfIteratorHelperLoose(self.prev_labels), _step4; !(_step4 = _iterator4()).done;) {
+          var _label2 = _step4.value;
           _label2.remove();
         }
-        for (var _iterator7 = _createForOfIteratorHelperLoose(labels), _step7; !(_step7 = _iterator7()).done;) {
-          var _label3 = _step7.value;
+        for (var _iterator5 = _createForOfIteratorHelperLoose(labels), _step5; !(_step5 = _iterator5()).done;) {
+          var _label3 = _step5.value;
           _label3.remove();
         }
         self.setLabel = false;
@@ -1591,8 +1170,8 @@ var rastercoords = createCommonjsModule(function (module) {
     self.focusRoom = function (room) {
       if (null == room) return;
       var roomlatlng = [0, 0];
-      for (var _iterator8 = _createForOfIteratorHelperLoose(room.poly), _step8; !(_step8 = _iterator8()).done;) {
-        var point = _step8.value;
+      for (var _iterator6 = _createForOfIteratorHelperLoose(room.poly), _step6; !(_step6 = _iterator6()).done;) {
+        var point = _step6.value;
         if (point[0] > roomlatlng[0]) {
           roomlatlng[0] = point[0];
           roomlatlng[1] = point[1];
@@ -1638,8 +1217,8 @@ var rastercoords = createCommonjsModule(function (module) {
       var actualStateDef = newStateDef;
       var newPriority = Object.keys(self.config.states).indexOf(newStateDef.stateName);
       var assets = (self.data.deps.pc.room[roomID] ? self.data.deps.pc.room[roomID].asset : []) || [];
-      for (var _iterator9 = _createForOfIteratorHelperLoose(assets), _step9; !(_step9 = _iterator9()).done;) {
-        var assetID = _step9.value;
+      for (var _iterator7 = _createForOfIteratorHelperLoose(assets), _step7; !(_step7 = _iterator7()).done;) {
+        var assetID = _step7.value;
         var assetState = self.current.asset[assetID];
         if (assetState && assetState.stateName) {
           var stateDef = self.config.states[assetState.stateName];
@@ -1748,8 +1327,8 @@ var rastercoords = createCommonjsModule(function (module) {
     };
     self.showRoomAssets = function (roomID) {
       var assets = (self.data.deps.pc.room[roomID] ? self.data.deps.pc.room[roomID].asset : []) || [];
-      for (var _iterator10 = _createForOfIteratorHelperLoose(assets), _step10; !(_step10 = _iterator10()).done;) {
-        var assetID = _step10.value;
+      for (var _iterator8 = _createForOfIteratorHelperLoose(assets), _step8; !(_step8 = _iterator8()).done;) {
+        var assetID = _step8.value;
         var _assetCurrent4 = self.current.asset[assetID];
         if (_assetCurrent4 && _assetCurrent4.alarm) {
           self.showAsset(assetID, _assetCurrent4.alarm);
@@ -1808,11 +1387,438 @@ var rastercoords = createCommonjsModule(function (module) {
       }) : assets;
       return assets;
     };
-    function buildContainer() {
-      var html = ['<div id="plantquest-assetmap-map" class="plantquest-assetmap-vis"></div>'];
-      return html.join('');
-    }
+    self.getSeneca = function () {
+      try {
+        if (null != self.seneca) {
+          return Promise.resolve(self.seneca);
+        }
+        var endpoint = function endpoint(msg) {
+          var suffix = '/api/web' + '/public/' + msg.on;
+          var origin = self.config.endpoint;
+          var url = origin + suffix;
+          return url;
+        };
+        var _seneca = new Seneca({
+          log: {
+            logger: 'flat',
+            level: 'warn'
+          },
+          plugin: {
+            browser: {
+              endpoint: endpoint,
+              headers: {
+                'Authorization': 'Bearer ' + self.config.apikey
+              }
+            }
+          },
+          timeout: 44444
+        });
+        _seneca.test().use(SenecaEntity).ready(function () {
+          var _this = this;
+          var seneca = _this;
+          return Promise.resolve();
+        });
+        return Promise.resolve(_seneca.client({
+          type: 'browser',
+          pin: ['aim:web', 'aim:web,on:assetmap,get:info', 'aim:web,on:assetmap,list:asset', 'aim:web,on:assetmap,load:asset', 'aim:web,on:assetmap,save:asset', 'aim:web,on:assetmap,remove:asset', 'aim:web,on:assetmap,list:room', 'aim:web,on:assetmap,load:room', 'aim:web,on:assetmap,save:room', 'aim:web,on:assetmap,remove:room', 'aim:web,on:assetmap,list:building', 'aim:web,on:assetmap,load:building', 'aim:web,on:assetmap,save:building', 'aim:web,on:assetmap,remove:building']
+        })).then(function () {
+          _seneca.fix('srv:plantquest,part:assetmap').message('remove:asset', function removeAsset(msg) {
+            try {
+              var _this2 = this;
+              var id = msg.id;
+              return Promise.resolve(_this2.post('aim:web,on:assetmap,remove:asset', {
+                id: id
+              })).then(function (result) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  remove: 'asset',
+                  asset: id
+                });
+                return result;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('remove:room', function removeRoom(msg) {
+            try {
+              var _this3 = this;
+              var id = msg.id;
+              return Promise.resolve(_this3.post('aim:web,on:assetmap,remove: room', {
+                id: id
+              })).then(function (result) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  remove: 'room',
+                  room: id
+                });
+                return result;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('remove:building', function (msg) {
+            try {
+              var _this4 = this;
+              var id = msg.id;
+              return Promise.resolve(_this4.post('aim:web,on:assetmap,remove:building', {
+                id: id
+              })).then(function (result) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  remove: 'building',
+                  building: id
+                });
+                return result;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('save:asset', function (msg) {
+            try {
+              var _this5 = this;
+              var asset = msg.asset;
+              asset = asset || {};
+              asset = _extends({}, asset, {
+                project_id: self.config.project_id,
+                plant_id: self.config.plant_id,
+                stage: self.config.stage
+              });
+              return Promise.resolve(_this5.post('aim:web,on:assetmap,save:asset', {
+                asset: _extends({}, asset)
+              })).then(function (_this5$post) {
+                asset = _this5$post;
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  save: 'asset',
+                  asset: asset.asset
+                });
+                return asset;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('save:room', function (msg) {
+            try {
+              var _this6 = this;
+              var room = msg.room;
+              room = room || {};
+              room = _extends({}, room, {
+                project_id: self.config.project_id,
+                plant_id: self.config.plant_id,
+                stage: self.config.stage
+              });
+              return Promise.resolve(_this6.post('aim:web,on:assetmap,save:room', {
+                room: _extends({}, room)
+              })).then(function (_this6$post) {
+                room = _this6$post;
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  save: 'room',
+                  room: room.room
+                });
+                return room;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('save:building', function (msg) {
+            try {
+              var _this7 = this;
+              var building = msg.building;
+              building = building || {};
+              building = _extends({}, building, {
+                project_id: self.config.project_id,
+                plant_id: self.config.plant_id,
+                stage: self.config.stage
+              });
+              return Promise.resolve(_this7.post('aim:web,on:assetmap,save:building', {
+                building: _extends({}, building)
+              })).then(function (_this7$post) {
+                building = _this7$post;
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  save: 'building',
+                  building: building.building
+                });
+                return building;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('load:asset', function (msg) {
+            try {
+              var _this8 = this;
+              var id = msg.id;
+              return Promise.resolve(_this8.post('aim:web,on:assetmap,load:asset', {
+                id: id
+              })).then(function (asset) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  load: 'asset',
+                  asset: asset.asset
+                });
+                return asset;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('load:room', function (msg) {
+            try {
+              var _this9 = this;
+              var id = msg.id;
+              return Promise.resolve(_this9.post('aim:web,on:assetmap,load:room', {
+                id: id
+              })).then(function (room) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  load: 'room',
+                  room: room.room
+                });
+                return room;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('load:building', function (msg) {
+            try {
+              var _this10 = this;
+              var id = msg.id;
+              return Promise.resolve(_this10.post('aim:web,on:assetmap,load:building', {
+                id: id
+              })).then(function (building) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  load: 'building',
+                  building: building.building
+                });
+                return building;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('list:asset', function (msg) {
+            try {
+              var _this11 = this;
+              var query = msg.query;
+              query = query || {
+                project_id: self.config.project_id,
+                plant_id: self.config.plant_id,
+                stage: self.config.stage
+              };
+              return Promise.resolve(_this11.post('aim:web,on:assetmap,list:asset', {
+                query: query
+              })).then(function (assets) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  list: 'asset',
+                  assets: assets.assets
+                });
+                return assets;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('list:room', function (msg) {
+            try {
+              var _this12 = this;
+              var query = msg.query;
+              query = query || {
+                project_id: self.config.project_id,
+                plant_id: self.config.plant_id,
+                stage: self.config.stage
+              };
+              return Promise.resolve(_this12.post('aim:web,on:assetmap,list:room', {
+                query: query
+              })).then(function (rooms) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  list: 'room',
+                  rooms: rooms.rooms
+                });
+                return rooms;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('list:building', function (msg) {
+            try {
+              var _this13 = this;
+              var query = msg.query;
+              query = query || {
+                project_id: self.config.project_id,
+                plant_id: self.config.plant_id,
+                stage: self.config.stage
+              };
+              return Promise.resolve(_this13.post('aim:web,on:assetmap,list:building', {
+                query: query
+              })).then(function (buildings) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  list: 'building',
+                  buildings: buildings.buildings
+                });
+                return buildings;
+              });
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('show:map', function (msg) {
+            try {
+              self.showMap(msg.map);
+              return Promise.resolve();
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('show:room', function (msg) {
+            try {
+              var room = self.data.roomMap[msg.room];
+              if (room) {
+                if (msg.assets) {
+                  if (msg.assets) {
+                    for (var _iterator9 = _createForOfIteratorHelperLoose(msg.assets), _step9; !(_step9 = _iterator9()).done;) {
+                      var asset = _step9.value;
+                      self.showAsset(asset.asset, asset.state);
+                    }
+                  }
+                }
+                if (msg.focus) {
+                  self.selectRoom(room.room, {
+                    mute: true
+                  });
+                }
+              } else {
+                self.log('ERROR', 'send', 'room', 'unknown-room', msg);
+              }
+              return Promise.resolve();
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('show:plant', function (msg) {
+            try {
+              self.showMap(msg.plant);
+              return Promise.resolve();
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('show:floor', function (msg) {
+            try {
+              self.showMap(msg.map);
+              self.clearRoomAssets();
+              self.unselectRoom();
+              self.map.setView(self.config.mapStart, self.config.mapStartZoom);
+              return Promise.resolve();
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('show:asset', function (msg) {
+            try {
+              assetShow(msg);
+              return Promise.resolve();
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('hide:asset', function (msg) {
+            try {
+              assetShow(msg);
+              return Promise.resolve();
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('relate:room-asset', function (msg) {
+            try {
+              self.emit({
+                srv: 'plantquest',
+                part: 'assetmap',
+                relate: 'room-asset',
+                relation: clone(self.data.deps.pc.room)
+              });
+              return Promise.resolve();
+            } catch (e) {
+              return Promise.reject(e);
+            }
+          }).message('srv:plantquest,part:assetmap', function (msg) {
+            return Promise.resolve();
+          });
+          function assetShow(msg) {
+            if (Array.isArray(msg.asset) || msg.asset === null) {
+              msg.asset = msg.asset || Object.keys(self.data.assetMap);
+              for (var _iterator10 = _createForOfIteratorHelperLoose(msg.asset), _step10; !(_step10 = _iterator10()).done;) {
+                var assetID = _step10.value;
+                var stateName = msg.state;
+                var assetData = self.data.assetMap[assetID];
+                if (assetData == null) {
+                  self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID);
+                  continue;
+                }
+                if (assetData.xco == null || assetData.yco == null) {
+                  self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData);
+                  continue;
+                }
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  show: 'asset',
+                  before: true,
+                  asset: assetData
+                });
+                var showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
+                self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
+              }
+            } else {
+              var assetRoom = self.data.deps.cp.asset[msg.asset];
+              var _assetData = self.data.assetMap[msg.asset];
+              var zoom = msg.zoom || self.config.mapMaxZoom;
+              if (assetRoom) {
+                self.emit({
+                  srv: 'plantquest',
+                  part: 'assetmap',
+                  show: 'asset',
+                  before: true,
+                  focus: !!msg.focus,
+                  zoom: zoom,
+                  asset: _assetData
+                });
+                var coords = c_asset_coords({
+                  x: _assetData.xco,
+                  y: _assetData.yco
+                });
+                setTimeout(function () {
+                  if (!!msg.focus) {
+                    self.map.setView(coords, zoom);
+                  }
+                }, 55);
+                var _showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
+                self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, _showInfoBox);
+              } else {
+                self.log('ERROR', 'send', 'asset', 'unknown-asset', msg);
+              }
+            }
+          }
+          return Promise.resolve(_seneca.ready()).then(function () {
+            return self.seneca = _seneca;
+          });
+        });
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    };
     return self;
+  }
+  function buildContainer() {
+    var html = ['<div id="plantquest-assetmap-map" class="plantquest-assetmap-vis"></div>'];
+    return html.join('');
   }
   function clone(obj) {
     if (null != obj && 'object' === typeof obj) {

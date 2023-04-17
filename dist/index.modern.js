@@ -474,347 +474,7 @@ var rastercoords = createCommonjsModule(function (module) {
       const loadingInterval = setInterval(loading, 50);
     };
     self.load = async function (done) {
-      let endpoint = msg => {
-        let suffix = '/api/web' + '/public/' + msg.on;
-        let origin = self.config.endpoint;
-        let url = origin + suffix;
-        return url;
-      };
-      let seneca = new Seneca({
-        log: {
-          logger: 'flat',
-          level: 'warn'
-        },
-        plugin: {
-          browser: {
-            endpoint,
-            headers: {
-              'Authorization': 'Bearer ' + self.config.apikey
-            }
-          }
-        },
-        timeout: 44444
-      });
-      seneca.test().use(SenecaEntity).ready(async function () {
-      });
-      await seneca.ready();
-      await seneca.client({
-        type: 'browser',
-        pin: ['aim:web', 'aim:web,on:assetmap,get:info', 'aim:web,on:assetmap,list:asset', 'aim:web,on:assetmap,load:asset', 'aim:web,on:assetmap,save:asset', 'aim:web,on:assetmap,remove:asset', 'aim:web,on:assetmap,list:room', 'aim:web,on:assetmap,load:room', 'aim:web,on:assetmap,save:room', 'aim:web,on:assetmap,remove:room', 'aim:web,on:assetmap,list:building', 'aim:web,on:assetmap,load:building', 'aim:web,on:assetmap,save:building', 'aim:web,on:assetmap,remove:building']
-      });
-      window.seneca = self.seneca = seneca;
-      function assetShow(msg) {
-        if (Array.isArray(msg.asset) || msg.asset === null) {
-          msg.asset = msg.asset || Object.keys(self.data.assetMap);
-          for (let assetID of msg.asset) {
-            let stateName = msg.state;
-            let assetData = self.data.assetMap[assetID];
-            if (assetData == null) {
-              self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID);
-              continue;
-            }
-            if (assetData.xco == null || assetData.yco == null) {
-              self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData);
-              continue;
-            }
-            self.emit({
-              srv: 'plantquest',
-              part: 'assetmap',
-              show: 'asset',
-              before: true,
-              asset: assetData
-            });
-            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
-            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
-          }
-        } else {
-          let assetRoom = self.data.deps.cp.asset[msg.asset];
-          let assetData = self.data.assetMap[msg.asset];
-          let zoom = msg.zoom || self.config.mapMaxZoom;
-          if (assetRoom) {
-            self.emit({
-              srv: 'plantquest',
-              part: 'assetmap',
-              show: 'asset',
-              before: true,
-              focus: !!msg.focus,
-              zoom: zoom,
-              asset: assetData
-            });
-            let coords = c_asset_coords({
-              x: assetData.xco,
-              y: assetData.yco
-            });
-            setTimeout(() => {
-              if (!!msg.focus) {
-                self.map.setView(coords, zoom);
-              }
-            }, 55);
-            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
-            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
-          } else {
-            self.log('ERROR', 'send', 'asset', 'unknown-asset', msg);
-          }
-        }
-      }
-      seneca.message('srv:plantquest,part:assetmap,remove:asset', async function removeAsset(msg, reply) {
-        let {
-          id
-        } = msg;
-        let result = await this.post('aim:web,on:assetmap,remove:asset', {
-          id
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          remove: 'asset',
-          asset: id
-        });
-        return result;
-      });
-      seneca.message('srv:plantquest,part:assetmap,remove:room', async function (msg, reply) {
-        let {
-          id
-        } = msg;
-        let result = await this.post('aim: web, on: assetmap, remove: room', {
-          id
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          remove: 'room',
-          room: id
-        });
-        return result;
-      });
-      seneca.message('srv:plantquest,part:assetmap,remove:building', async function (msg, reply) {
-        let {
-          id
-        } = msg;
-        let result = await this.post('aim: web, on: assetmap, remove: building', {
-          id
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          remove: 'building',
-          building: id
-        });
-        return result;
-      });
-      seneca.message('srv:plantquest,part:assetmap,save:asset', async function (msg, reply) {
-        let {
-          asset
-        } = msg;
-        asset = asset || {};
-        asset = {
-          ...asset,
-          ...{
-            project_id: self.config.project_id,
-            plant_id: self.config.plant_id,
-            stage: self.config.stage
-          }
-        };
-        asset = await this.post('aim: web, on: assetmap, save: asset', {
-          asset: {
-            ...asset
-          }
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          save: 'asset',
-          asset: asset.asset
-        });
-        return asset;
-      }).message('srv:plantquest,part:assetmap,save:room', async function (msg, reply) {
-        let {
-          room
-        } = msg;
-        room = room || {};
-        room = {
-          ...room,
-          ...{
-            project_id: self.config.project_id,
-            plant_id: self.config.plant_id,
-            stage: self.config.stage
-          }
-        };
-        room = await this.post('aim: web, on: assetmap, save: room', {
-          room: {
-            ...room
-          }
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          save: 'room',
-          room: room.room
-        });
-        return room;
-      }).message('srv:plantquest,part:assetmap,save:building', async function (msg, reply) {
-        let {
-          building
-        } = msg;
-        building = building || {};
-        building = {
-          ...building,
-          ...{
-            project_id: self.config.project_id,
-            plant_id: self.config.plant_id,
-            stage: self.config.stage
-          }
-        };
-        building = await this.post('aim: web, on: assetmap, save: building', {
-          building: {
-            ...building
-          }
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          save: 'building',
-          building: building.building
-        });
-        return building;
-      }).message('srv:plantquest,part:assetmap,load:asset', async function (msg, reply) {
-        const {
-          id
-        } = msg;
-        let asset = await this.post('aim: web, on: assetmap, load: asset', {
-          id
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          load: 'asset',
-          asset: asset.asset
-        });
-        return asset;
-      }).message('srv:plantquest,part:assetmap,load:room', async function (msg, reply) {
-        const {
-          id
-        } = msg;
-        let room = await this.post('aim: web, on: assetmap, load: room', {
-          id
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          load: 'room',
-          room: room.room
-        });
-        return room;
-      }).message('srv:plantquest,part:assetmap,load:building', async function (msg, reply) {
-        const {
-          id
-        } = msg;
-        let building = await this.post('aim: web, on: assetmap, load: building', {
-          id
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          load: 'building',
-          building: building.building
-        });
-        return building;
-      }).message('srv:plantquest,part:assetmap,list:asset', async function (msg, reply) {
-        let {
-          query
-        } = msg;
-        query = query || {
-          project_id: self.config.project_id,
-          plant_id: self.config.plant_id,
-          stage: self.config.stage
-        };
-        let assets = await this.post('aim: web, on: assetmap, list: asset', {
-          query
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          list: 'asset',
-          assets: assets.assets
-        });
-        return assets;
-      }).message('srv:plantquest,part:assetmap,list:room', async function (msg, reply) {
-        let {
-          query
-        } = msg;
-        query = query || {
-          project_id: self.config.project_id,
-          plant_id: self.config.plant_id,
-          stage: self.config.stage
-        };
-        let rooms = await this.post('aim: web, on: assetmap, list: room', {
-          query
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          list: 'room',
-          rooms: rooms.rooms
-        });
-        return rooms;
-      }).message('srv:plantquest,part:assetmap,list:building', async function (msg, reply) {
-        let {
-          query
-        } = msg;
-        query = query || {
-          project_id: self.config.project_id,
-          plant_id: self.config.plant_id,
-          stage: self.config.stage
-        };
-        let buildings = await this.post('aim: web, on: assetmap, list: building', {
-          query
-        });
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          list: 'building',
-          buildings: buildings.buildings
-        });
-        return buildings;
-      }).message('srv:plantquest,part:assetmap,show:map', async function (msg, reply) {
-        self.showMap(msg.map);
-      }).message('srv:plantquest,part:assetmap,show:room', async function (msg, reply) {
-        let room = self.data.roomMap[msg.room];
-        if (room) {
-          if (msg.assets) {
-            if (msg.assets) {
-              for (let asset of msg.assets) {
-                self.showAsset(asset.asset, asset.state);
-              }
-            }
-          }
-          if (msg.focus) {
-            self.selectRoom(room.room, {
-              mute: true
-            });
-          }
-        } else {
-          self.log('ERROR', 'send', 'room', 'unknown-room', msg);
-        }
-      }).message('srv:plantquest,part:assetmap,show:plant', async function (msg, reply) {
-        self.showMap(msg.plant);
-      }).message('srv:plantquest,part:assetmap,show:floor', async function (msg, reply) {
-        self.showMap(msg.map);
-        self.clearRoomAssets();
-        self.unselectRoom();
-        self.map.setView(self.config.mapStart, self.config.mapStartZoom);
-      }).message('srv:plantquest,part:assetmap,show:asset', async function (msg, reply) {
-        assetShow(msg);
-      }).message('srv:plantquest,part:assetmap,hide:asset', async function (msg, reply) {
-        assetShow(msg);
-      }).message('srv:plantquest,part:assetmap,relate:room-asset', async function (msg, reply) {
-        self.emit({
-          srv: 'plantquest',
-          part: 'assetmap',
-          relate: 'room-asset',
-          relation: clone(self.data.deps.pc.room)
-        });
-      }).message('srv:plantquest,part:assetmap', async function (msg, reply) {});
+      let seneca = await self.getSeneca();
       async function processData(json) {
         self.data = json;
         let assetMap = {};
@@ -1052,16 +712,14 @@ var rastercoords = createCommonjsModule(function (module) {
             let infobox = assetCurrent.infobox;
             if (assetCurrent) {
               setTimeout(() => {
-                try {
-                  let lem = assetCurrent.label.getElement();
+                let lem = assetCurrent.label.getElement();
+                if (null != lem) {
                   lem.style.display = infobox ? null : 'none';
                   lem.style.width = '';
                   lem.style.height = '';
                   lem.style.fontSize = '';
-                  assetCurrent.poly.addTo(self.layer.circles);
-                } catch (err) {
-                  console.log(err);
                 }
+                assetCurrent.poly.addTo(self.layer.circles);
                 assetCurrent.blinkId = setInterval(function blink() {
                   if (assetCurrent.poly) {
                     if (assetCurrent.blink) {
@@ -1628,11 +1286,354 @@ var rastercoords = createCommonjsModule(function (module) {
       })) : assets;
       return assets;
     };
-    function buildContainer() {
-      let html = ['<div id="plantquest-assetmap-map" class="plantquest-assetmap-vis"></div>'];
-      return html.join('');
-    }
+    self.getSeneca = async function () {
+      if (null != self.seneca) {
+        return self.seneca;
+      }
+      let endpoint = msg => {
+        let suffix = '/api/web' + '/public/' + msg.on;
+        let origin = self.config.endpoint;
+        let url = origin + suffix;
+        return url;
+      };
+      let seneca = new Seneca({
+        log: {
+          logger: 'flat',
+          level: 'warn'
+        },
+        plugin: {
+          browser: {
+            endpoint,
+            headers: {
+              'Authorization': 'Bearer ' + self.config.apikey
+            }
+          }
+        },
+        timeout: 44444
+      });
+      seneca.test().use(SenecaEntity).ready(async function () {
+      });
+      await seneca.client({
+        type: 'browser',
+        pin: ['aim:web', 'aim:web,on:assetmap,get:info', 'aim:web,on:assetmap,list:asset', 'aim:web,on:assetmap,load:asset', 'aim:web,on:assetmap,save:asset', 'aim:web,on:assetmap,remove:asset', 'aim:web,on:assetmap,list:room', 'aim:web,on:assetmap,load:room', 'aim:web,on:assetmap,save:room', 'aim:web,on:assetmap,remove:room', 'aim:web,on:assetmap,list:building', 'aim:web,on:assetmap,load:building', 'aim:web,on:assetmap,save:building', 'aim:web,on:assetmap,remove:building']
+      });
+      seneca.fix('srv:plantquest,part:assetmap').message('remove:asset', async function removeAsset(msg) {
+        let {
+          id
+        } = msg;
+        let result = await this.post('aim:web,on:assetmap,remove:asset', {
+          id
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          remove: 'asset',
+          asset: id
+        });
+        return result;
+      }).message('remove:room', async function removeRoom(msg) {
+        let {
+          id
+        } = msg;
+        let result = await this.post('aim:web,on:assetmap,remove: room', {
+          id
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          remove: 'room',
+          room: id
+        });
+        return result;
+      }).message('remove:building', async function (msg) {
+        let {
+          id
+        } = msg;
+        let result = await this.post('aim:web,on:assetmap,remove:building', {
+          id
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          remove: 'building',
+          building: id
+        });
+        return result;
+      }).message('save:asset', async function (msg) {
+        let {
+          asset
+        } = msg;
+        asset = asset || {};
+        asset = {
+          ...asset,
+          ...{
+            project_id: self.config.project_id,
+            plant_id: self.config.plant_id,
+            stage: self.config.stage
+          }
+        };
+        asset = await this.post('aim:web,on:assetmap,save:asset', {
+          asset: {
+            ...asset
+          }
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          save: 'asset',
+          asset: asset.asset
+        });
+        return asset;
+      }).message('save:room', async function (msg) {
+        let {
+          room
+        } = msg;
+        room = room || {};
+        room = {
+          ...room,
+          ...{
+            project_id: self.config.project_id,
+            plant_id: self.config.plant_id,
+            stage: self.config.stage
+          }
+        };
+        room = await this.post('aim:web,on:assetmap,save:room', {
+          room: {
+            ...room
+          }
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          save: 'room',
+          room: room.room
+        });
+        return room;
+      }).message('save:building', async function (msg) {
+        let {
+          building
+        } = msg;
+        building = building || {};
+        building = {
+          ...building,
+          ...{
+            project_id: self.config.project_id,
+            plant_id: self.config.plant_id,
+            stage: self.config.stage
+          }
+        };
+        building = await this.post('aim:web,on:assetmap,save:building', {
+          building: {
+            ...building
+          }
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          save: 'building',
+          building: building.building
+        });
+        return building;
+      }).message('load:asset', async function (msg) {
+        const {
+          id
+        } = msg;
+        let asset = await this.post('aim:web,on:assetmap,load:asset', {
+          id
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          load: 'asset',
+          asset: asset.asset
+        });
+        return asset;
+      }).message('load:room', async function (msg) {
+        const {
+          id
+        } = msg;
+        let room = await this.post('aim:web,on:assetmap,load:room', {
+          id
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          load: 'room',
+          room: room.room
+        });
+        return room;
+      }).message('load:building', async function (msg) {
+        const {
+          id
+        } = msg;
+        let building = await this.post('aim:web,on:assetmap,load:building', {
+          id
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          load: 'building',
+          building: building.building
+        });
+        return building;
+      }).message('list:asset', async function (msg) {
+        let {
+          query
+        } = msg;
+        query = query || {
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage
+        };
+        let assets = await this.post('aim:web,on:assetmap,list:asset', {
+          query
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          list: 'asset',
+          assets: assets.assets
+        });
+        return assets;
+      }).message('list:room', async function (msg) {
+        let {
+          query
+        } = msg;
+        query = query || {
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage
+        };
+        let rooms = await this.post('aim:web,on:assetmap,list:room', {
+          query
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          list: 'room',
+          rooms: rooms.rooms
+        });
+        return rooms;
+      }).message('list:building', async function (msg) {
+        let {
+          query
+        } = msg;
+        query = query || {
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage
+        };
+        let buildings = await this.post('aim:web,on:assetmap,list:building', {
+          query
+        });
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          list: 'building',
+          buildings: buildings.buildings
+        });
+        return buildings;
+      }).message('show:map', async function (msg) {
+        self.showMap(msg.map);
+      }).message('show:room', async function (msg) {
+        let room = self.data.roomMap[msg.room];
+        if (room) {
+          if (msg.assets) {
+            if (msg.assets) {
+              for (let asset of msg.assets) {
+                self.showAsset(asset.asset, asset.state);
+              }
+            }
+          }
+          if (msg.focus) {
+            self.selectRoom(room.room, {
+              mute: true
+            });
+          }
+        } else {
+          self.log('ERROR', 'send', 'room', 'unknown-room', msg);
+        }
+      }).message('show:plant', async function (msg) {
+        self.showMap(msg.plant);
+      }).message('show:floor', async function (msg) {
+        self.showMap(msg.map);
+        self.clearRoomAssets();
+        self.unselectRoom();
+        self.map.setView(self.config.mapStart, self.config.mapStartZoom);
+      }).message('show:asset', async function (msg) {
+        assetShow(msg);
+      }).message('hide:asset', async function (msg) {
+        assetShow(msg);
+      }).message('relate:room-asset', async function (msg) {
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          relate: 'room-asset',
+          relation: clone(self.data.deps.pc.room)
+        });
+      }).message('srv:plantquest,part:assetmap', async function (msg) {});
+      await seneca.ready();
+      function assetShow(msg) {
+        if (Array.isArray(msg.asset) || msg.asset === null) {
+          msg.asset = msg.asset || Object.keys(self.data.assetMap);
+          for (let assetID of msg.asset) {
+            let stateName = msg.state;
+            let assetData = self.data.assetMap[assetID];
+            if (assetData == null) {
+              self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID);
+              continue;
+            }
+            if (assetData.xco == null || assetData.yco == null) {
+              self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData);
+              continue;
+            }
+            self.emit({
+              srv: 'plantquest',
+              part: 'assetmap',
+              show: 'asset',
+              before: true,
+              asset: assetData
+            });
+            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
+            self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
+          }
+        } else {
+          let assetRoom = self.data.deps.cp.asset[msg.asset];
+          let assetData = self.data.assetMap[msg.asset];
+          let zoom = msg.zoom || self.config.mapMaxZoom;
+          if (assetRoom) {
+            self.emit({
+              srv: 'plantquest',
+              part: 'assetmap',
+              show: 'asset',
+              before: true,
+              focus: !!msg.focus,
+              zoom: zoom,
+              asset: assetData
+            });
+            let coords = c_asset_coords({
+              x: assetData.xco,
+              y: assetData.yco
+            });
+            setTimeout(() => {
+              if (!!msg.focus) {
+                self.map.setView(coords, zoom);
+              }
+            }, 55);
+            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
+            self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
+          } else {
+            self.log('ERROR', 'send', 'asset', 'unknown-asset', msg);
+          }
+        }
+      }
+      return self.seneca = seneca;
+    };
     return self;
+  }
+  function buildContainer() {
+    let html = ['<div id="plantquest-assetmap-map" class="plantquest-assetmap-vis"></div>'];
+    return html.join('');
   }
   function clone(obj) {
     if (null != obj && 'object' === typeof obj) {
