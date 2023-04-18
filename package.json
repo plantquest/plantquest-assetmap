@@ -1,6 +1,6 @@
 {
   "name": "@plantquest/assetmap",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "PlantQuest Asset Map",
   "author": "plantquest",
   "license": "MIT",
@@ -19,16 +19,14 @@
     "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
     "repo-publish-quick": "npm run build && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
   },
-  "dependencies": {
+  "devDependencies": {
+    "vite": "^4.3.0-beta.2",
     "leaflet": "1.8.0",
     "leaflet-rastercoords": "1.0.5",
     "leaflet.markercluster": "1.5.3",
     "seneca-browser": "4.0.1",
     "seneca-entity": "21.1.0",
     "seneca-mem-store": "8.0.1"
-  },
-  "devDependencies": {
-    "vite": "^4.3.0-beta.2"
   },
   "files": [
     "LICENSE",

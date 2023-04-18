@@ -7307,7 +7307,7 @@ var leaflet_markerclusterSrcExports = {}, leaflet_markerclusterSrc = {
     }), c.MarkerClusterGroup = p, c.MarkerCluster = v, Object.defineProperty(c, "__esModule", { value: !0 });
   });
 })(leaflet_markerclusterSrc, leaflet_markerclusterSrcExports);
-const name = "@plantquest/assetmap", version = "3.0.1", description = "PlantQuest Asset Map", author = "plantquest", license = "MIT", repository = "plantquest/plantquest-assetmap", main = "dist/pqam.umd.js", module = "dist/pqam.mjs", types = "plantquest-assetmap.d.ts", source = "src/pqam.js", scripts = {
+const name = "@plantquest/assetmap", version = "3.0.2", description = "PlantQuest Asset Map", author = "plantquest", license = "MIT", repository = "plantquest/plantquest-assetmap", main = "dist/pqam.umd.js", module = "dist/pqam.mjs", types = "plantquest-assetmap.d.ts", source = "src/pqam.js", scripts = {
   dev: "vite",
   build: "vite build",
   preview: "vite preview",
@@ -7316,15 +7316,14 @@ const name = "@plantquest/assetmap", version = "3.0.1", description = "PlantQues
   "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags",
   "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
   "repo-publish-quick": "npm run build && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
-}, dependencies = {
+}, devDependencies = {
+  vite: "^4.3.0-beta.2",
   leaflet: "1.8.0",
   "leaflet-rastercoords": "1.0.5",
   "leaflet.markercluster": "1.5.3",
   "seneca-browser": "4.0.1",
   "seneca-entity": "21.1.0",
   "seneca-mem-store": "8.0.1"
-}, devDependencies = {
-  vite: "^4.3.0-beta.2"
 }, files = [
   "LICENSE",
   "README.md",
@@ -7341,7 +7340,6 @@ const name = "@plantquest/assetmap", version = "3.0.1", description = "PlantQues
   types,
   source,
   scripts,
-  dependencies,
   devDependencies,
   files
 };
