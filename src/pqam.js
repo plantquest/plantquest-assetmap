@@ -193,7 +193,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       let seneca = await self.getSeneca()
                   
-      function reset() {
+      let reset = ()=>{
         // reset
         self.data.deps = {}
         self.data.roomMap = {}
@@ -205,7 +205,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         self.data.maps = []
       }
       
-      async function processData(json) {
+      let processData = async (json)=> {
       
         self.data = json
         
@@ -234,8 +234,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         done(json)
         
       }
+
       
-      async function loadData() {
+      let loadData = async ()=>{
         if(self.dataLoaded) {
           done(self.data)
           return
