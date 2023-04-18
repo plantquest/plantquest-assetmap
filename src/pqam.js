@@ -16,10 +16,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 ;(function(W, D) {
 
-  window.PLANTQUEST_ASSETMAP_DEBUG = {}
+  W.PLANTQUEST_ASSETMAP_DEBUG = {}
   
   const log = (...args) => {
-    if(true === window.PLANTQUEST_ASSETMAP_LOG || 'ERROR' === args[1]) {
+    if(true === W.PLANTQUEST_ASSETMAP_LOG || 'ERROR' === args[1]) {
       console.log.apply(null, args)
     }
   }
@@ -69,7 +69,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         showAllAssets: true,
 
         debugClick: false,
-        infobox: true,
+        infobox: {
+          show: false,
+          single: true,
+        },
         
         data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
@@ -111,6 +114,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         started: false,
         room: {},
         asset: {},
+        assetInfoShown: {},
       },
       upload: {
         assetI: 0,
@@ -291,10 +295,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
           let waiter = setInterval(()=>{
             self.log('loading data...')
-            if(window.PLANTQUEST_ASSETMAP_DATA) {
+            if(W.PLANTQUEST_ASSETMAP_DATA) {
             
               clearInterval(waiter)
-              processData(window.PLANTQUEST_ASSETMAP_DATA)
+              processData(W.PLANTQUEST_ASSETMAP_DATA)
             }
           },111)
         }
@@ -369,7 +373,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
     
     self.click = function(what, event) {
-      event && event.stopPropagation()
+      // event && event.stopPropagation()
       let msg = Object.assign({
         srv:'plantquest',
         part:'assetmap',
@@ -434,6 +438,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       self.map = L.map('plantquest-assetmap-map', {
         crs: L.CRS.Simple,
         scrollWheelZoom: true,
+        doubleClickZoom: false,
         attributionControl: false,
         minZoom: self.config.mapMinZoom,
         maxZoom: self.config.mapMaxZoom,
@@ -473,6 +478,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         self.layer.circles.name$ = 'circles'
                 
         self.layer.asset = L.markerClusterGroup({
+          animateAddingMarkers: false,
           spiderfyOnMaxZoom: false,
           showCoverageOnHover: false,
           // zoomToBoundsOnClick: true,
@@ -489,6 +495,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           spiderfyLinearSeparation: 45,
         }).addTo(self.map)
 
+
+        self.layer.clusterInfo = L.layerGroup().addTo(self.map)
+        self.layer.clusterInfo.name$ = 'clusterInfo'
+
         
         self.layer.asset.on('clusterclick', mev=>{
           let layer = mev.layer
@@ -498,7 +508,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             return self.data.assetMap[marker.assetID]
           })
 
-          console.log('CLUSTER-CLICK', assetlist)
+          // console.log('CLUSTER-CLICK', assetlist)
           
           self.emit({
             srv:'plantquest',
@@ -508,6 +518,51 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             // yco,
             assetlist,
           })
+
+
+          setTimeout(()=>{
+            self.closeAssetInfo()
+
+            let elem = $('#plantquest-assetmap-assetcluster')
+            if(null == elem) return;
+
+            let div = D.createElement('div')
+            div.appendChild(elem)
+            elem.style.display='block'
+            
+            let clusterInfo = self.current.clusterInfo
+            if(clusterInfo) {
+              clusterInfo.remove()
+            }
+            
+            clusterInfo = self.current.clusterInfo = L.marker(
+              c_asset_coords({x: xco+1, y: yco+20 }),
+              {
+                zIndexOffset: 1000,
+                icon: L.divIcon(
+                  {
+                    className: 'plantquest-assetmap-asset-cluster',
+                    html: div
+                  }),
+              }
+            )
+        
+            // TODO: parse out from the css
+            // clusterInfo.setOpacity(0.7)
+        
+            clusterInfo.addTo(self.layer.clusterInfo)
+
+            // let clusterInfo = new L.DivOverlay(
+            //   {
+            //     offset: [10,10],
+            //   }
+            // )
+
+            // clusterInfo.setContent(html)
+            
+            // clusterInfo.addTo(self.layer.asset)
+            
+          }, 11)
         })
 
         
@@ -515,14 +570,15 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           let layer = event.layer // , circle, latlng, index, asset, arr, assetName
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
-	    
 	    let assetCurrent = self.current.asset[layer.assetID]
-	    let infobox = assetCurrent.infobox
+            if(null == assetCurrent) return;
+
+            let infobox = assetCurrent.infobox
 	    if(assetCurrent) {
 	      // console.error('layeradd: ', assetCurrent)
-	      setTimeout(()=>{
+	      // setTimeout(()=>{
 	        
-                let lem = assetCurrent.label.getElement()
+                let lem = assetCurrent.label && assetCurrent.label.getElement()
                 if(null != lem) {
                   lem.style.display = infobox ? null : 'none'
                   lem.style.width = ''
@@ -548,7 +604,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
                   }
                 }, self.config.mapInterval)
                 
-	      }, 11)
+	      //}, 11)
 	      
 	    }
 	  }
@@ -564,7 +620,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	    
 	    if(assetCurrent) {
 	      // console.log('layerremove: ', assetCurrent)
-	      setTimeout(()=>{
+	      // setTimeout(()=>{
 	        if(assetCurrent.poly) {
 	          assetCurrent.poly.remove()
 	        }
@@ -573,9 +629,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	          clearInterval(assetCurrent.blinkId)
 	        }
                 
-	      }, 11)
-	      
-	      
+	      //}, 11)
 	    }
 	  }
           
@@ -713,7 +767,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         })
       }
       
-      if(window.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
+      if(W.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
       
         self.listen((msg) => {
 	  if(msg.show == 'asset') {
@@ -1265,7 +1319,21 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     }
     
 
+    self.closeAssetInfo = function() {
+      if(self.config.infobox.single) {
+        Object.values(self.current.assetInfoShown).map(assetDesc=>{
+          let elem = assetDesc.label && assetDesc.label.getElement()
+          if(elem) {
+            elem.style.display = 'none'
+          }
+        })
+      }
+    }
+    
+    
     self.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox) {
+      self.closeAssetInfo()
+
       let assetCurrent =
           self.current.asset[assetID] || (self.current.asset[assetID]={})
 
@@ -1275,7 +1343,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       let stateDef = self.config.states[stateName]
       let assetProps = self.data.assetMap[assetID]
       
-      assetCurrent.infobox = infobox == null ? true : infobox
+      assetCurrent.infobox = infobox == null ? true : !!infobox
       
       self.log('showAsset', assetID, stateName,
                stateDef, 'hide', hide, 'blink', blink, assetProps)
@@ -1307,8 +1375,21 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
       
       if(hide) {
+        delete self.current.assetInfoShown[assetID]
         return
       }
+      else if(infobox) {
+        self.current.assetInfoShown[assetID] = assetCurrent
+      }
+
+      let clusterInfo = self.current.clusterInfo
+      if(clusterInfo) {
+        let elem = $('#plantquest-assetmap-assetcluster')
+        elem.style.display = 'none'
+        $('body').appendChild(elem)
+        clusterInfo.remove()
+      }
+
       
       let assetPoint = [
         assetProps.yco,
@@ -1347,44 +1428,51 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               part: 'assetmap',
               event: 'click',
               on: 'asset',
-              asset: assetProps
+              asset: assetProps,
             })
           })
       }
 
       
       assetCurrent.blink = null == blink ? false : blink
-      
-      setTimeout(()=>{
-        if(null != assetCurrent.label) {
-          return
-        }
 
-        let elem = $('#plantquest-assetmap-assetinfo')
-        if(null == elem) return;
-        
-        let html = elem.innerHTML
-        
-        assetCurrent.label = L.marker(
-          c_asset_coords({x: ax+1, y: ay+20 }),
-          {
-            icon: L.divIcon(
-              {
-                className: 'plantquest-assetmap-asset-label '+
-                  'plantquest-assetmap-asset-state-'+stateName,
-                html
-              }),
+        setTimeout(()=>{
+          if(null != assetCurrent.label) {
+            return
           }
-        )
-        
-        // TODO: parse out from the css
-        assetCurrent.label.setOpacity(0.7);
-        
-        assetCurrent.label.assetID = assetID
-        assetCurrent.label.addTo(self.layer.asset)
-             
-        self.zoomEndRender()
-      }, 11)
+
+          let elem = $('#plantquest-assetmap-assetinfo')
+          if(null == elem) return;
+
+          // TODO: create with unique id in order to swap in
+          let div = elem.innerHTML
+          
+          // let div = D.createElement('div')
+          // div.appendChild(elem)
+          // elem.style.display='block'
+
+          
+          assetCurrent.label = L.marker(
+            c_asset_coords({x: ax+1, y: ay+20 }),
+            {
+              zIndexOffset: 1000,
+              icon: L.divIcon(
+                {
+                  className: 'plantquest-assetmap-asset-label '+
+                    'plantquest-assetmap-asset-state-'+stateName,
+                  html: div
+                }),
+            }
+          )
+          
+          // TODO: parse out from the css
+          assetCurrent.label.setOpacity(0.7)
+          
+          assetCurrent.label.assetID = assetID
+          assetCurrent.label.addTo(self.layer.asset)
+          
+          self.zoomEndRender()
+        }, 11)
     }
 
     
@@ -1857,8 +1945,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             })
 
             let showInfoBox =
-                null == msg.infobox ? self.config.infobox : !!msg.infobox 
-
+                null == msg.infobox ? self.config.infobox.show : msg.infobox 
             
             self.showAsset(assetData.id, stateName,
                            'asset' === msg.hide, !!msg.blink, false, showInfoBox)
@@ -1889,7 +1976,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             }, 55)
             
             let showInfoBox =
-                null == msg.infobox ? self.config.infobox : !!msg.infobox
+                null == msg.infobox ? self.config.infobox.show : !!msg.infobox
             
             self.showAsset(
               msg.asset,
@@ -2198,7 +2285,7 @@ div.plantquest-assetmap-vis {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 100;
+    z-index: 1000;
 }
 
 
@@ -2212,7 +2299,17 @@ div.plantquest-assetmap-asset-label {
     xheight: 48px;
     font-size: 16px;
     xoverflow: hidden;
+    z-index: 1000;
 }
+
+div.plantquest-assetmap-asset-cluster {
+    xwidth: 96px;
+    xheight: 48px;
+    font-size: 16px;
+    xoverflow: hidden;
+    z-index: 1000;
+}
+
 
 div.plantquest-assetmap-asset-label-green {
     xcolor: #696;
@@ -2231,6 +2328,10 @@ div.plantquest-assetmap-asset-label-red {
 }
 
 #plantquest-assetmap-assetinfo {
+    display: none;
+}
+
+#plantquest-assetmap-assetcluster {
     display: none;
 }
 

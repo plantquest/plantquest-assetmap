@@ -325,9 +325,9 @@ var rastercoords = createCommonjsModule(function (module) {
 });
 
 (function (W, D) {
-  window.PLANTQUEST_ASSETMAP_DEBUG = {};
+  W.PLANTQUEST_ASSETMAP_DEBUG = {};
   const log = (...args) => {
-    if (true === window.PLANTQUEST_ASSETMAP_LOG || 'ERROR' === args[1]) {
+    if (true === W.PLANTQUEST_ASSETMAP_LOG || 'ERROR' === args[1]) {
       console.log.apply(null, args);
     }
   };
@@ -367,7 +367,10 @@ var rastercoords = createCommonjsModule(function (module) {
         assetFontHideZoom: -1,
         showAllAssets: true,
         debugClick: false,
-        infobox: true,
+        infobox: {
+          show: false,
+          single: true
+        },
         data: 'https://demo.plantquest.app/sample-data.js',
         mode: 'demo',
         apikey: '<API KEY>',
@@ -417,7 +420,8 @@ var rastercoords = createCommonjsModule(function (module) {
       current: {
         started: false,
         room: {},
-        asset: {}
+        asset: {},
+        assetInfoShown: {}
       },
       upload: {
         assetI: 0,
@@ -545,9 +549,9 @@ var rastercoords = createCommonjsModule(function (module) {
           head.appendChild(skript);
           let waiter = setInterval(() => {
             self.log('loading data...');
-            if (window.PLANTQUEST_ASSETMAP_DATA) {
+            if (W.PLANTQUEST_ASSETMAP_DATA) {
               clearInterval(waiter);
-              processData(window.PLANTQUEST_ASSETMAP_DATA);
+              processData(W.PLANTQUEST_ASSETMAP_DATA);
             }
           }, 111);
         } else {
@@ -601,7 +605,6 @@ var rastercoords = createCommonjsModule(function (module) {
       }
     };
     self.click = function (what, event) {
-      event && event.stopPropagation();
       let msg = Object.assign({
         srv: 'plantquest',
         part: 'assetmap'
@@ -648,6 +651,7 @@ var rastercoords = createCommonjsModule(function (module) {
       self.map = L$1.map('plantquest-assetmap-map', {
         crs: L$1.CRS.Simple,
         scrollWheelZoom: true,
+        doubleClickZoom: false,
         attributionControl: false,
         minZoom: self.config.mapMinZoom,
         maxZoom: self.config.mapMaxZoom
@@ -674,6 +678,7 @@ var rastercoords = createCommonjsModule(function (module) {
         self.layer.circles = L$1.layerGroup().addTo(self.map);
         self.layer.circles.name$ = 'circles';
         self.layer.asset = L$1.markerClusterGroup({
+          animateAddingMarkers: false,
           spiderfyOnMaxZoom: false,
           showCoverageOnHover: false,
           zoomToBoundsOnClick: false,
@@ -688,6 +693,8 @@ var rastercoords = createCommonjsModule(function (module) {
           spiderfyLinearDistance: 30,
           spiderfyLinearSeparation: 45
         }).addTo(self.map);
+        self.layer.clusterInfo = L$1.layerGroup().addTo(self.map);
+        self.layer.clusterInfo.name$ = 'clusterInfo';
         self.layer.asset.on('clusterclick', mev => {
           let layer = mev.layer;
           let {
@@ -697,43 +704,64 @@ var rastercoords = createCommonjsModule(function (module) {
           let assetlist = layer.getAllChildMarkers().map(marker => {
             return self.data.assetMap[marker.assetID];
           });
-          console.log('CLUSTER-CLICK', assetlist);
           self.emit({
             srv: 'plantquest',
             part: 'assetmap',
             event: 'clusterclick',
             assetlist
           });
+          setTimeout(() => {
+            self.closeAssetInfo();
+            let elem = $('#plantquest-assetmap-assetcluster');
+            if (null == elem) return;
+            let div = D.createElement('div');
+            div.appendChild(elem);
+            elem.style.display = 'block';
+            let clusterInfo = self.current.clusterInfo;
+            if (clusterInfo) {
+              clusterInfo.remove();
+            }
+            clusterInfo = self.current.clusterInfo = L$1.marker(c_asset_coords({
+              x: xco + 1,
+              y: yco + 20
+            }), {
+              zIndexOffset: 1000,
+              icon: L$1.divIcon({
+                className: 'plantquest-assetmap-asset-cluster',
+                html: div
+              })
+            });
+            clusterInfo.addTo(self.layer.clusterInfo);
+          }, 11);
         });
         self.map.on('layeradd', event => {
           let layer = event.layer;
           if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
             let assetCurrent = self.current.asset[layer.assetID];
+            if (null == assetCurrent) return;
             let infobox = assetCurrent.infobox;
             if (assetCurrent) {
-              setTimeout(() => {
-                let lem = assetCurrent.label.getElement();
-                if (null != lem) {
-                  lem.style.display = infobox ? null : 'none';
-                  lem.style.width = '';
-                  lem.style.height = '';
-                  lem.style.fontSize = '';
-                }
-                assetCurrent.poly.addTo(self.layer.circles);
-                assetCurrent.blinkId = setInterval(function blink() {
-                  if (assetCurrent.poly) {
-                    if (assetCurrent.blink) {
-                      if (true === assetCurrent.blinkState) {
-                        assetCurrent.poly.addTo(self.layer.circles);
-                        assetCurrent.blinkState = false;
-                      } else {
-                        assetCurrent.poly.remove(self.layer.circles);
-                        assetCurrent.blinkState = true;
-                      }
+              let lem = assetCurrent.label && assetCurrent.label.getElement();
+              if (null != lem) {
+                lem.style.display = infobox ? null : 'none';
+                lem.style.width = '';
+                lem.style.height = '';
+                lem.style.fontSize = '';
+              }
+              assetCurrent.poly.addTo(self.layer.circles);
+              assetCurrent.blinkId = setInterval(function blink() {
+                if (assetCurrent.poly) {
+                  if (assetCurrent.blink) {
+                    if (true === assetCurrent.blinkState) {
+                      assetCurrent.poly.addTo(self.layer.circles);
+                      assetCurrent.blinkState = false;
+                    } else {
+                      assetCurrent.poly.remove(self.layer.circles);
+                      assetCurrent.blinkState = true;
                     }
                   }
-                }, self.config.mapInterval);
-              }, 11);
+                }
+              }, self.config.mapInterval);
             }
           }
         });
@@ -742,14 +770,12 @@ var rastercoords = createCommonjsModule(function (module) {
           if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
             let assetCurrent = self.current.asset[layer.assetID];
             if (assetCurrent) {
-              setTimeout(() => {
-                if (assetCurrent.poly) {
-                  assetCurrent.poly.remove();
-                }
-                if (assetCurrent.blinkId) {
-                  clearInterval(assetCurrent.blinkId);
-                }
-              }, 11);
+              if (assetCurrent.poly) {
+                assetCurrent.poly.remove();
+              }
+              if (assetCurrent.blinkId) {
+                clearInterval(assetCurrent.blinkId);
+              }
             }
           }
         });
@@ -823,7 +849,7 @@ var rastercoords = createCommonjsModule(function (module) {
           });
         });
       }
-      if (window.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
+      if (W.PLANTQUEST_ASSETMAP_DEBUG.show_coords) {
         self.listen(msg => {
           if (msg.show == 'asset') {
             let {
@@ -1134,12 +1160,23 @@ var rastercoords = createCommonjsModule(function (module) {
       }
       return actualStateDef;
     };
+    self.closeAssetInfo = function () {
+      if (self.config.infobox.single) {
+        Object.values(self.current.assetInfoShown).map(assetDesc => {
+          let elem = assetDesc.label && assetDesc.label.getElement();
+          if (elem) {
+            elem.style.display = 'none';
+          }
+        });
+      }
+    };
     self.showAsset = function (assetID, stateName, hide, blink, showRoom, infobox) {
+      self.closeAssetInfo();
       let assetCurrent = self.current.asset[assetID] || (self.current.asset[assetID] = {});
       stateName = stateName || assetCurrent.stateName || Object.keys(self.config.states)[0];
       let stateDef = self.config.states[stateName];
       let assetProps = self.data.assetMap[assetID];
-      assetCurrent.infobox = infobox == null ? true : infobox;
+      assetCurrent.infobox = infobox == null ? true : !!infobox;
       self.log('showAsset', assetID, stateName, stateDef, 'hide', hide, 'blink', blink, assetProps);
       if (null == assetProps) {
         return;
@@ -1159,7 +1196,17 @@ var rastercoords = createCommonjsModule(function (module) {
         }
       }
       if (hide) {
+        delete self.current.assetInfoShown[assetID];
         return;
+      } else if (infobox) {
+        self.current.assetInfoShown[assetID] = assetCurrent;
+      }
+      let clusterInfo = self.current.clusterInfo;
+      if (clusterInfo) {
+        let elem = $('#plantquest-assetmap-assetcluster');
+        elem.style.display = 'none';
+        $('body').appendChild(elem);
+        clusterInfo.remove();
       }
       let assetPoint = [assetProps.yco, assetProps.xco];
       let ax = assetPoint[1];
@@ -1198,14 +1245,15 @@ var rastercoords = createCommonjsModule(function (module) {
         }
         let elem = $('#plantquest-assetmap-assetinfo');
         if (null == elem) return;
-        let html = elem.innerHTML;
+        let div = elem.innerHTML;
         assetCurrent.label = L$1.marker(c_asset_coords({
           x: ax + 1,
           y: ay + 20
         }), {
+          zIndexOffset: 1000,
           icon: L$1.divIcon({
             className: 'plantquest-assetmap-asset-label ' + 'plantquest-assetmap-asset-state-' + stateName,
-            html
+            html: div
           })
         });
         assetCurrent.label.setOpacity(0.7);
@@ -1594,7 +1642,7 @@ var rastercoords = createCommonjsModule(function (module) {
               before: true,
               asset: assetData
             });
-            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
+            let showInfoBox = null == msg.infobox ? self.config.infobox.show : msg.infobox;
             self.showAsset(assetData.id, stateName, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
           }
         } else {
@@ -1620,7 +1668,7 @@ var rastercoords = createCommonjsModule(function (module) {
                 self.map.setView(coords, zoom);
               }
             }, 55);
-            let showInfoBox = null == msg.infobox ? self.config.infobox : !!msg.infobox;
+            let showInfoBox = null == msg.infobox ? self.config.infobox.show : !!msg.infobox;
             self.showAsset(msg.asset, msg.state, 'asset' === msg.hide, !!msg.blink, false, showInfoBox);
           } else {
             self.log('ERROR', 'send', 'asset', 'unknown-asset', msg);
@@ -1872,7 +1920,7 @@ div.plantquest-assetmap-vis {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 100;
+    z-index: 1000;
 }
 
 
@@ -1886,7 +1934,17 @@ div.plantquest-assetmap-asset-label {
     xheight: 48px;
     font-size: 16px;
     xoverflow: hidden;
+    z-index: 1000;
 }
+
+div.plantquest-assetmap-asset-cluster {
+    xwidth: 96px;
+    xheight: 48px;
+    font-size: 16px;
+    xoverflow: hidden;
+    z-index: 1000;
+}
+
 
 div.plantquest-assetmap-asset-label-green {
     xcolor: #696;
@@ -1905,6 +1963,10 @@ div.plantquest-assetmap-asset-label-red {
 }
 
 #plantquest-assetmap-assetinfo {
+    display: none;
+}
+
+#plantquest-assetmap-assetcluster {
     display: none;
 }
 
