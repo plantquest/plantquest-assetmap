@@ -212,7 +212,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "2.1.0";
+var version = "2.2.0";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -997,6 +997,7 @@ var rastercoords = createCommonjsModule(function (module) {
         self.loc.x = xco;
         self.loc.y = yco;
       });
+      setInterval(self.checkRooms, self.config.mapInterval);
       var levelActions = [];
       self.data.levels.forEach(function (level, index) {
         levelActions.push(L$1.Toolbar2.Action.extend({

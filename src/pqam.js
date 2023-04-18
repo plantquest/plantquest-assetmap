@@ -859,7 +859,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       })
       
 
-      // setInterval(self.checkRooms, self.config.mapInterval)
+      setInterval(self.checkRooms, self.config.mapInterval)
 
 
       let levelActions = []
