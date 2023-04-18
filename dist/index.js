@@ -214,7 +214,7 @@ function _createForOfIteratorHelperLoose(o, allowArrayLike) {
 }(window);
 
 var name = "@plantquest/assetmap";
-var version = "2.0.2";
+var version = "2.1.0";
 var description = "PlantQuest Asset Map";
 var author = "plantquest";
 var license = "MIT";
@@ -804,8 +804,9 @@ var rastercoords = createCommonjsModule(function (module) {
             self.closeAssetInfo();
             var elem = $('#plantquest-assetmap-assetcluster');
             if (null == elem) return;
-            var div = D.createElement('div');
-            div.appendChild(elem);
+            var clusterInfoElem = D.createElement('div');
+            clusterInfoElem.setAttribute('id', 'pq-clusterinfo');
+            clusterInfoElem.appendChild(elem);
             elem.style.display = 'block';
             var clusterInfo = self.current.clusterInfo;
             if (clusterInfo) {
@@ -818,7 +819,7 @@ var rastercoords = createCommonjsModule(function (module) {
               zIndexOffset: 1000,
               icon: L$1.divIcon({
                 className: 'plantquest-assetmap-asset-cluster',
-                html: div
+                html: clusterInfoElem
               })
             });
             clusterInfo.addTo(self.layer.clusterInfo);
@@ -877,7 +878,7 @@ var rastercoords = createCommonjsModule(function (module) {
         for (var _iterator = _createForOfIteratorHelperLoose(self.data.rooms), _step; !(_step = _iterator()).done;) {
           var room = _step.value;
           var poly_labels = self.poly_labels[room.map] = self.poly_labels[room.map] || [];
-          if (self.data.roomMap[room.room] && room.area === '1') {
+          if (self.data.roomMap[room.room] && room.area === '1' && room.poly) {
             var room_poly = convertRoomPoly(self.config.mapImg, room.poly);
             var poly = L$1.polygon(room_poly, {
               color: 'transparent',

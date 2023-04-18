@@ -445,6 +445,17 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       })
       rc = self.rc = new L.RasterCoords(self.map, self.config.mapImg)
 
+      // console.log(self.map.getContainer().parentElement)
+
+      // console.log(self.map) // .getContainer().getListeners())
+      
+      // // self.map.on('zoomstart', (event) => {
+      // self.map.getContainer().addEventListener('wheel', (event) => { 
+      //   event.stopPropagation()
+      //   event.preventDefault()
+      //   console.log('ZOOM', event)
+      // })
+      
       // Place labels in separate Pane to ensure ordering below assets,
       // prevents lost click events.
       self.map.createPane('labels')
@@ -523,17 +534,24 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           setTimeout(()=>{
             self.closeAssetInfo()
 
+
+            
             let elem = $('#plantquest-assetmap-assetcluster')
             if(null == elem) return;
 
-            let div = D.createElement('div')
-            div.appendChild(elem)
+            let clusterInfoElem = D.createElement('div')
+            clusterInfoElem.setAttribute('id','pq-clusterinfo')
+            clusterInfoElem.appendChild(elem)
             elem.style.display='block'
             
+
+            
+
             let clusterInfo = self.current.clusterInfo
             if(clusterInfo) {
               clusterInfo.remove()
             }
+
             
             clusterInfo = self.current.clusterInfo = L.marker(
               c_asset_coords({x: xco+1, y: yco+20 }),
@@ -542,7 +560,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
                 icon: L.divIcon(
                   {
                     className: 'plantquest-assetmap-asset-cluster',
-                    html: div
+                    html: clusterInfoElem,
                   }),
               }
             )
@@ -652,7 +670,11 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           let poly_labels = self.poly_labels[room.map] = self.poly_labels[room.map] || []
 
 
-          if (self.data.roomMap[room.room] && room.area === '1') {
+          if (
+            self.data.roomMap[room.room] &&
+              room.area === '1' &&
+              room.poly
+          ) {
             // console.log(room.area)
 
             let place;
