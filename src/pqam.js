@@ -110,12 +110,14 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       data: {},
       assetMap: {},
       roomMap: {},
+
       current: {
         started: false,
         room: {},
         asset: {},
         assetInfoShown: {},
       },
+      
       upload: {
         assetI: 0,
         interval: null,
@@ -1365,10 +1367,15 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       let stateDef = self.config.states[stateName]
       let assetProps = self.data.assetMap[assetID]
+
+      // Ignore assets with invalid coords
+      if(null == assetProps.xco || null == assetProps.yco) {
+        return
+      }
       
       assetCurrent.infobox = infobox == null ? true : !!infobox
       
-      self.log('showAsset', assetID, stateName,
+      console.log('showAsset', assetID, stateName,
                stateDef, 'hide', hide, 'blink', blink, assetProps)
       
       if(null == assetProps) {
@@ -1671,6 +1678,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       seneca
         .fix('srv:plantquest,part:assetmap')
 
+        .message('cmd:reset', async function resetMap(msg) {
+          self.map.setView(self.config.mapStart, self.config.mapStartZoom)
+        })
+      
         .message('remove:asset', async function removeAsset(msg) {
           let { id } = msg
           let result = await this.post('aim:web,on:assetmap,remove:asset', { id } )
@@ -1920,13 +1931,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
           
         })
 
-        .message('show:asset', async function(msg) {
-          assetShow(msg)
-        })
-
-        .message('hide:asset', async function(msg) {
-          assetShow(msg)
-        })
+        .message('show:asset', showAssetMsg)
+        .message('hide:asset', showAssetMsg)
 
         .message('relate:room-asset', async function(msg) {
           self.emit({
@@ -1941,74 +1947,104 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       await seneca.ready()
 
-      function assetShow(msg) {
-        if(Array.isArray(msg.asset) || msg.asset === null) {
-          msg.asset = msg.asset || Object.keys(self.data.assetMap)
-          
-          for(let assetID of msg.asset) {
-            let stateName = msg.state
-            let assetData = self.data.assetMap[assetID]
-            
-            if(assetData == null) {
-              self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID)
-              continue
-            }
-            
-            if(assetData.xco == null || assetData.yco == null) {
-              self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData)
-              continue
-            }
-            
-            self.emit({
-              srv:'plantquest',
-              part:'assetmap',
-              show:'asset',
-              before:true,
-              asset: assetData,
-            })
 
-            let showInfoBox =
-                null == msg.infobox ? self.config.infobox.show : msg.infobox 
-            
-            self.showAsset(assetData.id, stateName,
-                           'asset' === msg.hide, !!msg.blink, false, showInfoBox)
+      async function showAssetMsg(msg) {
+        try {
+          if(msg.reset) {
+            await this.post('srv:plantquest,part:assetmap,cmd:reset')
           }
-        }
-        else { 
-          let assetRoom = self.data.deps.cp.asset[msg.asset]
-          let assetData = self.data.assetMap[msg.asset]
-          let zoom = msg.zoom || self.config.mapMaxZoom
-          
-          if(assetRoom) {
-            self.emit({
-              srv:'plantquest',
-              part:'assetmap',
-              show:'asset',
-              before:true,
-              focus: !!msg.focus,
-              zoom: zoom,
-              asset: assetData,
-            })
-            let coords = c_asset_coords({x: assetData.xco, y: assetData.yco})
+
+          if(Array.isArray(msg.asset) || null === msg.asset) {
+            let allAssetIDs = Object.keys(self.data.assetMap)
+            let assetIDList = msg.asset || allAssetIDs
+            let showAll = null === msg.asset
+
+            console.log('showAssetMsg', allAssetIDs.length, assetIDList && assetIDList.length, showAll)
             
+            let stateName = msg.state
             
-            setTimeout(()=>{
-              if(!!msg.focus) {
-                self.map.setView(coords, zoom)
+            for(let assetID of (msg.only?allAssetIDs:assetIDList)) {
+              let assetData = self.data.assetMap[assetID]
+
+              
+              if(assetData) {
+                let shown = showAll || -1!=assetIDList.indexOf(assetID)
+                console.log('showAssetMsg assetID', assetID, !!assetData, assetIDList.indexOf(assetID), shown)
+                
+                shown = 'hide'===msg.asset ? !shown : shown
+
+                
+                self.showAsset(assetData.id, stateName,
+                               !shown, !!msg.blink, false, false)
+
               }
-            }, 55)
-            
-            let showInfoBox =
-                null == msg.infobox ? self.config.infobox.show : !!msg.infobox
-            
-            self.showAsset(
-              msg.asset,
-              msg.state,
-              'asset' === msg.hide, !!msg.blink, false, showInfoBox)
+
+              
+              // if(assetData == null) {
+              //   self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID)
+              //   continue
+              // }
+              
+              // if(assetData.xco == null || assetData.yco == null) {
+              //   self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData)
+              //   continue
+              // }
+              
+              // self.emit({
+              //   srv:'plantquest',
+              //   part:'assetmap',
+              //   show:'asset',
+              //   before:true,
+              //   asset: assetData,
+              // })
+
+              // let showInfoBox =
+              //     null == msg.infobox ? self.config.infobox.show : msg.infobox 
+              
+              // self.showAsset(assetData.id, stateName,
+              //                'asset' === msg.hide, !!msg.blink, false, showInfoBox)
+            }
           }
-          else {
-            self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
+          else { 
+            let assetRoom = self.data.deps.cp.asset[msg.asset]
+            let assetData = self.data.assetMap[msg.asset]
+            let zoom = msg.zoom || self.config.mapMaxZoom
+            
+            if(assetRoom) {
+              self.emit({
+                srv:'plantquest',
+                part:'assetmap',
+                show:'asset',
+                before:true,
+                focus: !!msg.focus,
+                zoom: zoom,
+                asset: assetData,
+              })
+              let coords = c_asset_coords({x: assetData.xco, y: assetData.yco})
+              
+              
+              setTimeout(()=>{
+                if(!!msg.focus) {
+                  self.map.setView(coords, zoom)
+                }
+              }, 55)
+              
+              let showInfoBox =
+                  null == msg.infobox ? self.config.infobox.show : !!msg.infobox
+              
+              self.showAsset(
+                msg.asset,
+                msg.state,
+                'asset' === msg.hide, !!msg.blink, false, showInfoBox)
+            }
+            else {
+              self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
+            }
           }
+
+        }
+        catch(e) {
+          console.log('ERROR showAssetMsg', e)
         }
       }
 
