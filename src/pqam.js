@@ -492,7 +492,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 
       self.map.getContainer().addEventListener('wheel', (event) => {
-        let classes = event.target && event.target.className || ''
+        let classes = ''+(event.target && event.target.className || '')
+        
         if(-1 != classes.indexOf('plantquest-assetmap-vis')) {
           self.map.scrollWheelZoom._onWheelScroll(event)
         }
