@@ -119,6 +119,7 @@ import './rastercoords.js'
 
       current: {
         started: false,
+        rendered: false,
         room: {},
         asset: {},
 
@@ -381,7 +382,10 @@ import './rastercoords.js'
 
       setTimeout(()=>{
         self.vis.map.elem = $('#plantquest-assetmap-map')
+        // if(!self.current.rendered) {
         self.build()
+        // }
+        self.current.rendered = true
         self.showMap(0)
         done()
       }, self.domInterval)
@@ -479,6 +483,9 @@ import './rastercoords.js'
 
       self.log('build', ms, L)
       
+      if(self.map) {
+        self.map.remove()
+      }
       
       self.map = L.map('plantquest-assetmap-map', {
         crs: L.CRS.Simple,
@@ -501,6 +508,9 @@ import './rastercoords.js'
       })
 
       self.map.scrollWheelZoom._delta = 0
+      
+
+      
       
       // self.map.scrollWheelZoom.addHooks()
       
@@ -533,7 +543,6 @@ import './rastercoords.js'
       },self.config.mapInterval/2)
       
       
-
       self.layer.indicator = L.layerGroup().addTo(self.map)
       self.layer.indicator.name$ = 'indicator'
 
@@ -598,6 +607,7 @@ import './rastercoords.js'
 
         self.map.on('layeradd', event=> { // zoom-in
           let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+          
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	    let assetCurrent = self.current.asset[layer.assetID]
@@ -633,6 +643,7 @@ import './rastercoords.js'
 
         self.map.on('layerremove', event=> { // zoom-in
           let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+          
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	    
@@ -666,7 +677,7 @@ import './rastercoords.js'
       // TODO: move to generate
       function generate_labels() {
         for (let room of self.data.rooms) {
-          let poly_labels = self.ux.room.label[room.map] = self.ux.room.label[room.map] || []
+          let poly_labels = self.ux.room.label[room.map] = self.ux.room.label[room.map] || {}
 
           if (
             self.data.roomMap[room.room] &&
@@ -696,7 +707,8 @@ import './rastercoords.js'
             let _c = poly.getBounds().getCenter()
 
             tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
-            poly_labels.push(poly)
+            poly_labels[poly.name$] = poly
+            // poly_labels.push(poly)
           }
         }
       }
@@ -885,7 +897,7 @@ import './rastercoords.js'
 
       let pos = (1+self.loc.map)
       
-      let labels = self.ux.room.label[pos] || []
+      let labels = Object.values(self.ux.room.label[pos]) || []
       self.prev_labels = self.prev_labels || []
       
       
