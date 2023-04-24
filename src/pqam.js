@@ -492,14 +492,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 
       self.map.getContainer().addEventListener('wheel', (event) => {
-        // event.preventDefault(); // Prevent default wheel behavior (zooming)
-        
-        // console.log(event)
-
-        if(-1 != event.target.className.indexOf('plantquest-assetmap-vis')) {
-          // const delta = event.deltaY < 0 ? 1 : -1
-          // const currentZoom = self.map.getZoom()
-          // self.map.setZoom(currentZoom + delta)
+        let classes = event.target && event.target.className || ''
+        if(-1 != classes.indexOf('plantquest-assetmap-vis')) {
           self.map.scrollWheelZoom._onWheelScroll(event)
         }
       })
