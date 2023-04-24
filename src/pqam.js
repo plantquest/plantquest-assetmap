@@ -11,7 +11,7 @@ import Pkg from '../package.json'
 import Seneca from 'seneca-browser'
 import SenecaEntity from 'seneca-entity'
 
-import '../node_modules/leaflet-rastercoords/rastercoords.js'
+import './rastercoords.js'
 
 
 ;(function(W, D) {
@@ -252,7 +252,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a[r.id]=r,a),{})
         self.data.roomMap = roomMap
-
+        
         self.data.rooms.forEach(roomData=>{
           self.room.map[roomData.id] = new Room(roomData, ctx)
         })
@@ -488,6 +488,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         minZoom: self.config.mapMinZoom,
         maxZoom: self.config.mapMaxZoom,
       })
+      
       rc = self.rc = new L.RasterCoords(self.map, self.config.mapImg)
 
 
@@ -1972,6 +1973,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     }
 
     buildPoly(loc, room_poly, layer) {
+    
       if(!this.cfgroom.outline.active) {
         return
       }
