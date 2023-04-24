@@ -8,5 +8,6 @@ module.exports = {
       name: 'PlantQuestAssetMap',
       fileName: 'pqam',
     },
+    emptyOutDir: false,
   },
 }
