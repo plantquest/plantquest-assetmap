@@ -7312,7 +7312,7 @@ var leaflet_markerclusterSrcExports = {}, leaflet_markerclusterSrc = {
     }), c.MarkerClusterGroup = p, c.MarkerCluster = v, Object.defineProperty(c, "__esModule", { value: !0 });
   });
 })(leaflet_markerclusterSrc, leaflet_markerclusterSrcExports);
-const name = "@plantquest/assetmap", version = "3.1.2", description = "PlantQuest Asset Map", author = "plantquest", license = "MIT", repository = "plantquest/plantquest-assetmap", main = "dist/pqam.umd.js", module = "dist/pqam.mjs", types = "plantquest-assetmap.d.ts", source = "src/pqam.js", scripts = {
+const name = "@plantquest/assetmap", version = "3.2.0", description = "PlantQuest Asset Map", author = "plantquest", license = "MIT", repository = "plantquest/plantquest-assetmap", main = "dist/pqam.umd.js", module = "dist/pqam.mjs", types = "plantquest-assetmap.d.ts", source = "src/pqam.js", scripts = {
   dev: "vite",
   build: "vite build",
   watch: "vite build -w",
