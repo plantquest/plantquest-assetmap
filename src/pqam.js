@@ -494,6 +494,7 @@ import './rastercoords.js'
         attributionControl: false,
         minZoom: self.config.mapMinZoom,
         maxZoom: self.config.mapMaxZoom,
+        editable: true,
       })
       
       rc = self.rc = new L.RasterCoords(self.map, self.config.mapImg)
