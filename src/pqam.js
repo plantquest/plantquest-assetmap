@@ -638,18 +638,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 	    let assetCurrent = self.current.asset[layer.assetID]
 	    
 	    if(assetCurrent) {
-	      // console.log('layerremove: ', assetCurrent)
-	      // setTimeout(()=>{
-
 	      if(assetCurrent.indicator) {
 	        assetCurrent.indicator.remove()
 	      }
-	      
-	      // if(assetCurrent.blinkId) {
-	      //  clearInterval(assetCurrent.blinkId)
-	      // }
-                
-	      //}, 11)
 	    }
 	  }
           
@@ -823,7 +814,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         let {xco, yco} = convert_latlng(mev.latlng)
         self.loc.x = xco
         self.loc.y = yco
-        // console.log(self.loc.x, self.loc.y)
       })
       
 
@@ -880,7 +870,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     self.zoomEndRender = function() {
       let zoom = self.map.getZoom()
       if (null == zoom) return;
-      // console.log('end: ', zoom)
 
       let pos = (1+self.loc.map)
       
@@ -991,7 +980,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
 
     self.selectRoom = function(roomId,opts) {
-      // console.log('SELECT ROOM', roomId)
       opts = opts || {}
       try {
         let room = self.data.roomMap[roomId]
@@ -1336,9 +1324,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     
     
     self.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox) {
-      // console.log('SHOW-ASSET', assetID, infobox)
-      // console.trace()
-      
       self.closeAssetInfo()
       self.closeClusterInfo()
 
@@ -1357,9 +1342,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       }
       
       assetCurrent.infobox = infobox == null ? true : !!infobox
-      
-      // console.log('showAsset', assetID, stateName,
-      //             stateDef, 'hide', hide, 'blink', blink, assetProps, assetCurrent)
       
             
       // if(showRoom) {
@@ -1421,23 +1403,26 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
               weight: 2,
             })
           .on('click', ()=>{
-            // console.log('ASSET CLICK', assetMarker.assetID$, assetProps.tag)
-            
-            // if(self.current.assetInfo &&
-            //    assetMarker.open$ && 
-            //    self.current.assetInfo.assetID$ === assetMarker.assetID$
-            //   )
             if(self.current.assetInfoShown[assetProps.id]) 
             {
               self.closeAssetInfo()
             }
             else {
-              self.openAssetInfo({
-                asset: assetProps,
-                assetMarker,
-                xco: assetProps.xco,
-                yco: assetProps.yco
+              self.send({
+                srv:'plantquest',
+                part:'assetmap',
+                show:'asset',
+                infobox: true,
+                asset: assetProps.id,
+                // focus: true,
               })
+
+              // self.openAssetInfo({
+              //   asset: assetProps,
+              //   assetMarker,
+              //   xco: assetProps.xco,
+              //   yco: assetProps.yco
+              // })
             }
             
             self.emit({
@@ -1910,7 +1895,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
                 srv:'plantquest',
                 part:'assetmap',
                 show:'asset',
-                before:true,
+                // before:true,
                 focus: !!msg.focus,
                 zoom: zoom,
                 asset: assetData,
