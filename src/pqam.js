@@ -11,11 +11,12 @@ import Pkg from '../package.json'
 import Seneca from 'seneca-browser'
 import SenecaEntity from 'seneca-entity'
 
-import '../node_modules/leaflet-rastercoords/rastercoords.js'
+import './rastercoords.js'
 
 
 ;(function(W, D) {
 
+  W.$L = L
   W.PLANTQUEST_ASSETMAP_DEBUG = {}
   
   const log = (...args) => {
@@ -119,6 +120,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       current: {
         started: false,
+        rendered: false,
         room: {},
         asset: {},
 
@@ -252,7 +254,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         
         let roomMap = self.data.rooms.reduce((a,r)=>(a[r.room]=r,a[r.id]=r,a),{})
         self.data.roomMap = roomMap
-
+        
         self.data.rooms.forEach(roomData=>{
           self.room.map[roomData.id] = new Room(roomData, ctx)
         })
@@ -381,7 +383,10 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       setTimeout(()=>{
         self.vis.map.elem = $('#plantquest-assetmap-map')
+        // if(!self.current.rendered) {
         self.build()
+        // }
+        self.current.rendered = true
         self.showMap(0)
         done()
       }, self.domInterval)
@@ -479,6 +484,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       self.log('build', ms, L)
       
+      if(self.map) {
+        self.map.remove()
+      }
       
       self.map = L.map('plantquest-assetmap-map', {
         crs: L.CRS.Simple,
@@ -487,7 +495,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
         attributionControl: false,
         minZoom: self.config.mapMinZoom,
         maxZoom: self.config.mapMaxZoom,
+        editable: true,
       })
+      
       rc = self.rc = new L.RasterCoords(self.map, self.config.mapImg)
 
 
@@ -500,6 +510,9 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       })
 
       self.map.scrollWheelZoom._delta = 0
+      
+
+      
       
       // self.map.scrollWheelZoom.addHooks()
       
@@ -532,7 +545,6 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       },self.config.mapInterval/2)
       
       
-
       self.layer.indicator = L.layerGroup().addTo(self.map)
       self.layer.indicator.name$ = 'indicator'
 
@@ -597,6 +609,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
         self.map.on('layeradd', event=> { // zoom-in
           let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+          
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	    let assetCurrent = self.current.asset[layer.assetID]
@@ -632,6 +645,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
         self.map.on('layerremove', event=> { // zoom-in
           let layer = event.layer // , circle, latlng, index, asset, arr, assetName
+          
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	    
@@ -656,7 +670,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
       // TODO: move to generate
       function generate_labels() {
         for (let room of self.data.rooms) {
-          let poly_labels = self.ux.room.label[room.map] = self.ux.room.label[room.map] || []
+          let poly_labels = self.ux.room.label[room.map] = self.ux.room.label[room.map] || {}
 
           if (
             self.data.roomMap[room.room] &&
@@ -686,7 +700,8 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
             let _c = poly.getBounds().getCenter()
 
             tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
-            poly_labels.push(poly)
+            poly_labels[poly.name$] = poly
+            // poly_labels.push(poly)
           }
         }
       }
@@ -873,7 +888,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
 
       let pos = (1+self.loc.map)
       
-      let labels = self.ux.room.label[pos] || []
+      let labels = Object.values(self.ux.room.label[pos]) || []
       self.prev_labels = self.prev_labels || []
       
       
@@ -1957,6 +1972,7 @@ import '../node_modules/leaflet-rastercoords/rastercoords.js'
     }
 
     buildPoly(loc, room_poly, layer) {
+    
       if(!this.cfgroom.outline.active) {
         return
       }
