@@ -16,6 +16,7 @@ import './rastercoords.js'
 
 ;(function(W, D) {
 
+  W.$L = L
   W.PLANTQUEST_ASSETMAP_DEBUG = {}
   
   const log = (...args) => {
