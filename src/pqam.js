@@ -4,6 +4,9 @@ import L from 'leaflet'
 import './leaflet.toolbar.min.js'
 import 'leaflet.markercluster'
 
+import 'leaflet-path-drag'
+import 'leaflet-editable'
+
 
 import Pkg from '../package.json'
 
