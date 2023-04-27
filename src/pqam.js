@@ -322,6 +322,16 @@ import './rastercoords.js'
         self.data.buildings = entlist.building
         self.data.geofences = entlist.geofence
         
+        self.data.assets.forEach(ent=>{
+          // self.asset.map[ent.id] = new Asset(ent, ctx)
+          if(null == ent.tag) {
+            ent.tag = ent.name || 'NO TAG'
+          }
+          if(null == ent.atype) {
+            ent.atype = 'Equipment'
+          }
+        })
+
         self.data.rooms.forEach(roomData=>{
           self.room.map[roomData.id] = new Room(roomData, ctx)
         })
@@ -876,7 +886,7 @@ import './rastercoords.js'
         clearInterval(self.checkRoomsInterval)
       }
 
-      if(roomInst.ctx?.cfg?.room?.outline?.active) {
+      if(self.config.room?.outline?.active) {
         self.checkRoomsInterval =
           setInterval(self.checkRooms, self.config.mapInterval)
       }
@@ -1396,7 +1406,7 @@ import './rastercoords.js'
 
       show = !!show
 
-      console.log('showGeofence show=',show)
+      // console.log('showGeofence show=',show)
       
       if(true === show) {
         geofence.show(self.layer.geofence)
@@ -1408,9 +1418,6 @@ import './rastercoords.js'
 
 
     self.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox) {
-      self.closeAssetInfo()
-      self.closeClusterInfo()
-
       let assetCurrent =
           self.current.asset[assetID] || (self.current.asset[assetID]={})
 
@@ -1419,6 +1426,11 @@ import './rastercoords.js'
 
       let stateDef = self.config.states[stateName]
       let assetProps = self.data.assetMap[assetID]
+
+      try {
+      self.closeAssetInfo()
+      self.closeClusterInfo()
+
 
       // Ignore assets with invalid coords
       if(null == assetProps || null == assetProps.xco || null == assetProps.yco) {
@@ -1558,7 +1570,12 @@ import './rastercoords.js'
       
       // window.assetCurrent = assetCurrent
       
-      self.zoomEndRender()
+        self.zoomEndRender()
+      }
+      catch(e) {
+        self.log('ERROR','showAsset','1050',
+                 e.message, e, assetID, assetProps, assetCurrent)
+      }
     }
 
 
@@ -2036,8 +2053,6 @@ import './rastercoords.js'
 
 
       async function showGeofenceMsg(msg) {
-        console.log('showGeofenceMsg START', msg)
-
         try {
           if(msg.reset) {
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
@@ -2053,7 +2068,7 @@ import './rastercoords.js'
             geofenceIDList = [msg.geofence]
           }
 
-          console.log('geofenceIDList', geofenceIDList, 'hide'===msg.geofence)
+          // console.log('geofenceIDList', geofenceIDList, 'hide'===msg.geofence)
           
           for(let geofenceID of geofenceIDList) {
             let geofence = self.geofence.map[geofenceID]
