@@ -128,6 +128,7 @@ import './rastercoords.js'
           cluster: true
         }
       },
+      
       data: {},
       assetMap: {},
       roomMap: {},
@@ -871,8 +872,14 @@ import './rastercoords.js'
       })
       
 
-      setInterval(self.checkRooms, self.config.mapInterval)
+      if(self.checkRoomsInterval) {
+        clearInterval(self.checkRoomsInterval)
+      }
 
+      if(roomInst.ctx?.cfg?.room?.outline?.active) {
+        self.checkRoomsInterval =
+          setInterval(self.checkRooms, self.config.mapInterval)
+      }
 
       let levelActions = []
       
@@ -1005,8 +1012,13 @@ import './rastercoords.js'
 
             self.loc.room = room
             self.loc.alarmState = alarmState
+
+            // if(roomInst.ctx?.cfg?.room?.outline?.active) {
+            self.loc.poly = roomInst.show(self.layer.room, room_poly)
+            // }
+
             
-            roomInst.buildPoly(self.loc, room_poly, self.layer.room)
+            // roomInst.buildPoly(self.loc, room_poly, self.layer.room)
             
             // self.loc.poly = L.polygon(
             //   room_poly, {
@@ -2078,6 +2090,7 @@ import './rastercoords.js'
   class Room {
     ent = null
     ctx = null
+    poly = null
     cfgroom = null
     
     constructor(ent,ctx) {
@@ -2086,22 +2099,25 @@ import './rastercoords.js'
       this.cfgroom = ctx.cfg.room
     }
 
-    buildPoly(loc, room_poly, layer) {
-    
-      if(!this.cfgroom.outline.active) {
-        return
+    show(layer, room_poly) {
+      // if(!this.cfgroom.outline.active) {
+      //   return
+      // }
+
+      if(null == this.poly) {
+        this.poly = L.polygon(
+          room_poly, {
+            color: this.cfgroom.color
+          })
+
+        if(this.cfgroom.click.active) {
+          this.poly.on('click', this.onClick.bind(this))
+        }
       }
+
+      this.poly.addTo(layer)
       
-      loc.poly = L.polygon(
-        room_poly, {
-          color: this.cfgroom.color
-        })
-
-      if(this.cfgroom.click.active) {
-        loc.poly.on('click', this.onClick.bind(this))
-      }
-
-      loc.poly.addTo(layer)
+      return this.poly
     }
     
     onClick(event) {
