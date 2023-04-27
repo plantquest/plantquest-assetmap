@@ -104,6 +104,17 @@ import './rastercoords.js'
           color: '#33f',
         },
 
+        geofence: {
+          click: {
+            active: true
+          },
+          show: {
+            all: false,
+          },
+          color: '#f3f',
+        },
+
+        
         label: {
           zoom: null // null => appear at mapMaxZoom
         },
@@ -139,6 +150,10 @@ import './rastercoords.js'
         map: {}
       },
 
+      geofence: {
+        map: {}
+      },
+
       ux: {
         room: {
 
@@ -164,7 +179,8 @@ import './rastercoords.js'
         return
       }
       
-      self.config = { ...self.config, ...(config || {}) }
+      // self.config = { ...self.config, ...(config || {}) }
+      self.config = Seneca.util.deep(self.config,config)
       self.log('start', JSON.stringify(config))
       
       self.config.base = self.config.base || ''
@@ -217,7 +233,10 @@ import './rastercoords.js'
 
     
     self.load = async function(done) {
-      let ctx = { cfg: self.config, pqam: self }
+      let ctx = {
+        cfg: self.config,
+        pqam: self
+      }
       
       let seneca = await self.getSeneca()
                   
@@ -302,7 +321,12 @@ import './rastercoords.js'
         self.data.rooms.forEach(roomData=>{
           self.room.map[roomData.id] = new Room(roomData, ctx)
         })
-          
+
+        self.data.geofences.forEach(ent=>{
+          self.geofence.map[ent.id] = new Geofence(ent, ctx)
+        })
+
+        
         self.data.deps = {}
         
         let {
@@ -517,21 +541,33 @@ import './rastercoords.js'
       // self.map.scrollWheelZoom.addHooks()
       
 
-      // Place labels in separate Pane to ensure ordering below assets,
+      // Separate Pane to ensure ordering below assets,
       // prevents lost click events.
 
+      self.map.createPane('geofence')
+      let geofencePane = self.map.getPane('geofence')
+      geofencePane.style.zIndex = 210
+      geofencePane.style.pointerEvents = 'none'
+
+      
       self.map.createPane('label')
       let labelPane = self.map.getPane('label')
       labelPane.style.zIndex = 220
       labelPane.style.pointerEvents = 'none'
 
+
+
+      
       self.layer.label = L.layerGroup(null,{pane:'label'}).addTo(self.map)
       self.layer.label.name$ = 'label'
 
 
       self.layer.room = L.layerGroup().addTo(self.map)
       self.layer.room.name$ = 'room'
-      
+
+      self.layer.geofence = L.layerGroup(null,{pane:'geofence'}).addTo(self.map)
+      self.layer.geofence.name$ = 'geofence'
+
       
       self.map.on('zoomstart', self.zoomStartRender)
       self.map.on('zoomend', self.zoomEndRender)
@@ -888,7 +924,7 @@ import './rastercoords.js'
 
       let pos = (1+self.loc.map)
       
-      let labels = Object.values(self.ux.room.label[pos]) || []
+      let labels = Object.values(self.ux.room.label[pos] || {}) || []
       self.prev_labels = self.prev_labels || []
       
       
@@ -1338,6 +1374,24 @@ import './rastercoords.js'
     }
     
     
+    self.showGeofence = function(geofence, show) {
+      if(null == geofence) {
+        return
+      }
+
+      show = !!show
+
+      console.log('showGeofence show=',show)
+      
+      if(true === show) {
+        geofence.show(self.layer.geofence)
+      }
+      else if(false === show) {
+        geofence.hide()
+      }
+    }
+
+
     self.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox) {
       self.closeAssetInfo()
       self.closeClusterInfo()
@@ -1492,6 +1546,7 @@ import './rastercoords.js'
       self.zoomEndRender()
     }
 
+
     
     self.clearRoomAssets = function(roomID) {
       for(let assetID in self.current.asset) {
@@ -1566,7 +1621,16 @@ import './rastercoords.js'
           self.loc.room = null
         }
 
-        
+
+        if(self.config.geofence.show.all) {
+          self.send({
+            srv:'plantquest',
+            part:'assetmap',
+            show: 'geofence',
+            geofence: null,
+          })
+        }
+
         if(self.config.showAllAssets) {
           self.send({
             srv:'plantquest',
@@ -1824,6 +1888,10 @@ import './rastercoords.js'
         .message('show:asset', showAssetMsg)
         .message('hide:asset', showAssetMsg)
 
+        .message('show:geofence', showGeofenceMsg)
+        .message('hide:geofence', showGeofenceMsg)
+
+      
         .message('relate:room-asset', async function(msg) {
           self.emit({
             srv: 'plantquest',
@@ -1951,6 +2019,50 @@ import './rastercoords.js'
         }
       }
 
+
+      async function showGeofenceMsg(msg) {
+        console.log('showGeofenceMsg START', msg)
+
+        try {
+          if(msg.reset) {
+            await this.post('srv:plantquest,part:assetmap,cmd:reset')
+          }
+
+          let showAll = null === msg.geofence
+          let geofenceIDList = []
+          
+          if(showAll || Array.isArray(msg.geofence)) {
+            geofenceIDList = msg.geofence || Object.keys(self.geofence.map)
+          }
+          else {
+            geofenceIDList = [msg.geofence]
+          }
+
+          console.log('geofenceIDList', geofenceIDList, 'hide'===msg.geofence)
+          
+          for(let geofenceID of geofenceIDList) {
+            let geofence = self.geofence.map[geofenceID]
+              
+            if(geofence) {
+              let shown = showAll || -1!=geofenceIDList.indexOf(geofenceID)
+                
+              shown = 'geofence'===msg.hide ? false : shown
+
+              // shown = geofence.map-1 == self.loc.map ? shown : false
+              
+              self.showGeofence(geofence, shown)
+            }
+            else {
+              self.log('ERROR', 'send', 'geofence', 'unknown-geofence', geofenceID)
+            }
+          }
+
+        }
+        catch(e) {
+          console.log('ERROR showGeofenceMsg', e)
+        }
+      }
+      
       
       return self.seneca = seneca
     }
@@ -1994,6 +2106,47 @@ import './rastercoords.js'
     }
   }
 
+
+  class Geofence {
+    ent = null
+    ctx = null
+    poly = null
+    
+    constructor(ent,ctx) {
+      this.ent = ent
+      this.ctx = ctx
+    }
+    
+    show(layer) {
+      if(null == this.poly) {
+        let polyCoords = convertPoly(this.ctx.cfg.mapImg, this.ent.polygon)
+
+        // console.log('GF', this.ent.polygon, polyCoords)
+      
+        this.poly = L.polygon(
+          polyCoords, {
+            color: this.ctx.cfg.geofence.color
+          })
+        
+        if(this.ctx.cfg.geofence.click.active) {
+          this.poly.on('click', this.onClick.bind(this))
+        }
+      }
+      
+      this.poly.addTo(layer)
+    }
+
+    hide() {
+      this.poly.remove()
+    }
+    
+    onClick(event) {
+      // TODO: emit
+      console.log('GEOFENCE CLICK', this)
+    }
+  }
+
+  
 
 
   
@@ -2066,6 +2219,15 @@ import './rastercoords.js'
   // utility functions
   
   // transform poly coords for tilesets
+  function convertPoly(img, poly) {
+    let p = []
+    for(let part of poly) {
+      p.push( rc.unproject({ x: part[1], y: part[0] }) )
+    }
+    return p
+  }
+
+
   function convertRoomPoly(img, poly) {
     let p = []
     for(let part of poly) {

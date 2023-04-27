@@ -1,7 +1,7 @@
 
 module.exports = {
   build: {
-    // minify: false,
+    minify: false,
     target: 'es6',
     lib: {
       entry: 'src/pqam.js',

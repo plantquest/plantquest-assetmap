@@ -1,6 +1,6 @@
 {
   "name": "@plantquest/assetmap",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "PlantQuest Asset Map",
   "author": "plantquest",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "repo-publish-quick": "npm run build && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
   },
   "devDependencies": {
-    "vite": "^4.3.0-beta.2",
+    "vite": "^4.3.3",
     "leaflet": "1.8.0",
     "leaflet-rastercoords": "1.0.5",
     "leaflet.markercluster": "1.5.3",
