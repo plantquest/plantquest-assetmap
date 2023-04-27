@@ -4043,18 +4043,18 @@ var __async = (__this, __arguments, generator) => {
         return newPoints;
       }
       function _simplifyDPStep(points, markers, sqTolerance, first, last) {
-        var maxSqDist = 0, index2, i, sqDist;
+        var maxSqDist = 0, index3, i, sqDist;
         for (i = first + 1; i <= last - 1; i++) {
           sqDist = _sqClosestPointOnSegment(points[i], points[first], points[last], true);
           if (sqDist > maxSqDist) {
-            index2 = i;
+            index3 = i;
             maxSqDist = sqDist;
           }
         }
         if (maxSqDist > sqTolerance) {
-          markers[index2] = 1;
-          _simplifyDPStep(points, markers, sqTolerance, first, index2);
-          _simplifyDPStep(points, markers, sqTolerance, index2, last);
+          markers[index3] = 1;
+          _simplifyDPStep(points, markers, sqTolerance, first, index3);
+          _simplifyDPStep(points, markers, sqTolerance, index3, last);
         }
       }
       function _reducePoints(points, sqTolerance) {
@@ -4225,7 +4225,7 @@ var __async = (__this, __arguments, generator) => {
           return new LatLng(phi * d, point.x * d / r);
         }
       };
-      var index = {
+      var index2 = {
         __proto__: null,
         LonLat,
         Mercator,
@@ -7844,8 +7844,8 @@ var __async = (__this, __arguments, generator) => {
           return zoom2 + zoomOffset;
         },
         _getSubdomain: function(tilePoint) {
-          var index2 = Math.abs(tilePoint.x + tilePoint.y) % this.options.subdomains.length;
-          return this.options.subdomains[index2];
+          var index3 = Math.abs(tilePoint.x + tilePoint.y) % this.options.subdomains.length;
+          return this.options.subdomains[index3];
         },
         // stops loading all tiles in the background layer
         _abortLoading: function() {
@@ -8040,7 +8040,7 @@ var __async = (__this, __arguments, generator) => {
           this._zoom = this._map.getZoom();
         }
       });
-      var Canvas = Renderer.extend({
+      var Canvas2 = Renderer.extend({
         // @section
         // @aka Canvas options
         options: {
@@ -8388,7 +8388,7 @@ var __async = (__this, __arguments, generator) => {
         }
       });
       function canvas(options2) {
-        return Browser.canvas ? new Canvas(options2) : null;
+        return Browser.canvas ? new Canvas2(options2) : null;
       }
       var vmlCreate = function() {
         try {
@@ -8485,7 +8485,7 @@ var __async = (__this, __arguments, generator) => {
         }
       };
       var create = Browser.vml ? vmlCreate : svgCreate;
-      var SVG = Renderer.extend({
+      var SVG2 = Renderer.extend({
         _initContainer: function() {
           this._container = create("svg");
           this._container.setAttribute("pointer-events", "none");
@@ -8594,10 +8594,10 @@ var __async = (__this, __arguments, generator) => {
         }
       });
       if (Browser.vml) {
-        SVG.include(vmlMixin);
+        SVG2.include(vmlMixin);
       }
       function svg(options2) {
-        return Browser.svg || Browser.vml ? new SVG(options2) : null;
+        return Browser.svg || Browser.vml ? new SVG2(options2) : null;
       }
       Map2.include({
         // @namespace Map; @method getRenderer(layer: Path): Renderer
@@ -8651,8 +8651,8 @@ var __async = (__this, __arguments, generator) => {
       function rectangle(latLngBounds, options2) {
         return new Rectangle(latLngBounds, options2);
       }
-      SVG.create = create;
-      SVG.pointsToPath = pointsToPath;
+      SVG2.create = create;
+      SVG2.pointsToPath = pointsToPath;
       GeoJSON.geometryToLayer = geometryToLayer;
       GeoJSON.coordsToLatLng = coordsToLatLng;
       GeoJSON.coordsToLatLngs = coordsToLatLngs;
@@ -9297,7 +9297,7 @@ var __async = (__this, __arguments, generator) => {
       exports3.Bounds = Bounds;
       exports3.Browser = Browser;
       exports3.CRS = CRS;
-      exports3.Canvas = Canvas;
+      exports3.Canvas = Canvas2;
       exports3.Circle = Circle;
       exports3.CircleMarker = CircleMarker;
       exports3.Class = Class;
@@ -9329,10 +9329,10 @@ var __async = (__this, __arguments, generator) => {
       exports3.Polyline = Polyline;
       exports3.Popup = Popup;
       exports3.PosAnimation = PosAnimation;
-      exports3.Projection = index;
+      exports3.Projection = index2;
       exports3.Rectangle = Rectangle;
       exports3.Renderer = Renderer;
-      exports3.SVG = SVG;
+      exports3.SVG = SVG2;
       exports3.SVGOverlay = SVGOverlay;
       exports3.TileLayer = TileLayer;
       exports3.Tooltip = Tooltip;
@@ -11388,8 +11388,1951 @@ var __async = (__this, __arguments, generator) => {
   })(leaflet_markerclusterSrc$2, leaflet_markerclusterSrc$2.exports);
   var leaflet_markerclusterSrcExports = leaflet_markerclusterSrc$2.exports;
   const leaflet_markerclusterSrc$1 = /* @__PURE__ */ getDefaultExportFromCjs(leaflet_markerclusterSrcExports);
+  var SVG = {};
+  L.SVG.include({
+    /**
+     * Reset transform matrix
+     */
+    _resetTransformPath: function(layer) {
+      layer._path.setAttributeNS(null, "transform", "");
+    },
+    /**
+     * Applies matrix transformation to SVG
+     * @param {L.Path}         layer
+     * @param {Array.<Number>} matrix
+     */
+    transformPath: function(layer, matrix) {
+      layer._path.setAttributeNS(
+        null,
+        "transform",
+        "matrix(" + matrix.join(" ") + ")"
+      );
+    }
+  });
+  var SVG_VML = {};
+  L.SVG.include(
+    !L.Browser.vml ? {} : {
+      /**
+       * Reset transform matrix
+       */
+      _resetTransformPath: function(layer) {
+        if (layer._skew) {
+          layer._skew.on = false;
+          layer._path.removeChild(layer._skew);
+          layer._skew = null;
+        }
+      },
+      /**
+       * Applies matrix transformation to VML
+       * @param {L.Path}         layer
+       * @param {Array.<Number>} matrix
+       */
+      transformPath: function(layer, matrix) {
+        var skew = layer._skew;
+        if (!skew) {
+          skew = L.SVG.create("skew");
+          layer._path.appendChild(skew);
+          skew.style.behavior = "url(#default#VML)";
+          layer._skew = skew;
+        }
+        var mt = matrix[0].toFixed(8) + " " + matrix[1].toFixed(8) + " " + matrix[2].toFixed(8) + " " + matrix[3].toFixed(8) + " 0 0";
+        var offset = Math.floor(matrix[4]).toFixed() + ", " + Math.floor(matrix[5]).toFixed();
+        var s = this._path.style;
+        var l = parseFloat(s.left);
+        var t = parseFloat(s.top);
+        var w = parseFloat(s.width);
+        var h = parseFloat(s.height);
+        if (isNaN(l))
+          l = 0;
+        if (isNaN(t))
+          t = 0;
+        if (isNaN(w) || !w)
+          w = 1;
+        if (isNaN(h) || !h)
+          h = 1;
+        var origin = (-l / w - 0.5).toFixed(8) + " " + (-t / h - 0.5).toFixed(8);
+        skew.on = "f";
+        skew.matrix = mt;
+        skew.origin = origin;
+        skew.offset = offset;
+        skew.on = true;
+      }
+    }
+  );
+  var Canvas = {};
+  function TRUE_FN() {
+    return true;
+  }
+  L.Canvas.include({
+    /**
+     * Do nothing
+     * @param  {L.Path} layer
+     */
+    _resetTransformPath: function(layer) {
+      if (!this._containerCopy)
+        return;
+      delete this._containerCopy;
+      if (layer._containsPoint_) {
+        layer._containsPoint = layer._containsPoint_;
+        delete layer._containsPoint_;
+        this._requestRedraw(layer);
+      }
+    },
+    /**
+     * Algorithm outline:
+     *
+     * 1. pre-transform - clear the path out of the canvas, copy canvas state
+     * 2. at every frame:
+     *    2.1. save
+     *    2.2. redraw the canvas from saved one
+     *    2.3. transform
+     *    2.4. draw path
+     *    2.5. restore
+     * 3. Repeat
+     *
+     * @param  {L.Path}         layer
+     * @param  {Array.<Number>} matrix
+     */
+    transformPath: function(layer, matrix) {
+      var copy = this._containerCopy;
+      var ctx = this._ctx, copyCtx;
+      var m2 = L.Browser.retina ? 2 : 1;
+      var bounds = this._bounds;
+      var size = bounds.getSize();
+      var pos = bounds.min;
+      if (!copy) {
+        copy = this._containerCopy = document.createElement("canvas");
+        copyCtx = copy.getContext("2d");
+        copy.width = m2 * size.x;
+        copy.height = m2 * size.y;
+        this._removePath(layer);
+        this._redraw();
+        copyCtx.translate(m2 * bounds.min.x, m2 * bounds.min.y);
+        copyCtx.drawImage(this._container, 0, 0);
+        this._initPath(layer);
+        layer._containsPoint_ = layer._containsPoint;
+        layer._containsPoint = TRUE_FN;
+      }
+      ctx.save();
+      ctx.clearRect(pos.x, pos.y, size.x * m2, size.y * m2);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.restore();
+      ctx.save();
+      ctx.drawImage(this._containerCopy, 0, 0, size.x, size.y);
+      ctx.transform.apply(ctx, matrix);
+      this._drawing = true;
+      layer._updatePath();
+      this._drawing = false;
+      ctx.restore();
+    }
+  });
+  var Path_Transform = {};
+  /**
+   * Leaflet vector features drag functionality
+   * @author Alexander Milevski <info@w8r.name>
+   * @preserve
+   */
+  L.Path.include({
+    /**
+     * Applies matrix transformation to SVG
+     * @param {Array.<Number>?} matrix
+     */
+    _transform: function(matrix) {
+      if (this._renderer) {
+        if (matrix) {
+          this._renderer.transformPath(this, matrix);
+        } else {
+          this._renderer._resetTransformPath(this);
+          this._update();
+        }
+      }
+      return this;
+    },
+    /**
+     * Check if the feature was dragged, that'll supress the click event
+     * on mouseup. That fixes popups for example
+     *
+     * @param  {MouseEvent} e
+     */
+    _onMouseClick: function(e) {
+      if (this.dragging && this.dragging.moved() || this._map.dragging && this._map.dragging.moved()) {
+        return;
+      }
+      this._fireMouseEvent(e);
+    }
+  });
+  var Path_Drag = {};
+  var END = {
+    mousedown: "mouseup",
+    touchstart: "touchend",
+    pointerdown: "touchend",
+    MSPointerDown: "touchend"
+  };
+  var MOVE = {
+    mousedown: "mousemove",
+    touchstart: "touchmove",
+    pointerdown: "touchmove",
+    MSPointerDown: "touchmove"
+  };
+  function distance(a, b) {
+    var dx = a.x - b.x, dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  L.Handler.PathDrag = L.Handler.extend(
+    /** @lends  L.Path.Drag.prototype */
+    {
+      statics: {
+        DRAGGING_CLS: "leaflet-path-draggable"
+      },
+      /**
+       * @param  {L.Path} path
+       * @constructor
+       */
+      initialize: function(path) {
+        this._path = path;
+        this._matrix = null;
+        this._startPoint = null;
+        this._dragStartPoint = null;
+        this._mapDraggingWasEnabled = false;
+        this._path._dragMoved = false;
+      },
+      /**
+       * Enable dragging
+       */
+      addHooks: function() {
+        this._path.on("mousedown", this._onDragStart, this);
+        this._path.options.className = this._path.options.className ? this._path.options.className + " " + L.Handler.PathDrag.DRAGGING_CLS : L.Handler.PathDrag.DRAGGING_CLS;
+        if (this._path._path) {
+          L.DomUtil.addClass(this._path._path, L.Handler.PathDrag.DRAGGING_CLS);
+        }
+      },
+      /**
+       * Disable dragging
+       */
+      removeHooks: function() {
+        this._path.off("mousedown", this._onDragStart, this);
+        this._path.options.className = this._path.options.className.replace(
+          new RegExp("\\s+" + L.Handler.PathDrag.DRAGGING_CLS),
+          ""
+        );
+        if (this._path._path) {
+          L.DomUtil.removeClass(
+            this._path._path,
+            L.Handler.PathDrag.DRAGGING_CLS
+          );
+        }
+      },
+      /**
+       * @return {Boolean}
+       */
+      moved: function() {
+        return this._path._dragMoved;
+      },
+      /**
+       * Start drag
+       * @param  {L.MouseEvent} evt
+       */
+      _onDragStart: function(evt) {
+        var eventType = evt.originalEvent._simulated ? "touchstart" : evt.originalEvent.type;
+        this._mapDraggingWasEnabled = false;
+        this._startPoint = evt.containerPoint.clone();
+        this._dragStartPoint = evt.containerPoint.clone();
+        this._matrix = [1, 0, 0, 1, 0, 0];
+        L.DomEvent.stop(evt.originalEvent);
+        L.DomUtil.addClass(
+          this._path._renderer._container,
+          "leaflet-interactive"
+        );
+        L.DomEvent.on(document, MOVE[eventType], this._onDrag, this).on(
+          document,
+          END[eventType],
+          this._onDragEnd,
+          this
+        );
+        if (this._path._map.dragging.enabled()) {
+          this._path._map.dragging.disable();
+          this._mapDraggingWasEnabled = true;
+        }
+        this._path._dragMoved = false;
+        if (this._path._popup) {
+          this._path._popup.close();
+        }
+        this._replaceCoordGetters(evt);
+      },
+      /**
+       * Dragging
+       * @param  {L.MouseEvent} evt
+       */
+      _onDrag: function(evt) {
+        L.DomEvent.stop(evt);
+        var first = evt.touches && evt.touches.length >= 1 ? evt.touches[0] : evt;
+        var containerPoint = this._path._map.mouseEventToContainerPoint(first);
+        if (evt.type === "touchmove" && !this._path._dragMoved) {
+          var totalMouseDragDistance = this._dragStartPoint.distanceTo(containerPoint);
+          if (totalMouseDragDistance <= this._path._map.options.tapTolerance) {
+            return;
+          }
+        }
+        var x = containerPoint.x;
+        var y = containerPoint.y;
+        var dx = x - this._startPoint.x;
+        var dy = y - this._startPoint.y;
+        if (dx || dy) {
+          if (!this._path._dragMoved) {
+            this._path._dragMoved = true;
+            this._path.options.interactive = false;
+            this._path._map.dragging._draggable._moved = true;
+            this._path.fire("dragstart", evt);
+            this._path.bringToFront();
+          }
+          this._matrix[4] += dx;
+          this._matrix[5] += dy;
+          this._startPoint.x = x;
+          this._startPoint.y = y;
+          this._path.fire("predrag", evt);
+          this._path._transform(this._matrix);
+          this._path.fire("drag", evt);
+        }
+      },
+      /**
+       * Dragging stopped, apply
+       * @param  {L.MouseEvent} evt
+       */
+      _onDragEnd: function(evt) {
+        var containerPoint = this._path._map.mouseEventToContainerPoint(evt);
+        var moved = this.moved();
+        if (moved) {
+          this._transformPoints(this._matrix);
+          this._path._updatePath();
+          this._path._project();
+          this._path._transform(null);
+          L.DomEvent.stop(evt);
+        }
+        L.DomEvent.off(document, "mousemove touchmove", this._onDrag, this);
+        L.DomEvent.off(document, "mouseup touchend", this._onDragEnd, this);
+        this._restoreCoordGetters();
+        if (moved) {
+          this._path.fire("dragend", {
+            distance: distance(this._dragStartPoint, containerPoint)
+          });
+          var contains = this._path._containsPoint;
+          this._path._containsPoint = L.Util.falseFn;
+          L.Util.requestAnimFrame(function() {
+            this._path._dragMoved = false;
+            this._path.options.interactive = true;
+            this._path._containsPoint = contains;
+          }, this);
+        }
+        if (this._mapDraggingWasEnabled) {
+          this._path._map.dragging.enable();
+        }
+      },
+      /**
+       * Applies transformation, does it in one sweep for performance,
+       * so don't be surprised about the code repetition.
+       *
+       * [ x ]   [ a  b  tx ] [ x ]   [ a * x + b * y + tx ]
+       * [ y ] = [ c  d  ty ] [ y ] = [ c * x + d * y + ty ]
+       *
+       * @param {Array.<Number>} matrix
+       */
+      _transformPoints: function(matrix, dest) {
+        var path = this._path;
+        var i, len, latlng;
+        var px = L.point(matrix[4], matrix[5]);
+        var crs = path._map.options.crs;
+        var transformation = crs.transformation;
+        var scale = crs.scale(path._map.getZoom());
+        var projection = crs.projection;
+        var diff = transformation.untransform(px, scale).subtract(transformation.untransform(L.point(0, 0), scale));
+        var applyTransform = !dest;
+        path._bounds = new L.LatLngBounds();
+        if (path._point) {
+          dest = projection.unproject(
+            projection.project(path._latlng)._add(diff)
+          );
+          if (applyTransform) {
+            path._latlng = dest;
+            path._point._add(px);
+          }
+        } else if (path._rings || path._parts) {
+          var rings = path._rings || path._parts;
+          var latlngs = path._latlngs;
+          dest = dest || latlngs;
+          if (!L.Util.isArray(latlngs[0])) {
+            latlngs = [latlngs];
+            dest = [dest];
+          }
+          for (i = 0, len = rings.length; i < len; i++) {
+            dest[i] = dest[i] || [];
+            for (var j = 0, jj = rings[i].length; j < jj; j++) {
+              latlng = latlngs[i][j];
+              dest[i][j] = projection.unproject(
+                projection.project(latlng)._add(diff)
+              );
+              if (applyTransform) {
+                path._bounds.extend(latlngs[i][j]);
+                rings[i][j]._add(px);
+              }
+            }
+          }
+        }
+        return dest;
+      },
+      /**
+       * If you want to read the latlngs during the drag - your right,
+       * but they have to be transformed
+       */
+      _replaceCoordGetters: function() {
+        if (this._path.getLatLng) {
+          this._path.getLatLng_ = this._path.getLatLng;
+          this._path.getLatLng = L.Util.bind(function() {
+            return this.dragging._transformPoints(this.dragging._matrix, {});
+          }, this._path);
+        } else if (this._path.getLatLngs) {
+          this._path.getLatLngs_ = this._path.getLatLngs;
+          this._path.getLatLngs = L.Util.bind(function() {
+            return this.dragging._transformPoints(this.dragging._matrix, []);
+          }, this._path);
+        }
+      },
+      /**
+       * Put back the getters
+       */
+      _restoreCoordGetters: function() {
+        if (this._path.getLatLng_) {
+          this._path.getLatLng = this._path.getLatLng_;
+          delete this._path.getLatLng_;
+        } else if (this._path.getLatLngs_) {
+          this._path.getLatLngs = this._path.getLatLngs_;
+          delete this._path.getLatLngs_;
+        }
+      }
+    }
+  );
+  L.Handler.PathDrag.makeDraggable = function(layer) {
+    layer.dragging = new L.Handler.PathDrag(layer);
+    return layer;
+  };
+  L.Path.prototype.makeDraggable = function() {
+    return L.Handler.PathDrag.makeDraggable(this);
+  };
+  L.Path.addInitHook(function() {
+    if (this.options.draggable) {
+      this.options.interactive = true;
+      if (this.dragging) {
+        this.dragging.enable();
+      } else {
+        L.Handler.PathDrag.makeDraggable(this);
+        this.dragging.enable();
+      }
+    } else if (this.dragging) {
+      this.dragging.disable();
+    }
+  });
+  var leafletPathDrag = L.Path.Drag;
+  const index = /* @__PURE__ */ getDefaultExportFromCjs(leafletPathDrag);
+  var Leaflet_Editable$2 = { exports: {} };
+  var Leaflet_Editable = Leaflet_Editable$2.exports;
+  (function(module2, exports2) {
+    "use strict";
+    (function(factory, window2) {
+      if (false) {
+        (void 0)(["leaflet"], factory);
+      } else if (true) {
+        module2.exports = factory(leafletSrcExports);
+      }
+      if (typeof window2 !== "undefined" && window2.L) {
+        factory(window2.L);
+      }
+    })(function(L2) {
+      L2.Editable = L2.Evented.extend({
+        statics: {
+          FORWARD: 1,
+          BACKWARD: -1
+        },
+        options: {
+          // You can pass them when creating a map using the `editOptions` key.
+          // 🍂option zIndex: int = 1000
+          // The default zIndex of the editing tools.
+          zIndex: 1e3,
+          // 🍂option polygonClass: class = L.Polygon
+          // Class to be used when creating a new Polygon.
+          polygonClass: L2.Polygon,
+          // 🍂option polylineClass: class = L.Polyline
+          // Class to be used when creating a new Polyline.
+          polylineClass: L2.Polyline,
+          // 🍂option markerClass: class = L.Marker
+          // Class to be used when creating a new Marker.
+          markerClass: L2.Marker,
+          // 🍂option rectangleClass: class = L.Rectangle
+          // Class to be used when creating a new Rectangle.
+          rectangleClass: L2.Rectangle,
+          // 🍂option circleClass: class = L.Circle
+          // Class to be used when creating a new Circle.
+          circleClass: L2.Circle,
+          // 🍂option drawingCSSClass: string = 'leaflet-editable-drawing'
+          // CSS class to be added to the map container while drawing.
+          drawingCSSClass: "leaflet-editable-drawing",
+          // 🍂option drawingCursor: const = 'crosshair'
+          // Cursor mode set to the map while drawing.
+          drawingCursor: "crosshair",
+          // 🍂option editLayer: Layer = new L.LayerGroup()
+          // Layer used to store edit tools (vertex, line guide…).
+          editLayer: void 0,
+          // 🍂option featuresLayer: Layer = new L.LayerGroup()
+          // Default layer used to store drawn features (Marker, Polyline…).
+          featuresLayer: void 0,
+          // 🍂option polylineEditorClass: class = PolylineEditor
+          // Class to be used as Polyline editor.
+          polylineEditorClass: void 0,
+          // 🍂option polygonEditorClass: class = PolygonEditor
+          // Class to be used as Polygon editor.
+          polygonEditorClass: void 0,
+          // 🍂option markerEditorClass: class = MarkerEditor
+          // Class to be used as Marker editor.
+          markerEditorClass: void 0,
+          // 🍂option rectangleEditorClass: class = RectangleEditor
+          // Class to be used as Rectangle editor.
+          rectangleEditorClass: void 0,
+          // 🍂option circleEditorClass: class = CircleEditor
+          // Class to be used as Circle editor.
+          circleEditorClass: void 0,
+          // 🍂option lineGuideOptions: hash = {}
+          // Options to be passed to the line guides.
+          lineGuideOptions: {},
+          // 🍂option skipMiddleMarkers: boolean = false
+          // Set this to true if you don't want middle markers.
+          skipMiddleMarkers: false
+        },
+        initialize: function(map, options2) {
+          L2.setOptions(this, options2);
+          this._lastZIndex = this.options.zIndex;
+          this.map = map;
+          this.editLayer = this.createEditLayer();
+          this.featuresLayer = this.createFeaturesLayer();
+          this.forwardLineGuide = this.createLineGuide();
+          this.backwardLineGuide = this.createLineGuide();
+        },
+        fireAndForward: function(type, e) {
+          e = e || {};
+          e.editTools = this;
+          this.fire(type, e);
+          this.map.fire(type, e);
+        },
+        createLineGuide: function() {
+          var options2 = L2.extend({ dashArray: "5,10", weight: 1, interactive: false }, this.options.lineGuideOptions);
+          return L2.polyline([], options2);
+        },
+        createVertexIcon: function(options2) {
+          return L2.Browser.mobile && L2.Browser.touch ? new L2.Editable.TouchVertexIcon(options2) : new L2.Editable.VertexIcon(options2);
+        },
+        createEditLayer: function() {
+          return this.options.editLayer || new L2.LayerGroup().addTo(this.map);
+        },
+        createFeaturesLayer: function() {
+          return this.options.featuresLayer || new L2.LayerGroup().addTo(this.map);
+        },
+        moveForwardLineGuide: function(latlng) {
+          if (this.forwardLineGuide._latlngs.length) {
+            this.forwardLineGuide._latlngs[1] = latlng;
+            this.forwardLineGuide._bounds.extend(latlng);
+            this.forwardLineGuide.redraw();
+          }
+        },
+        moveBackwardLineGuide: function(latlng) {
+          if (this.backwardLineGuide._latlngs.length) {
+            this.backwardLineGuide._latlngs[1] = latlng;
+            this.backwardLineGuide._bounds.extend(latlng);
+            this.backwardLineGuide.redraw();
+          }
+        },
+        anchorForwardLineGuide: function(latlng) {
+          this.forwardLineGuide._latlngs[0] = latlng;
+          this.forwardLineGuide._bounds.extend(latlng);
+          this.forwardLineGuide.redraw();
+        },
+        anchorBackwardLineGuide: function(latlng) {
+          this.backwardLineGuide._latlngs[0] = latlng;
+          this.backwardLineGuide._bounds.extend(latlng);
+          this.backwardLineGuide.redraw();
+        },
+        attachForwardLineGuide: function() {
+          this.editLayer.addLayer(this.forwardLineGuide);
+        },
+        attachBackwardLineGuide: function() {
+          this.editLayer.addLayer(this.backwardLineGuide);
+        },
+        detachForwardLineGuide: function() {
+          this.forwardLineGuide.setLatLngs([]);
+          this.editLayer.removeLayer(this.forwardLineGuide);
+        },
+        detachBackwardLineGuide: function() {
+          this.backwardLineGuide.setLatLngs([]);
+          this.editLayer.removeLayer(this.backwardLineGuide);
+        },
+        blockEvents: function() {
+          if (!this._oldTargets) {
+            this._oldTargets = this.map._targets;
+            this.map._targets = {};
+          }
+        },
+        unblockEvents: function() {
+          if (this._oldTargets) {
+            this.map._targets = L2.extend(this.map._targets, this._oldTargets);
+            delete this._oldTargets;
+          }
+        },
+        registerForDrawing: function(editor) {
+          if (this._drawingEditor)
+            this.unregisterForDrawing(this._drawingEditor);
+          this.blockEvents();
+          editor.reset();
+          this._drawingEditor = editor;
+          this.map.on("mousemove touchmove", editor.onDrawingMouseMove, editor);
+          this.map.on("mousedown", this.onMousedown, this);
+          this.map.on("mouseup", this.onMouseup, this);
+          L2.DomUtil.addClass(this.map._container, this.options.drawingCSSClass);
+          this.defaultMapCursor = this.map._container.style.cursor;
+          this.map._container.style.cursor = this.options.drawingCursor;
+        },
+        unregisterForDrawing: function(editor) {
+          this.unblockEvents();
+          L2.DomUtil.removeClass(this.map._container, this.options.drawingCSSClass);
+          this.map._container.style.cursor = this.defaultMapCursor;
+          editor = editor || this._drawingEditor;
+          if (!editor)
+            return;
+          this.map.off("mousemove touchmove", editor.onDrawingMouseMove, editor);
+          this.map.off("mousedown", this.onMousedown, this);
+          this.map.off("mouseup", this.onMouseup, this);
+          if (editor !== this._drawingEditor)
+            return;
+          delete this._drawingEditor;
+          if (editor._drawing)
+            editor.cancelDrawing();
+        },
+        onMousedown: function(e) {
+          if (e.originalEvent.which != 1)
+            return;
+          this._mouseDown = e;
+          this._drawingEditor.onDrawingMouseDown(e);
+        },
+        onMouseup: function(e) {
+          if (this._mouseDown) {
+            var editor = this._drawingEditor, mouseDown = this._mouseDown;
+            this._mouseDown = null;
+            editor.onDrawingMouseUp(e);
+            if (this._drawingEditor !== editor)
+              return;
+            var origin = L2.point(mouseDown.originalEvent.clientX, mouseDown.originalEvent.clientY);
+            var distance2 = L2.point(e.originalEvent.clientX, e.originalEvent.clientY).distanceTo(origin);
+            if (Math.abs(distance2) < 9 * (window.devicePixelRatio || 1))
+              this._drawingEditor.onDrawingClick(e);
+          }
+        },
+        // 🍂section Public methods
+        // You will generally access them by the `map.editTools`
+        // instance:
+        //
+        // `map.editTools.startPolyline();`
+        // 🍂method drawing(): boolean
+        // Return true if any drawing action is ongoing.
+        drawing: function() {
+          return this._drawingEditor && this._drawingEditor.drawing();
+        },
+        // 🍂method stopDrawing()
+        // When you need to stop any ongoing drawing, without needing to know which editor is active.
+        stopDrawing: function() {
+          this.unregisterForDrawing();
+        },
+        // 🍂method commitDrawing()
+        // When you need to commit any ongoing drawing, without needing to know which editor is active.
+        commitDrawing: function(e) {
+          if (!this._drawingEditor)
+            return;
+          this._drawingEditor.commitDrawing(e);
+        },
+        connectCreatedToMap: function(layer) {
+          return this.featuresLayer.addLayer(layer);
+        },
+        // 🍂method startPolyline(latlng: L.LatLng, options: hash): L.Polyline
+        // Start drawing a Polyline. If `latlng` is given, a first point will be added. In any case, continuing on user click.
+        // If `options` is given, it will be passed to the Polyline class constructor.
+        startPolyline: function(latlng, options2) {
+          var line = this.createPolyline([], options2);
+          line.enableEdit(this.map).newShape(latlng);
+          return line;
+        },
+        // 🍂method startPolygon(latlng: L.LatLng, options: hash): L.Polygon
+        // Start drawing a Polygon. If `latlng` is given, a first point will be added. In any case, continuing on user click.
+        // If `options` is given, it will be passed to the Polygon class constructor.
+        startPolygon: function(latlng, options2) {
+          var polygon = this.createPolygon([], options2);
+          polygon.enableEdit(this.map).newShape(latlng);
+          return polygon;
+        },
+        // 🍂method startMarker(latlng: L.LatLng, options: hash): L.Marker
+        // Start adding a Marker. If `latlng` is given, the Marker will be shown first at this point.
+        // In any case, it will follow the user mouse, and will have a final `latlng` on next click (or touch).
+        // If `options` is given, it will be passed to the Marker class constructor.
+        startMarker: function(latlng, options2) {
+          latlng = latlng || this.map.getCenter().clone();
+          var marker = this.createMarker(latlng, options2);
+          marker.enableEdit(this.map).startDrawing();
+          return marker;
+        },
+        // 🍂method startRectangle(latlng: L.LatLng, options: hash): L.Rectangle
+        // Start drawing a Rectangle. If `latlng` is given, the Rectangle anchor will be added. In any case, continuing on user drag.
+        // If `options` is given, it will be passed to the Rectangle class constructor.
+        startRectangle: function(latlng, options2) {
+          var corner = latlng || L2.latLng([0, 0]);
+          var bounds = new L2.LatLngBounds(corner, corner);
+          var rectangle = this.createRectangle(bounds, options2);
+          rectangle.enableEdit(this.map).startDrawing();
+          return rectangle;
+        },
+        // 🍂method startCircle(latlng: L.LatLng, options: hash): L.Circle
+        // Start drawing a Circle. If `latlng` is given, the Circle anchor will be added. In any case, continuing on user drag.
+        // If `options` is given, it will be passed to the Circle class constructor.
+        startCircle: function(latlng, options2) {
+          latlng = latlng || this.map.getCenter().clone();
+          var circle = this.createCircle(latlng, options2);
+          circle.enableEdit(this.map).startDrawing();
+          return circle;
+        },
+        startHole: function(editor, latlng) {
+          editor.newHole(latlng);
+        },
+        createLayer: function(klass, latlngs, options2) {
+          options2 = L2.Util.extend({ editOptions: { editTools: this } }, options2);
+          var layer = new klass(latlngs, options2);
+          this.fireAndForward("editable:created", { layer });
+          return layer;
+        },
+        createPolyline: function(latlngs, options2) {
+          return this.createLayer(options2 && options2.polylineClass || this.options.polylineClass, latlngs, options2);
+        },
+        createPolygon: function(latlngs, options2) {
+          return this.createLayer(options2 && options2.polygonClass || this.options.polygonClass, latlngs, options2);
+        },
+        createMarker: function(latlng, options2) {
+          return this.createLayer(options2 && options2.markerClass || this.options.markerClass, latlng, options2);
+        },
+        createRectangle: function(bounds, options2) {
+          return this.createLayer(options2 && options2.rectangleClass || this.options.rectangleClass, bounds, options2);
+        },
+        createCircle: function(latlng, options2) {
+          return this.createLayer(options2 && options2.circleClass || this.options.circleClass, latlng, options2);
+        }
+      });
+      L2.extend(L2.Editable, {
+        makeCancellable: function(e) {
+          e.cancel = function() {
+            e._cancelled = true;
+          };
+        }
+      });
+      L2.Map.mergeOptions({
+        // 🍂namespace Map
+        // 🍂section Map Options
+        // 🍂option editToolsClass: class = L.Editable
+        // Class to be used as vertex, for path editing.
+        editToolsClass: L2.Editable,
+        // 🍂option editable: boolean = false
+        // Whether to create a L.Editable instance at map init.
+        editable: false,
+        // 🍂option editOptions: hash = {}
+        // Options to pass to L.Editable when instantiating.
+        editOptions: {}
+      });
+      L2.Map.addInitHook(function() {
+        this.whenReady(function() {
+          if (this.options.editable) {
+            this.editTools = new this.options.editToolsClass(this, this.options.editOptions);
+          }
+        });
+      });
+      L2.Editable.VertexIcon = L2.DivIcon.extend({
+        options: {
+          iconSize: new L2.Point(8, 8)
+        }
+      });
+      L2.Editable.TouchVertexIcon = L2.Editable.VertexIcon.extend({
+        options: {
+          iconSize: new L2.Point(20, 20)
+        }
+      });
+      L2.Editable.VertexMarker = L2.Marker.extend({
+        options: {
+          draggable: true,
+          className: "leaflet-div-icon leaflet-vertex-icon"
+        },
+        // 🍂section Public methods
+        // The marker used to handle path vertex. You will usually interact with a `VertexMarker`
+        // instance when listening for events like `editable:vertex:ctrlclick`.
+        initialize: function(latlng, latlngs, editor, options2) {
+          this.latlng = latlng;
+          this.latlngs = latlngs;
+          this.editor = editor;
+          L2.Marker.prototype.initialize.call(this, latlng, options2);
+          this.options.icon = this.editor.tools.createVertexIcon({ className: this.options.className });
+          this.latlng.__vertex = this;
+          this.editor.editLayer.addLayer(this);
+          this.setZIndexOffset(editor.tools._lastZIndex + 1);
+        },
+        onAdd: function(map) {
+          L2.Marker.prototype.onAdd.call(this, map);
+          this.on("drag", this.onDrag);
+          this.on("dragstart", this.onDragStart);
+          this.on("dragend", this.onDragEnd);
+          this.on("mouseup", this.onMouseup);
+          this.on("click", this.onClick);
+          this.on("contextmenu", this.onContextMenu);
+          this.on("mousedown touchstart", this.onMouseDown);
+          this.on("mouseover", this.onMouseOver);
+          this.on("mouseout", this.onMouseOut);
+          this.addMiddleMarkers();
+        },
+        onRemove: function(map) {
+          if (this.middleMarker)
+            this.middleMarker.delete();
+          delete this.latlng.__vertex;
+          this.off("drag", this.onDrag);
+          this.off("dragstart", this.onDragStart);
+          this.off("dragend", this.onDragEnd);
+          this.off("mouseup", this.onMouseup);
+          this.off("click", this.onClick);
+          this.off("contextmenu", this.onContextMenu);
+          this.off("mousedown touchstart", this.onMouseDown);
+          this.off("mouseover", this.onMouseOver);
+          this.off("mouseout", this.onMouseOut);
+          L2.Marker.prototype.onRemove.call(this, map);
+        },
+        onDrag: function(e) {
+          e.vertex = this;
+          this.editor.onVertexMarkerDrag(e);
+          var iconPos = L2.DomUtil.getPosition(this._icon), latlng = this._map.layerPointToLatLng(iconPos);
+          this.latlng.update(latlng);
+          this._latlng = this.latlng;
+          this.editor.refresh();
+          if (this.middleMarker)
+            this.middleMarker.updateLatLng();
+          var next = this.getNext();
+          if (next && next.middleMarker)
+            next.middleMarker.updateLatLng();
+        },
+        onDragStart: function(e) {
+          e.vertex = this;
+          this.editor.onVertexMarkerDragStart(e);
+        },
+        onDragEnd: function(e) {
+          e.vertex = this;
+          this.editor.onVertexMarkerDragEnd(e);
+        },
+        onClick: function(e) {
+          e.vertex = this;
+          this.editor.onVertexMarkerClick(e);
+        },
+        onMouseup: function(e) {
+          L2.DomEvent.stop(e);
+          e.vertex = this;
+          this.editor.map.fire("mouseup", e);
+        },
+        onContextMenu: function(e) {
+          e.vertex = this;
+          this.editor.onVertexMarkerContextMenu(e);
+        },
+        onMouseDown: function(e) {
+          e.vertex = this;
+          this.editor.onVertexMarkerMouseDown(e);
+        },
+        onMouseOver: function(e) {
+          e.vertex = this;
+          this.editor.onVertexMarkerMouseOver(e);
+        },
+        onMouseOut: function(e) {
+          e.vertex = this;
+          this.editor.onVertexMarkerMouseOut(e);
+        },
+        // 🍂method delete()
+        // Delete a vertex and the related LatLng.
+        delete: function() {
+          var next = this.getNext();
+          this.latlngs.splice(this.getIndex(), 1);
+          this.editor.editLayer.removeLayer(this);
+          this.editor.onVertexDeleted({ latlng: this.latlng, vertex: this });
+          if (!this.latlngs.length)
+            this.editor.deleteShape(this.latlngs);
+          if (next)
+            next.resetMiddleMarker();
+          this.editor.refresh();
+        },
+        // 🍂method getIndex(): int
+        // Get the index of the current vertex among others of the same LatLngs group.
+        getIndex: function() {
+          return this.latlngs.indexOf(this.latlng);
+        },
+        // 🍂method getLastIndex(): int
+        // Get last vertex index of the LatLngs group of the current vertex.
+        getLastIndex: function() {
+          return this.latlngs.length - 1;
+        },
+        // 🍂method getPrevious(): VertexMarker
+        // Get the previous VertexMarker in the same LatLngs group.
+        getPrevious: function() {
+          if (this.latlngs.length < 2)
+            return;
+          var index2 = this.getIndex(), previousIndex = index2 - 1;
+          if (index2 === 0 && this.editor.CLOSED)
+            previousIndex = this.getLastIndex();
+          var previous = this.latlngs[previousIndex];
+          if (previous)
+            return previous.__vertex;
+        },
+        // 🍂method getNext(): VertexMarker
+        // Get the next VertexMarker in the same LatLngs group.
+        getNext: function() {
+          if (this.latlngs.length < 2)
+            return;
+          var index2 = this.getIndex(), nextIndex = index2 + 1;
+          if (index2 === this.getLastIndex() && this.editor.CLOSED)
+            nextIndex = 0;
+          var next = this.latlngs[nextIndex];
+          if (next)
+            return next.__vertex;
+        },
+        addMiddleMarker: function(previous) {
+          if (!this.editor.hasMiddleMarkers())
+            return;
+          previous = previous || this.getPrevious();
+          if (previous && !this.middleMarker)
+            this.middleMarker = this.editor.addMiddleMarker(previous, this, this.latlngs, this.editor);
+        },
+        addMiddleMarkers: function() {
+          if (!this.editor.hasMiddleMarkers())
+            return;
+          var previous = this.getPrevious();
+          if (previous)
+            this.addMiddleMarker(previous);
+          var next = this.getNext();
+          if (next)
+            next.resetMiddleMarker();
+        },
+        resetMiddleMarker: function() {
+          if (this.middleMarker)
+            this.middleMarker.delete();
+          this.addMiddleMarker();
+        },
+        // 🍂method split()
+        // Split the vertex LatLngs group at its index, if possible.
+        split: function() {
+          if (!this.editor.splitShape)
+            return;
+          this.editor.splitShape(this.latlngs, this.getIndex());
+        },
+        // 🍂method continue()
+        // Continue the vertex LatLngs from this vertex. Only active for first and last vertices of a Polyline.
+        continue: function() {
+          if (!this.editor.continueBackward)
+            return;
+          var index2 = this.getIndex();
+          if (index2 === 0)
+            this.editor.continueBackward(this.latlngs);
+          else if (index2 === this.getLastIndex())
+            this.editor.continueForward(this.latlngs);
+        }
+      });
+      L2.Editable.mergeOptions({
+        // 🍂namespace Editable
+        // 🍂option vertexMarkerClass: class = VertexMarker
+        // Class to be used as vertex, for path editing.
+        vertexMarkerClass: L2.Editable.VertexMarker
+      });
+      L2.Editable.MiddleMarker = L2.Marker.extend({
+        options: {
+          opacity: 0.5,
+          className: "leaflet-div-icon leaflet-middle-icon",
+          draggable: true
+        },
+        initialize: function(left, right, latlngs, editor, options2) {
+          this.left = left;
+          this.right = right;
+          this.editor = editor;
+          this.latlngs = latlngs;
+          L2.Marker.prototype.initialize.call(this, this.computeLatLng(), options2);
+          this._opacity = this.options.opacity;
+          this.options.icon = this.editor.tools.createVertexIcon({ className: this.options.className });
+          this.editor.editLayer.addLayer(this);
+          this.setVisibility();
+        },
+        setVisibility: function() {
+          var leftPoint = this._map.latLngToContainerPoint(this.left.latlng), rightPoint = this._map.latLngToContainerPoint(this.right.latlng), size = L2.point(this.options.icon.options.iconSize);
+          if (leftPoint.distanceTo(rightPoint) < size.x * 3)
+            this.hide();
+          else
+            this.show();
+        },
+        show: function() {
+          this.setOpacity(this._opacity);
+        },
+        hide: function() {
+          this.setOpacity(0);
+        },
+        updateLatLng: function() {
+          this.setLatLng(this.computeLatLng());
+          this.setVisibility();
+        },
+        computeLatLng: function() {
+          var leftPoint = this.editor.map.latLngToContainerPoint(this.left.latlng), rightPoint = this.editor.map.latLngToContainerPoint(this.right.latlng), y = (leftPoint.y + rightPoint.y) / 2, x = (leftPoint.x + rightPoint.x) / 2;
+          return this.editor.map.containerPointToLatLng([x, y]);
+        },
+        onAdd: function(map) {
+          L2.Marker.prototype.onAdd.call(this, map);
+          L2.DomEvent.on(this._icon, "mousedown touchstart", this.onMouseDown, this);
+          map.on("zoomend", this.setVisibility, this);
+        },
+        onRemove: function(map) {
+          delete this.right.middleMarker;
+          L2.DomEvent.off(this._icon, "mousedown touchstart", this.onMouseDown, this);
+          map.off("zoomend", this.setVisibility, this);
+          L2.Marker.prototype.onRemove.call(this, map);
+        },
+        onMouseDown: function(e) {
+          var iconPos = L2.DomUtil.getPosition(this._icon), latlng = this.editor.map.layerPointToLatLng(iconPos);
+          e = {
+            originalEvent: e,
+            latlng
+          };
+          if (this.options.opacity === 0)
+            return;
+          L2.Editable.makeCancellable(e);
+          this.editor.onMiddleMarkerMouseDown(e);
+          if (e._cancelled)
+            return;
+          this.latlngs.splice(this.index(), 0, e.latlng);
+          this.editor.refresh();
+          var icon = this._icon;
+          var marker = this.editor.addVertexMarker(e.latlng, this.latlngs);
+          this.editor.onNewVertex(marker);
+          var parent = marker._icon.parentNode;
+          parent.removeChild(marker._icon);
+          marker._icon = icon;
+          parent.appendChild(marker._icon);
+          marker._initIcon();
+          marker._initInteraction();
+          marker.setOpacity(1);
+          L2.Draggable._dragging = false;
+          marker.dragging._draggable._onDown(e.originalEvent);
+          this.delete();
+        },
+        delete: function() {
+          this.editor.editLayer.removeLayer(this);
+        },
+        index: function() {
+          return this.latlngs.indexOf(this.right.latlng);
+        }
+      });
+      L2.Editable.mergeOptions({
+        // 🍂namespace Editable
+        // 🍂option middleMarkerClass: class = VertexMarker
+        // Class to be used as middle vertex, pulled by the user to create a new point in the middle of a path.
+        middleMarkerClass: L2.Editable.MiddleMarker
+      });
+      L2.Editable.BaseEditor = L2.Handler.extend({
+        initialize: function(map, feature, options2) {
+          L2.setOptions(this, options2);
+          this.map = map;
+          this.feature = feature;
+          this.feature.editor = this;
+          this.editLayer = new L2.LayerGroup();
+          this.tools = this.options.editTools || map.editTools;
+        },
+        // 🍂method enable(): this
+        // Set up the drawing tools for the feature to be editable.
+        addHooks: function() {
+          if (this.isConnected())
+            this.onFeatureAdd();
+          else
+            this.feature.once("add", this.onFeatureAdd, this);
+          this.onEnable();
+          this.feature.on(this._getEvents(), this);
+        },
+        // 🍂method disable(): this
+        // Remove the drawing tools for the feature.
+        removeHooks: function() {
+          this.feature.off(this._getEvents(), this);
+          if (this.feature.dragging)
+            this.feature.dragging.disable();
+          this.editLayer.clearLayers();
+          this.tools.editLayer.removeLayer(this.editLayer);
+          this.onDisable();
+          if (this._drawing)
+            this.cancelDrawing();
+        },
+        // 🍂method drawing(): boolean
+        // Return true if any drawing action is ongoing with this editor.
+        drawing: function() {
+          return !!this._drawing;
+        },
+        reset: function() {
+        },
+        onFeatureAdd: function() {
+          this.tools.editLayer.addLayer(this.editLayer);
+          if (this.feature.dragging)
+            this.feature.dragging.enable();
+        },
+        hasMiddleMarkers: function() {
+          return !this.options.skipMiddleMarkers && !this.tools.options.skipMiddleMarkers;
+        },
+        fireAndForward: function(type, e) {
+          e = e || {};
+          e.layer = this.feature;
+          this.feature.fire(type, e);
+          this.tools.fireAndForward(type, e);
+        },
+        onEnable: function() {
+          this.fireAndForward("editable:enable");
+        },
+        onDisable: function() {
+          this.fireAndForward("editable:disable");
+        },
+        onEditing: function() {
+          this.fireAndForward("editable:editing");
+        },
+        onStartDrawing: function() {
+          this.fireAndForward("editable:drawing:start");
+        },
+        onEndDrawing: function() {
+          this.fireAndForward("editable:drawing:end");
+        },
+        onCancelDrawing: function() {
+          this.fireAndForward("editable:drawing:cancel");
+        },
+        onCommitDrawing: function(e) {
+          this.fireAndForward("editable:drawing:commit", e);
+        },
+        onDrawingMouseDown: function(e) {
+          this.fireAndForward("editable:drawing:mousedown", e);
+        },
+        onDrawingMouseUp: function(e) {
+          this.fireAndForward("editable:drawing:mouseup", e);
+        },
+        startDrawing: function() {
+          if (!this._drawing)
+            this._drawing = L2.Editable.FORWARD;
+          this.tools.registerForDrawing(this);
+          this.onStartDrawing();
+        },
+        commitDrawing: function(e) {
+          this.onCommitDrawing(e);
+          this.endDrawing();
+        },
+        cancelDrawing: function() {
+          L2.Draggable._dragging = false;
+          this.onCancelDrawing();
+          this.endDrawing();
+        },
+        endDrawing: function() {
+          this._drawing = false;
+          this.tools.unregisterForDrawing(this);
+          this.onEndDrawing();
+        },
+        onDrawingClick: function(e) {
+          if (!this.drawing())
+            return;
+          L2.Editable.makeCancellable(e);
+          this.fireAndForward("editable:drawing:click", e);
+          if (e._cancelled)
+            return;
+          if (!this.isConnected())
+            this.connect(e);
+          this.processDrawingClick(e);
+        },
+        isConnected: function() {
+          return this.map.hasLayer(this.feature);
+        },
+        connect: function() {
+          this.tools.connectCreatedToMap(this.feature);
+          this.tools.editLayer.addLayer(this.editLayer);
+        },
+        onMove: function(e) {
+          this.fireAndForward("editable:drawing:move", e);
+        },
+        onDrawingMouseMove: function(e) {
+          this.onMove(e);
+        },
+        _getEvents: function() {
+          return {
+            dragstart: this.onDragStart,
+            drag: this.onDrag,
+            dragend: this.onDragEnd,
+            remove: this.disable
+          };
+        },
+        onDragStart: function(e) {
+          this.onEditing();
+          this.fireAndForward("editable:dragstart", e);
+        },
+        onDrag: function(e) {
+          this.onMove(e);
+          this.fireAndForward("editable:drag", e);
+        },
+        onDragEnd: function(e) {
+          this.fireAndForward("editable:dragend", e);
+        }
+      });
+      L2.Editable.MarkerEditor = L2.Editable.BaseEditor.extend({
+        onDrawingMouseMove: function(e) {
+          L2.Editable.BaseEditor.prototype.onDrawingMouseMove.call(this, e);
+          if (this._drawing)
+            this.feature.setLatLng(e.latlng);
+        },
+        processDrawingClick: function(e) {
+          this.fireAndForward("editable:drawing:clicked", e);
+          this.commitDrawing(e);
+        },
+        connect: function(e) {
+          if (e)
+            this.feature._latlng = e.latlng;
+          L2.Editable.BaseEditor.prototype.connect.call(this, e);
+        }
+      });
+      L2.Editable.PathEditor = L2.Editable.BaseEditor.extend({
+        CLOSED: false,
+        MIN_VERTEX: 2,
+        addHooks: function() {
+          L2.Editable.BaseEditor.prototype.addHooks.call(this);
+          if (this.feature)
+            this.initVertexMarkers();
+          return this;
+        },
+        initVertexMarkers: function(latlngs) {
+          if (!this.enabled())
+            return;
+          latlngs = latlngs || this.getLatLngs();
+          if (isFlat(latlngs))
+            this.addVertexMarkers(latlngs);
+          else
+            for (var i = 0; i < latlngs.length; i++)
+              this.initVertexMarkers(latlngs[i]);
+        },
+        getLatLngs: function() {
+          return this.feature.getLatLngs();
+        },
+        // 🍂method reset()
+        // Rebuild edit elements (Vertex, MiddleMarker, etc.).
+        reset: function() {
+          this.editLayer.clearLayers();
+          this.initVertexMarkers();
+        },
+        addVertexMarker: function(latlng, latlngs) {
+          return new this.tools.options.vertexMarkerClass(latlng, latlngs, this);
+        },
+        onNewVertex: function(vertex) {
+          this.fireAndForward("editable:vertex:new", { latlng: vertex.latlng, vertex });
+        },
+        addVertexMarkers: function(latlngs) {
+          for (var i = 0; i < latlngs.length; i++) {
+            this.addVertexMarker(latlngs[i], latlngs);
+          }
+        },
+        refreshVertexMarkers: function(latlngs) {
+          latlngs = latlngs || this.getDefaultLatLngs();
+          for (var i = 0; i < latlngs.length; i++) {
+            latlngs[i].__vertex.update();
+          }
+        },
+        addMiddleMarker: function(left, right, latlngs) {
+          return new this.tools.options.middleMarkerClass(left, right, latlngs, this);
+        },
+        onVertexMarkerClick: function(e) {
+          L2.Editable.makeCancellable(e);
+          this.fireAndForward("editable:vertex:click", e);
+          if (e._cancelled)
+            return;
+          if (this.tools.drawing() && this.tools._drawingEditor !== this)
+            return;
+          var index2 = e.vertex.getIndex(), commit;
+          if (e.originalEvent.ctrlKey) {
+            this.onVertexMarkerCtrlClick(e);
+          } else if (e.originalEvent.altKey) {
+            this.onVertexMarkerAltClick(e);
+          } else if (e.originalEvent.shiftKey) {
+            this.onVertexMarkerShiftClick(e);
+          } else if (e.originalEvent.metaKey) {
+            this.onVertexMarkerMetaKeyClick(e);
+          } else if (index2 === e.vertex.getLastIndex() && this._drawing === L2.Editable.FORWARD) {
+            if (index2 >= this.MIN_VERTEX - 1)
+              commit = true;
+          } else if (index2 === 0 && this._drawing === L2.Editable.BACKWARD && this._drawnLatLngs.length >= this.MIN_VERTEX) {
+            commit = true;
+          } else if (index2 === 0 && this._drawing === L2.Editable.FORWARD && this._drawnLatLngs.length >= this.MIN_VERTEX && this.CLOSED) {
+            commit = true;
+          } else {
+            this.onVertexRawMarkerClick(e);
+          }
+          this.fireAndForward("editable:vertex:clicked", e);
+          if (commit)
+            this.commitDrawing(e);
+        },
+        onVertexRawMarkerClick: function(e) {
+          this.fireAndForward("editable:vertex:rawclick", e);
+          if (e._cancelled)
+            return;
+          if (!this.vertexCanBeDeleted(e.vertex))
+            return;
+          e.vertex.delete();
+        },
+        vertexCanBeDeleted: function(vertex) {
+          return vertex.latlngs.length > this.MIN_VERTEX;
+        },
+        onVertexDeleted: function(e) {
+          this.fireAndForward("editable:vertex:deleted", e);
+        },
+        onVertexMarkerCtrlClick: function(e) {
+          this.fireAndForward("editable:vertex:ctrlclick", e);
+        },
+        onVertexMarkerShiftClick: function(e) {
+          this.fireAndForward("editable:vertex:shiftclick", e);
+        },
+        onVertexMarkerMetaKeyClick: function(e) {
+          this.fireAndForward("editable:vertex:metakeyclick", e);
+        },
+        onVertexMarkerAltClick: function(e) {
+          this.fireAndForward("editable:vertex:altclick", e);
+        },
+        onVertexMarkerContextMenu: function(e) {
+          this.fireAndForward("editable:vertex:contextmenu", e);
+        },
+        onVertexMarkerMouseDown: function(e) {
+          this.fireAndForward("editable:vertex:mousedown", e);
+        },
+        onVertexMarkerMouseOver: function(e) {
+          this.fireAndForward("editable:vertex:mouseover", e);
+        },
+        onVertexMarkerMouseOut: function(e) {
+          this.fireAndForward("editable:vertex:mouseout", e);
+        },
+        onMiddleMarkerMouseDown: function(e) {
+          this.fireAndForward("editable:middlemarker:mousedown", e);
+        },
+        onVertexMarkerDrag: function(e) {
+          this.onMove(e);
+          if (this.feature._bounds)
+            this.extendBounds(e);
+          this.fireAndForward("editable:vertex:drag", e);
+        },
+        onVertexMarkerDragStart: function(e) {
+          this.fireAndForward("editable:vertex:dragstart", e);
+        },
+        onVertexMarkerDragEnd: function(e) {
+          this.fireAndForward("editable:vertex:dragend", e);
+        },
+        setDrawnLatLngs: function(latlngs) {
+          this._drawnLatLngs = latlngs || this.getDefaultLatLngs();
+        },
+        startDrawing: function() {
+          if (!this._drawnLatLngs)
+            this.setDrawnLatLngs();
+          L2.Editable.BaseEditor.prototype.startDrawing.call(this);
+        },
+        startDrawingForward: function() {
+          this.startDrawing();
+        },
+        endDrawing: function() {
+          this.tools.detachForwardLineGuide();
+          this.tools.detachBackwardLineGuide();
+          if (this._drawnLatLngs && this._drawnLatLngs.length < this.MIN_VERTEX)
+            this.deleteShape(this._drawnLatLngs);
+          L2.Editable.BaseEditor.prototype.endDrawing.call(this);
+          delete this._drawnLatLngs;
+        },
+        addLatLng: function(latlng) {
+          if (this._drawing === L2.Editable.FORWARD)
+            this._drawnLatLngs.push(latlng);
+          else
+            this._drawnLatLngs.unshift(latlng);
+          this.feature._bounds.extend(latlng);
+          var vertex = this.addVertexMarker(latlng, this._drawnLatLngs);
+          this.onNewVertex(vertex);
+          this.refresh();
+        },
+        newPointForward: function(latlng) {
+          this.addLatLng(latlng);
+          this.tools.attachForwardLineGuide();
+          this.tools.anchorForwardLineGuide(latlng);
+        },
+        newPointBackward: function(latlng) {
+          this.addLatLng(latlng);
+          this.tools.anchorBackwardLineGuide(latlng);
+        },
+        // 🍂namespace PathEditor
+        // 🍂method push()
+        // Programmatically add a point while drawing.
+        push: function(latlng) {
+          if (!latlng)
+            return console.error("L.Editable.PathEditor.push expect a valid latlng as parameter");
+          if (this._drawing === L2.Editable.FORWARD)
+            this.newPointForward(latlng);
+          else
+            this.newPointBackward(latlng);
+        },
+        removeLatLng: function(latlng) {
+          latlng.__vertex.delete();
+          this.refresh();
+        },
+        // 🍂method pop(): L.LatLng or null
+        // Programmatically remove last point (if any) while drawing.
+        pop: function() {
+          if (this._drawnLatLngs.length <= 1)
+            return;
+          var latlng;
+          if (this._drawing === L2.Editable.FORWARD)
+            latlng = this._drawnLatLngs[this._drawnLatLngs.length - 1];
+          else
+            latlng = this._drawnLatLngs[0];
+          this.removeLatLng(latlng);
+          if (this._drawing === L2.Editable.FORWARD)
+            this.tools.anchorForwardLineGuide(this._drawnLatLngs[this._drawnLatLngs.length - 1]);
+          else
+            this.tools.anchorForwardLineGuide(this._drawnLatLngs[0]);
+          return latlng;
+        },
+        processDrawingClick: function(e) {
+          if (e.vertex && e.vertex.editor === this)
+            return;
+          if (this._drawing === L2.Editable.FORWARD)
+            this.newPointForward(e.latlng);
+          else
+            this.newPointBackward(e.latlng);
+          this.fireAndForward("editable:drawing:clicked", e);
+        },
+        onDrawingMouseMove: function(e) {
+          L2.Editable.BaseEditor.prototype.onDrawingMouseMove.call(this, e);
+          if (this._drawing) {
+            this.tools.moveForwardLineGuide(e.latlng);
+            this.tools.moveBackwardLineGuide(e.latlng);
+          }
+        },
+        refresh: function() {
+          this.feature.redraw();
+          this.onEditing();
+        },
+        // 🍂namespace PathEditor
+        // 🍂method newShape(latlng?: L.LatLng)
+        // Add a new shape (Polyline, Polygon) in a multi, and setup up drawing tools to draw it;
+        // if optional `latlng` is given, start a path at this point.
+        newShape: function(latlng) {
+          var shape = this.addNewEmptyShape();
+          if (!shape)
+            return;
+          this.setDrawnLatLngs(shape[0] || shape);
+          this.startDrawingForward();
+          this.fireAndForward("editable:shape:new", { shape });
+          if (latlng)
+            this.newPointForward(latlng);
+        },
+        deleteShape: function(shape, latlngs) {
+          var e = { shape };
+          L2.Editable.makeCancellable(e);
+          this.fireAndForward("editable:shape:delete", e);
+          if (e._cancelled)
+            return;
+          shape = this._deleteShape(shape, latlngs);
+          if (this.ensureNotFlat)
+            this.ensureNotFlat();
+          this.feature.setLatLngs(this.getLatLngs());
+          this.refresh();
+          this.reset();
+          this.fireAndForward("editable:shape:deleted", { shape });
+          return shape;
+        },
+        _deleteShape: function(shape, latlngs) {
+          latlngs = latlngs || this.getLatLngs();
+          if (!latlngs.length)
+            return;
+          var self2 = this, inplaceDelete = function(latlngs2, shape2) {
+            shape2 = latlngs2.splice(0, Number.MAX_VALUE);
+            return shape2;
+          }, spliceDelete = function(latlngs2, shape2) {
+            latlngs2.splice(latlngs2.indexOf(shape2), 1);
+            if (!latlngs2.length)
+              self2._deleteShape(latlngs2);
+            return shape2;
+          };
+          if (latlngs === shape)
+            return inplaceDelete(latlngs, shape);
+          for (var i = 0; i < latlngs.length; i++) {
+            if (latlngs[i] === shape)
+              return spliceDelete(latlngs, shape);
+            else if (latlngs[i].indexOf(shape) !== -1)
+              return spliceDelete(latlngs[i], shape);
+          }
+        },
+        // 🍂namespace PathEditor
+        // 🍂method deleteShapeAt(latlng: L.LatLng): Array
+        // Remove a path shape at the given `latlng`.
+        deleteShapeAt: function(latlng) {
+          var shape = this.feature.shapeAt(latlng);
+          if (shape)
+            return this.deleteShape(shape);
+        },
+        // 🍂method appendShape(shape: Array)
+        // Append a new shape to the Polygon or Polyline.
+        appendShape: function(shape) {
+          this.insertShape(shape);
+        },
+        // 🍂method prependShape(shape: Array)
+        // Prepend a new shape to the Polygon or Polyline.
+        prependShape: function(shape) {
+          this.insertShape(shape, 0);
+        },
+        // 🍂method insertShape(shape: Array, index: int)
+        // Insert a new shape to the Polygon or Polyline at given index (default is to append).
+        insertShape: function(shape, index2) {
+          this.ensureMulti();
+          shape = this.formatShape(shape);
+          if (typeof index2 === "undefined")
+            index2 = this.feature._latlngs.length;
+          this.feature._latlngs.splice(index2, 0, shape);
+          this.feature.redraw();
+          if (this._enabled)
+            this.reset();
+        },
+        extendBounds: function(e) {
+          this.feature._bounds.extend(e.vertex.latlng);
+        },
+        onDragStart: function(e) {
+          this.editLayer.clearLayers();
+          L2.Editable.BaseEditor.prototype.onDragStart.call(this, e);
+        },
+        onDragEnd: function(e) {
+          this.initVertexMarkers();
+          L2.Editable.BaseEditor.prototype.onDragEnd.call(this, e);
+        }
+      });
+      L2.Editable.PolylineEditor = L2.Editable.PathEditor.extend({
+        startDrawingBackward: function() {
+          this._drawing = L2.Editable.BACKWARD;
+          this.startDrawing();
+        },
+        // 🍂method continueBackward(latlngs?: Array)
+        // Set up drawing tools to continue the line backward.
+        continueBackward: function(latlngs) {
+          if (this.drawing())
+            return;
+          latlngs = latlngs || this.getDefaultLatLngs();
+          this.setDrawnLatLngs(latlngs);
+          if (latlngs.length > 0) {
+            this.tools.attachBackwardLineGuide();
+            this.tools.anchorBackwardLineGuide(latlngs[0]);
+          }
+          this.startDrawingBackward();
+        },
+        // 🍂method continueForward(latlngs?: Array)
+        // Set up drawing tools to continue the line forward.
+        continueForward: function(latlngs) {
+          if (this.drawing())
+            return;
+          latlngs = latlngs || this.getDefaultLatLngs();
+          this.setDrawnLatLngs(latlngs);
+          if (latlngs.length > 0) {
+            this.tools.attachForwardLineGuide();
+            this.tools.anchorForwardLineGuide(latlngs[latlngs.length - 1]);
+          }
+          this.startDrawingForward();
+        },
+        getDefaultLatLngs: function(latlngs) {
+          latlngs = latlngs || this.feature._latlngs;
+          if (!latlngs.length || latlngs[0] instanceof L2.LatLng)
+            return latlngs;
+          else
+            return this.getDefaultLatLngs(latlngs[0]);
+        },
+        ensureMulti: function() {
+          if (this.feature._latlngs.length && isFlat(this.feature._latlngs)) {
+            this.feature._latlngs = [this.feature._latlngs];
+          }
+        },
+        addNewEmptyShape: function() {
+          if (this.feature._latlngs.length) {
+            var shape = [];
+            this.appendShape(shape);
+            return shape;
+          } else {
+            return this.feature._latlngs;
+          }
+        },
+        formatShape: function(shape) {
+          if (isFlat(shape))
+            return shape;
+          else if (shape[0])
+            return this.formatShape(shape[0]);
+        },
+        // 🍂method splitShape(latlngs?: Array, index: int)
+        // Split the given `latlngs` shape at index `index` and integrate new shape in instance `latlngs`.
+        splitShape: function(shape, index2) {
+          if (!index2 || index2 >= shape.length - 1)
+            return;
+          this.ensureMulti();
+          var shapeIndex = this.feature._latlngs.indexOf(shape);
+          if (shapeIndex === -1)
+            return;
+          var first = shape.slice(0, index2 + 1), second = shape.slice(index2);
+          second[0] = L2.latLng(second[0].lat, second[0].lng, second[0].alt);
+          this.feature._latlngs.splice(shapeIndex, 1, first, second);
+          this.refresh();
+          this.reset();
+        }
+      });
+      L2.Editable.PolygonEditor = L2.Editable.PathEditor.extend({
+        CLOSED: true,
+        MIN_VERTEX: 3,
+        newPointForward: function(latlng) {
+          L2.Editable.PathEditor.prototype.newPointForward.call(this, latlng);
+          if (!this.tools.backwardLineGuide._latlngs.length)
+            this.tools.anchorBackwardLineGuide(latlng);
+          if (this._drawnLatLngs.length === 2)
+            this.tools.attachBackwardLineGuide();
+        },
+        addNewEmptyHole: function(latlng) {
+          this.ensureNotFlat();
+          var latlngs = this.feature.shapeAt(latlng);
+          if (!latlngs)
+            return;
+          var holes = [];
+          latlngs.push(holes);
+          return holes;
+        },
+        // 🍂method newHole(latlng?: L.LatLng, index: int)
+        // Set up drawing tools for creating a new hole on the Polygon. If the `latlng` param is given, a first point is created.
+        newHole: function(latlng) {
+          var holes = this.addNewEmptyHole(latlng);
+          if (!holes)
+            return;
+          this.setDrawnLatLngs(holes);
+          this.startDrawingForward();
+          if (latlng)
+            this.newPointForward(latlng);
+        },
+        addNewEmptyShape: function() {
+          if (this.feature._latlngs.length && this.feature._latlngs[0].length) {
+            var shape = [];
+            this.appendShape(shape);
+            return shape;
+          } else {
+            return this.feature._latlngs;
+          }
+        },
+        ensureMulti: function() {
+          if (this.feature._latlngs.length && isFlat(this.feature._latlngs[0])) {
+            this.feature._latlngs = [this.feature._latlngs];
+          }
+        },
+        ensureNotFlat: function() {
+          if (!this.feature._latlngs.length || isFlat(this.feature._latlngs))
+            this.feature._latlngs = [this.feature._latlngs];
+        },
+        vertexCanBeDeleted: function(vertex) {
+          var parent = this.feature.parentShape(vertex.latlngs), idx = L2.Util.indexOf(parent, vertex.latlngs);
+          if (idx > 0)
+            return true;
+          return L2.Editable.PathEditor.prototype.vertexCanBeDeleted.call(this, vertex);
+        },
+        getDefaultLatLngs: function() {
+          if (!this.feature._latlngs.length)
+            this.feature._latlngs.push([]);
+          return this.feature._latlngs[0];
+        },
+        formatShape: function(shape) {
+          if (isFlat(shape) && (!shape[0] || shape[0].length !== 0))
+            return [shape];
+          else
+            return shape;
+        }
+      });
+      L2.Editable.RectangleEditor = L2.Editable.PathEditor.extend({
+        CLOSED: true,
+        MIN_VERTEX: 4,
+        options: {
+          skipMiddleMarkers: true
+        },
+        extendBounds: function(e) {
+          var index2 = e.vertex.getIndex(), next = e.vertex.getNext(), previous = e.vertex.getPrevious(), oppositeIndex = (index2 + 2) % 4, opposite = e.vertex.latlngs[oppositeIndex], bounds = new L2.LatLngBounds(e.latlng, opposite);
+          previous.latlng.update([e.latlng.lat, opposite.lng]);
+          next.latlng.update([opposite.lat, e.latlng.lng]);
+          this.updateBounds(bounds);
+          this.refreshVertexMarkers();
+        },
+        onDrawingMouseDown: function(e) {
+          L2.Editable.PathEditor.prototype.onDrawingMouseDown.call(this, e);
+          this.connect();
+          var latlngs = this.getDefaultLatLngs();
+          if (latlngs.length === 3)
+            latlngs.push(e.latlng);
+          var bounds = new L2.LatLngBounds(e.latlng, e.latlng);
+          this.updateBounds(bounds);
+          this.updateLatLngs(bounds);
+          this.refresh();
+          this.reset();
+          e.originalEvent._simulated = false;
+          this.map.dragging._draggable._onUp(e.originalEvent);
+          latlngs[3].__vertex.dragging._draggable._onDown(e.originalEvent);
+        },
+        onDrawingMouseUp: function(e) {
+          this.commitDrawing(e);
+          e.originalEvent._simulated = false;
+          L2.Editable.PathEditor.prototype.onDrawingMouseUp.call(this, e);
+        },
+        onDrawingMouseMove: function(e) {
+          e.originalEvent._simulated = false;
+          L2.Editable.PathEditor.prototype.onDrawingMouseMove.call(this, e);
+        },
+        getDefaultLatLngs: function(latlngs) {
+          return latlngs || this.feature._latlngs[0];
+        },
+        updateBounds: function(bounds) {
+          this.feature._bounds = bounds;
+        },
+        updateLatLngs: function(bounds) {
+          var latlngs = this.getDefaultLatLngs(), newLatlngs = this.feature._boundsToLatLngs(bounds);
+          for (var i = 0; i < latlngs.length; i++) {
+            latlngs[i].update(newLatlngs[i]);
+          }
+        }
+      });
+      L2.Editable.CircleEditor = L2.Editable.PathEditor.extend({
+        MIN_VERTEX: 2,
+        options: {
+          skipMiddleMarkers: true
+        },
+        initialize: function(map, feature, options2) {
+          L2.Editable.PathEditor.prototype.initialize.call(this, map, feature, options2);
+          this._resizeLatLng = this.computeResizeLatLng();
+        },
+        computeResizeLatLng: function() {
+          var delta = (this.feature._radius || this.feature._mRadius) * Math.cos(Math.PI / 4), point = this.map.project(this.feature._latlng);
+          return this.map.unproject([point.x + delta, point.y - delta]);
+        },
+        updateResizeLatLng: function() {
+          this._resizeLatLng.update(this.computeResizeLatLng());
+          this._resizeLatLng.__vertex.update();
+        },
+        getLatLngs: function() {
+          return [this.feature._latlng, this._resizeLatLng];
+        },
+        getDefaultLatLngs: function() {
+          return this.getLatLngs();
+        },
+        onVertexMarkerDrag: function(e) {
+          if (e.vertex.getIndex() === 1)
+            this.resize(e);
+          else
+            this.updateResizeLatLng(e);
+          L2.Editable.PathEditor.prototype.onVertexMarkerDrag.call(this, e);
+        },
+        resize: function(e) {
+          var radius = this.feature._latlng.distanceTo(e.latlng);
+          this.feature.setRadius(radius);
+        },
+        onDrawingMouseDown: function(e) {
+          L2.Editable.PathEditor.prototype.onDrawingMouseDown.call(this, e);
+          this._resizeLatLng.update(e.latlng);
+          this.feature._latlng.update(e.latlng);
+          this.connect();
+          e.originalEvent._simulated = false;
+          this.map.dragging._draggable._onUp(e.originalEvent);
+          this._resizeLatLng.__vertex.dragging._draggable._onDown(e.originalEvent);
+        },
+        onDrawingMouseUp: function(e) {
+          this.commitDrawing(e);
+          e.originalEvent._simulated = false;
+          L2.Editable.PathEditor.prototype.onDrawingMouseUp.call(this, e);
+        },
+        onDrawingMouseMove: function(e) {
+          e.originalEvent._simulated = false;
+          L2.Editable.PathEditor.prototype.onDrawingMouseMove.call(this, e);
+        },
+        onDrag: function(e) {
+          L2.Editable.PathEditor.prototype.onDrag.call(this, e);
+          this.feature.dragging.updateLatLng(this._resizeLatLng);
+        }
+      });
+      var EditableMixin = {
+        createEditor: function(map) {
+          map = map || this._map;
+          var tools = (this.options.editOptions || {}).editTools || map.editTools;
+          if (!tools)
+            throw Error("Unable to detect Editable instance.");
+          var Klass = this.options.editorClass || this.getEditorClass(tools);
+          return new Klass(map, this, this.options.editOptions);
+        },
+        // 🍂method enableEdit(map?: L.Map): this.editor
+        // Enable editing, by creating an editor if not existing, and then calling `enable` on it.
+        enableEdit: function(map) {
+          if (!this.editor)
+            this.createEditor(map);
+          this.editor.enable();
+          return this.editor;
+        },
+        // 🍂method editEnabled(): boolean
+        // Return true if current instance has an editor attached, and this editor is enabled.
+        editEnabled: function() {
+          return this.editor && this.editor.enabled();
+        },
+        // 🍂method disableEdit()
+        // Disable editing, also remove the editor property reference.
+        disableEdit: function() {
+          if (this.editor) {
+            this.editor.disable();
+            delete this.editor;
+          }
+        },
+        // 🍂method toggleEdit()
+        // Enable or disable editing, according to current status.
+        toggleEdit: function() {
+          if (this.editEnabled())
+            this.disableEdit();
+          else
+            this.enableEdit();
+        },
+        _onEditableAdd: function() {
+          if (this.editor)
+            this.enableEdit();
+        }
+      };
+      var PolylineMixin = {
+        getEditorClass: function(tools) {
+          return tools && tools.options.polylineEditorClass ? tools.options.polylineEditorClass : L2.Editable.PolylineEditor;
+        },
+        shapeAt: function(latlng, latlngs) {
+          var shape = null;
+          latlngs = latlngs || this._latlngs;
+          if (!latlngs.length)
+            return shape;
+          else if (isFlat(latlngs) && this.isInLatLngs(latlng, latlngs))
+            shape = latlngs;
+          else
+            for (var i = 0; i < latlngs.length; i++)
+              if (this.isInLatLngs(latlng, latlngs[i]))
+                return latlngs[i];
+          return shape;
+        },
+        isInLatLngs: function(l, latlngs) {
+          if (!latlngs)
+            return false;
+          var i, k, len, part = [], p, w = this._clickTolerance();
+          this._projectLatlngs(latlngs, part, this._pxBounds);
+          part = part[0];
+          p = this._map.latLngToLayerPoint(l);
+          if (!this._pxBounds.contains(p)) {
+            return false;
+          }
+          for (i = 1, len = part.length, k = 0; i < len; k = i++) {
+            if (L2.LineUtil.pointToSegmentDistance(p, part[k], part[i]) <= w) {
+              return true;
+            }
+          }
+          return false;
+        }
+      };
+      var PolygonMixin = {
+        getEditorClass: function(tools) {
+          return tools && tools.options.polygonEditorClass ? tools.options.polygonEditorClass : L2.Editable.PolygonEditor;
+        },
+        shapeAt: function(latlng, latlngs) {
+          var shape = null;
+          latlngs = latlngs || this._latlngs;
+          if (!latlngs.length)
+            return shape;
+          else if (isFlat(latlngs) && this.isInLatLngs(latlng, latlngs))
+            shape = latlngs;
+          else if (isFlat(latlngs[0]) && this.isInLatLngs(latlng, latlngs[0]))
+            shape = latlngs;
+          else
+            for (var i = 0; i < latlngs.length; i++)
+              if (this.isInLatLngs(latlng, latlngs[i][0]))
+                return latlngs[i];
+          return shape;
+        },
+        isInLatLngs: function(l, latlngs) {
+          var inside = false, l1, l2, j, k, len2;
+          for (j = 0, len2 = latlngs.length, k = len2 - 1; j < len2; k = j++) {
+            l1 = latlngs[j];
+            l2 = latlngs[k];
+            if (l1.lat > l.lat !== l2.lat > l.lat && l.lng < (l2.lng - l1.lng) * (l.lat - l1.lat) / (l2.lat - l1.lat) + l1.lng) {
+              inside = !inside;
+            }
+          }
+          return inside;
+        },
+        parentShape: function(shape, latlngs) {
+          latlngs = latlngs || this._latlngs;
+          if (!latlngs)
+            return;
+          var idx = L2.Util.indexOf(latlngs, shape);
+          if (idx !== -1)
+            return latlngs;
+          for (var i = 0; i < latlngs.length; i++) {
+            idx = L2.Util.indexOf(latlngs[i], shape);
+            if (idx !== -1)
+              return latlngs[i];
+          }
+        }
+      };
+      var MarkerMixin = {
+        getEditorClass: function(tools) {
+          return tools && tools.options.markerEditorClass ? tools.options.markerEditorClass : L2.Editable.MarkerEditor;
+        }
+      };
+      var RectangleMixin = {
+        getEditorClass: function(tools) {
+          return tools && tools.options.rectangleEditorClass ? tools.options.rectangleEditorClass : L2.Editable.RectangleEditor;
+        }
+      };
+      var CircleMixin = {
+        getEditorClass: function(tools) {
+          return tools && tools.options.circleEditorClass ? tools.options.circleEditorClass : L2.Editable.CircleEditor;
+        }
+      };
+      var keepEditable = function() {
+        this.on("add", this._onEditableAdd);
+      };
+      var isFlat = L2.LineUtil.isFlat || L2.LineUtil._flat || L2.Polyline._flat;
+      if (L2.Polyline) {
+        L2.Polyline.include(EditableMixin);
+        L2.Polyline.include(PolylineMixin);
+        L2.Polyline.addInitHook(keepEditable);
+      }
+      if (L2.Polygon) {
+        L2.Polygon.include(EditableMixin);
+        L2.Polygon.include(PolygonMixin);
+      }
+      if (L2.Marker) {
+        L2.Marker.include(EditableMixin);
+        L2.Marker.include(MarkerMixin);
+        L2.Marker.addInitHook(keepEditable);
+      }
+      if (L2.Rectangle) {
+        L2.Rectangle.include(EditableMixin);
+        L2.Rectangle.include(RectangleMixin);
+      }
+      if (L2.Circle) {
+        L2.Circle.include(EditableMixin);
+        L2.Circle.include(CircleMixin);
+      }
+      L2.LatLng.prototype.update = function(latlng) {
+        latlng = L2.latLng(latlng);
+        this.lat = latlng.lat;
+        this.lng = latlng.lng;
+      };
+    }, window);
+  })(Leaflet_Editable$2, Leaflet_Editable$2.exports);
+  var Leaflet_EditableExports = Leaflet_Editable$2.exports;
+  const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "3.3.1";
+  const version = "3.3.2";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -11414,6 +13357,8 @@ var __async = (__this, __arguments, generator) => {
     leaflet: "1.8.0",
     "leaflet-rastercoords": "1.0.5",
     "leaflet.markercluster": "1.5.3",
+    "leaflet-editable": "1.2.0",
+    "leaflet-path-drag": "^1.8.0-beta.3",
     "seneca-browser": "4.0.1",
     "seneca-entity": "21.1.0",
     "seneca-mem-store": "8.0.1"
@@ -30489,7 +32434,7 @@ var __async = (__this, __arguments, generator) => {
         });
         setInterval(self2.checkRooms, self2.config.mapInterval);
         let levelActions = [];
-        self2.data.levels.forEach((level, index) => {
+        self2.data.levels.forEach((level, index2) => {
           levelActions.push(
             L$1.Toolbar2.Action.extend({
               options: {
@@ -30498,12 +32443,12 @@ var __async = (__this, __arguments, generator) => {
                 }
               },
               addHooks: function() {
-                self2.showMap(index);
+                self2.showMap(index2);
               }
             })
           );
         });
-        self2.config.plants.forEach((plant, index) => {
+        self2.config.plants.forEach((plant, index2) => {
           levelActions.push(
             L$1.Toolbar2.Action.extend({
               options: {
@@ -30512,7 +32457,7 @@ var __async = (__this, __arguments, generator) => {
                 }
               },
               addHooks: function() {
-                self2.showMap(index);
+                self2.showMap(index2);
               }
             })
           );
