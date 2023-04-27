@@ -9,5 +9,8 @@ module.exports = {
       fileName: 'pqam',
     },
     emptyOutDir: false,
+    rollupOptions: {
+      treeshake: false,
+    },
   },
 }

@@ -46,15 +46,52 @@ var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof win
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
-var leafletSrc = { exports: {} };
+function getDefaultExportFromNamespaceIfPresent(n) {
+  return n && Object.prototype.hasOwnProperty.call(n, "default") ? n["default"] : n;
+}
+function getDefaultExportFromNamespaceIfNotNamed(n) {
+  return n && Object.prototype.hasOwnProperty.call(n, "default") && Object.keys(n).length === 1 ? n["default"] : n;
+}
+function getAugmentedNamespace(n) {
+  if (n.__esModule)
+    return n;
+  var f = n.default;
+  if (typeof f == "function") {
+    var a = function a2() {
+      if (this instanceof a2) {
+        var args = [null];
+        args.push.apply(args, arguments);
+        var Ctor = Function.bind.apply(f, args);
+        return new Ctor();
+      }
+      return f.apply(this, arguments);
+    };
+    a.prototype = f.prototype;
+  } else
+    a = {};
+  Object.defineProperty(a, "__esModule", { value: true });
+  Object.keys(n).forEach(function(k) {
+    var d = Object.getOwnPropertyDescriptor(n, k);
+    Object.defineProperty(a, k, d.get ? d : {
+      enumerable: true,
+      get: function() {
+        return n[k];
+      }
+    });
+  });
+  return a;
+}
+var leafletSrc$1 = { exports: {} };
 /* @preserve
  * Leaflet 1.8.0, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade
  */
+var leafletSrc = leafletSrc$1.exports;
 (function(module2, exports2) {
   (function(global2, factory) {
-    factory(exports2);
+    true ? factory(exports2) : false ? (void 0)(["exports"], factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, factory(global2.leaflet = {}));
   })(commonjsGlobal, function(exports3) {
+    "use strict";
     var version2 = "1.8.0";
     function extend(dest) {
       var i, j, len, src;
@@ -9338,11 +9375,12 @@ var leafletSrc = { exports: {} };
     };
     window.L = exports3;
   });
-})(leafletSrc, leafletSrc.exports);
-var leafletSrcExports = leafletSrc.exports;
+})(leafletSrc$1, leafletSrc$1.exports);
+var leafletSrcExports = leafletSrc$1.exports;
 const L$1 = /* @__PURE__ */ getDefaultExportFromCjs(leafletSrcExports);
 /* @preserve MIT LICENSE, Copyright (c) 2014-2015, Justin Manley */
 !function(t, o, i) {
+  "use strict";
   t.L.Toolbar2 = (L.Layer || L.Class).extend({ statics: { baseClass: "leaflet-toolbar" }, options: { className: "", filter: function() {
     return true;
   }, actions: [] }, initialize: function(t2) {
@@ -9428,12 +9466,14 @@ const L$1 = /* @__PURE__ */ getDefaultExportFromCjs(leafletSrcExports);
   } }), L.toolbar.popup = function(t2) {
     return new L.Toolbar2.Popup(t2);
   };
-}(window);
-var leaflet_markerclusterSrc = { exports: {} };
+}(window, document);
+var leaflet_markerclusterSrc$2 = { exports: {} };
+var leaflet_markerclusterSrc = leaflet_markerclusterSrc$2.exports;
 (function(module2, exports2) {
   (function(global2, factory) {
-    factory(exports2);
+    true ? factory(exports2) : false ? (void 0)(["exports"], factory) : (global2 = global2 || self, factory((global2.Leaflet = global2.Leaflet || {}, global2.Leaflet.markercluster = {})));
   })(commonjsGlobal, function(exports3) {
+    "use strict";
     var MarkerClusterGroup = L.MarkerClusterGroup = L.FeatureGroup.extend({
       options: {
         maxClusterRadius: 80,
@@ -11341,9 +11381,11 @@ var leaflet_markerclusterSrc = { exports: {} };
     exports3.MarkerCluster = MarkerCluster;
     Object.defineProperty(exports3, "__esModule", { value: true });
   });
-})(leaflet_markerclusterSrc, leaflet_markerclusterSrc.exports);
+})(leaflet_markerclusterSrc$2, leaflet_markerclusterSrc$2.exports);
+var leaflet_markerclusterSrcExports = leaflet_markerclusterSrc$2.exports;
+const leaflet_markerclusterSrc$1 = /* @__PURE__ */ getDefaultExportFromCjs(leaflet_markerclusterSrcExports);
 const name = "@plantquest/assetmap";
-const version = "3.3.0";
+const version = "3.3.1";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -11395,14 +11437,29 @@ const Pkg = {
 function commonjsRequire(path) {
   throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
 }
-var senecaBrowser = { exports: {} };
+var senecaBrowser$1 = { exports: {} };
+var senecaBrowser = senecaBrowser$1.exports;
 (function(module, exports) {
   (function(f) {
-    {
+    if (true) {
       module.exports = f();
+    } else if (false) {
+      (void 0)([], f);
+    } else {
+      var g;
+      if (typeof window !== "undefined") {
+        g = window;
+      } else if (typeof commonjsGlobal !== "undefined") {
+        g = commonjsGlobal;
+      } else if (typeof self !== "undefined") {
+        g = self;
+      } else {
+        g = this;
+      }
+      g.Seneca = f();
     }
   })(function() {
-    var define;
+    var define, module, exports;
     return function() {
       function r(e, n, t) {
         function o(i2, f) {
@@ -11430,6 +11487,7 @@ var senecaBrowser = { exports: {} };
       }
       return r;
     }()({ 1: [function(require2, module2, exports2) {
+      "use strict";
       const Hoek = require2("@hapi/hoek"), internals = { codes: /* @__PURE__ */ new Map([[100, "Continue"], [101, "Switching Protocols"], [102, "Processing"], [200, "OK"], [201, "Created"], [202, "Accepted"], [203, "Non-Authoritative Information"], [204, "No Content"], [205, "Reset Content"], [206, "Partial Content"], [207, "Multi-Status"], [300, "Multiple Choices"], [301, "Moved Permanently"], [302, "Moved Temporarily"], [303, "See Other"], [304, "Not Modified"], [305, "Use Proxy"], [307, "Temporary Redirect"], [400, "Bad Request"], [401, "Unauthorized"], [402, "Payment Required"], [403, "Forbidden"], [404, "Not Found"], [405, "Method Not Allowed"], [406, "Not Acceptable"], [407, "Proxy Authentication Required"], [408, "Request Time-out"], [409, "Conflict"], [410, "Gone"], [411, "Length Required"], [412, "Precondition Failed"], [413, "Request Entity Too Large"], [414, "Request-URI Too Large"], [415, "Unsupported Media Type"], [416, "Requested Range Not Satisfiable"], [417, "Expectation Failed"], [418, "I'm a teapot"], [422, "Unprocessable Entity"], [423, "Locked"], [424, "Failed Dependency"], [425, "Too Early"], [426, "Upgrade Required"], [428, "Precondition Required"], [429, "Too Many Requests"], [431, "Request Header Fields Too Large"], [451, "Unavailable For Legal Reasons"], [500, "Internal Server Error"], [501, "Not Implemented"], [502, "Bad Gateway"], [503, "Service Unavailable"], [504, "Gateway Time-out"], [505, "HTTP Version Not Supported"], [506, "Variant Also Negotiates"], [507, "Insufficient Storage"], [509, "Bandwidth Limit Exceeded"], [510, "Not Extended"], [511, "Network Authentication Required"]]) };
       exports2.Boom = class extends Error {
         constructor(t, e = {}) {
@@ -11535,6 +11593,7 @@ var senecaBrowser = { exports: {} };
         return e instanceof Error && !e.isBoom ? exports2.boomify(e, { statusCode: o, message: t }) : new exports2.Boom(t, { statusCode: o, data: e, ctor: r });
       };
     }, { "@hapi/hoek": 17 }], 2: [function(require2, module2, exports2) {
+      "use strict";
       const internals = { suspectRx: /"(?:_|\\u005[Ff])(?:_|\\u005[Ff])(?:p|\\u0070)(?:r|\\u0072)(?:o|\\u006[Ff])(?:t|\\u0074)(?:o|\\u006[Ff])(?:_|\\u005[Ff])(?:_|\\u005[Ff])"\s*\:/ };
       exports2.parse = function(t, ...o) {
         const e = "object" == typeof o[0] && o[0], r = o.length > 1 || !e ? o[0] : void 0, n = o.length > 1 && o[1] || e || {}, s = JSON.parse(t, r);
@@ -11564,6 +11623,7 @@ var senecaBrowser = { exports: {} };
         }
       };
     }, {}], 3: [function(require2, module2, exports2) {
+      "use strict";
       const Assert = require2("./assert"), Clone = require2("./clone"), Merge = require2("./merge"), Reach = require2("./reach"), internals = {};
       module2.exports = function(e, r, t = {}) {
         if (Assert(e && "object" == typeof e, "Invalid defaults value: must be an object"), Assert(!r || true === r || "object" == typeof r, "Invalid source value: must be true, falsy or an object"), Assert("object" == typeof t, "Invalid options: must be an object"), !r)
@@ -11609,7 +11669,8 @@ var senecaBrowser = { exports: {} };
         o[t[t.length - 1]] = n;
       };
     }, { "./assert": 4, "./clone": 7, "./merge": 20, "./reach": 22 }], 4: [function(require2, module2, exports2) {
-      const AssertError = require2("./error");
+      "use strict";
+      const AssertError = require2("./error"), internals = {};
       module2.exports = function(r, ...e) {
         if (!r) {
           if (1 === e.length && e[0] instanceof Error)
@@ -11620,6 +11681,7 @@ var senecaBrowser = { exports: {} };
     }, { "./error": 10 }], 5: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           const internals = {};
           module2.exports = internals.Bench = class {
             constructor() {
@@ -11639,13 +11701,15 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "_process": 158 }], 6: [function(require2, module2, exports2) {
-      const Ignore = require2("./ignore");
+      "use strict";
+      const Ignore = require2("./ignore"), internals = {};
       module2.exports = function() {
         return new Promise(Ignore);
       };
     }, { "./ignore": 16 }], 7: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
+          "use strict";
           const Reach = require2("./reach"), Types = require2("./types"), Utils = require2("./utils"), internals = { needsProtoHack: /* @__PURE__ */ new Set([Types.set, Types.map, Types.weakSet, Types.weakMap]) };
           module2.exports = internals.clone = function(e, t = {}, n = null) {
             if ("object" != typeof e || null === e)
@@ -11717,6 +11781,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("buffer").Buffer);
     }, { "./reach": 22, "./types": 25, "./utils": 26, "buffer": 46 }], 8: [function(require2, module2, exports2) {
+      "use strict";
       const Assert = require2("./assert"), DeepEqual = require2("./deepEqual"), EscapeRegex = require2("./escapeRegex"), Utils = require2("./utils"), internals = {};
       module2.exports = function(e, t, r = {}) {
         return "object" != typeof t && (t = [t]), Assert(!Array.isArray(t) || t.length, "Values array cannot be empty"), "string" == typeof e ? internals.string(e, t, r) : Array.isArray(e) ? internals.array(e, t, r) : (Assert("object" == typeof e, "Reference must be string or an object"), internals.object(e, t, r));
@@ -11813,6 +11878,7 @@ var senecaBrowser = { exports: {} };
     }, { "./assert": 4, "./deepEqual": 9, "./escapeRegex": 14, "./utils": 26 }], 9: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
+          "use strict";
           const Types = require2("./types"), internals = { mismatched: null };
           module2.exports = function(e, t, r) {
             return r = Object.assign({ prototype: true }, r), !!internals.isDeepEqual(e, t, r, []);
@@ -11962,18 +12028,21 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("buffer").Buffer);
     }, { "./types": 25, "buffer": 46 }], 10: [function(require2, module2, exports2) {
-      const Stringify = require2("./stringify");
+      "use strict";
+      const Stringify = require2("./stringify"), internals = {};
       module2.exports = class extends Error {
         constructor(r) {
           super(r.filter((r2) => "" !== r2).map((r2) => "string" == typeof r2 ? r2 : r2 instanceof Error ? r2.message : Stringify(r2)).join(" ") || "Unknown error"), "function" == typeof Error.captureStackTrace && Error.captureStackTrace(this, exports2.assert);
         }
       };
     }, { "./stringify": 24 }], 11: [function(require2, module2, exports2) {
-      const Assert = require2("./assert");
+      "use strict";
+      const Assert = require2("./assert"), internals = {};
       module2.exports = function(e) {
         return Assert(/^[ \w\!#\$%&'\(\)\*\+,\-\.\/\:;<\=>\?@\[\]\^`\{\|\}~\"\\]*$/.test(e), "Bad attribute value (" + e + ")"), e.replace(/\\/g, "\\\\").replace(/\"/g, '\\"');
       };
     }, { "./assert": 4 }], 12: [function(require2, module2, exports2) {
+      "use strict";
       const internals = {};
       module2.exports = function(n) {
         if (!n)
@@ -11996,6 +12065,7 @@ var senecaBrowser = { exports: {} };
         return n;
       }();
     }, {}], 13: [function(require2, module2, exports2) {
+      "use strict";
       const internals = {};
       module2.exports = function(e) {
         return e ? e.replace(/[<>&\u2028\u2029]/g, internals.escape) : "";
@@ -12003,10 +12073,13 @@ var senecaBrowser = { exports: {} };
         return internals.replacements.get(e);
       }, internals.replacements = /* @__PURE__ */ new Map([["<", "\\u003c"], [">", "\\u003e"], ["&", "\\u0026"], ["\u2028", "\\u2028"], ["\u2029", "\\u2029"]]);
     }, {}], 14: [function(require2, module2, exports2) {
+      "use strict";
+      const internals = {};
       module2.exports = function(e) {
         return e.replace(/[\^\$\.\*\+\-\?\=\!\:\|\\\/\(\)\[\]\{\}\,]/g, "\\$&");
       };
     }, {}], 15: [function(require2, module2, exports2) {
+      "use strict";
       const internals = {};
       module2.exports = internals.flatten = function(t, n) {
         const r = n || [];
@@ -12015,11 +12088,15 @@ var senecaBrowser = { exports: {} };
         return r;
       };
     }, {}], 16: [function(require2, module2, exports2) {
+      "use strict";
+      const internals = {};
       module2.exports = function() {
       };
     }, {}], 17: [function(require2, module2, exports2) {
+      "use strict";
       exports2.applyToDefaults = require2("./applyToDefaults"), exports2.assert = require2("./assert"), exports2.Bench = require2("./bench"), exports2.block = require2("./block"), exports2.clone = require2("./clone"), exports2.contain = require2("./contain"), exports2.deepEqual = require2("./deepEqual"), exports2.Error = require2("./error"), exports2.escapeHeaderAttribute = require2("./escapeHeaderAttribute"), exports2.escapeHtml = require2("./escapeHtml"), exports2.escapeJson = require2("./escapeJson"), exports2.escapeRegex = require2("./escapeRegex"), exports2.flatten = require2("./flatten"), exports2.ignore = require2("./ignore"), exports2.intersect = require2("./intersect"), exports2.isPromise = require2("./isPromise"), exports2.merge = require2("./merge"), exports2.once = require2("./once"), exports2.reach = require2("./reach"), exports2.reachTemplate = require2("./reachTemplate"), exports2.stringify = require2("./stringify"), exports2.wait = require2("./wait");
     }, { "./applyToDefaults": 3, "./assert": 4, "./bench": 5, "./block": 6, "./clone": 7, "./contain": 8, "./deepEqual": 9, "./error": 10, "./escapeHeaderAttribute": 11, "./escapeHtml": 12, "./escapeJson": 13, "./escapeRegex": 14, "./flatten": 15, "./ignore": 16, "./intersect": 18, "./isPromise": 19, "./merge": 20, "./once": 21, "./reach": 22, "./reachTemplate": 23, "./stringify": 24, "./wait": 27 }], 18: [function(require2, module2, exports2) {
+      "use strict";
       const internals = {};
       module2.exports = function(n, t, r = {}) {
         if (!n || !t)
@@ -12036,12 +12113,15 @@ var senecaBrowser = { exports: {} };
         return "function" == typeof n.has ? n.has(t) : void 0 !== n[t];
       };
     }, {}], 19: [function(require2, module2, exports2) {
+      "use strict";
+      const internals = {};
       module2.exports = function(t) {
         return !!t && "function" == typeof t.then;
       };
     }, {}], 20: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
+          "use strict";
           const Assert = require2("./assert"), Clone = require2("./clone"), Utils = require2("./utils"), internals = {};
           module2.exports = internals.merge = function(e, r, t) {
             if (Assert(e && "object" == typeof e, "Invalid target value: must be an object"), Assert(null == r || "object" == typeof r, "Invalid source value: must be null, undefined, or an object"), !r)
@@ -12070,6 +12150,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("buffer").Buffer);
     }, { "./assert": 4, "./clone": 7, "./utils": 26, "buffer": 46 }], 21: [function(require2, module2, exports2) {
+      "use strict";
       const internals = { wrapped: Symbol("wrapped") };
       module2.exports = function(n) {
         if (n[internals.wrapped])
@@ -12081,6 +12162,7 @@ var senecaBrowser = { exports: {} };
         return r[internals.wrapped] = true, r;
       };
     }, {}], 22: [function(require2, module2, exports2) {
+      "use strict";
       const Assert = require2("./assert"), internals = {};
       module2.exports = function(t, e, r) {
         if (false === e || null == e)
@@ -12108,7 +12190,8 @@ var senecaBrowser = { exports: {} };
         return t instanceof Set ? "set" : t instanceof Map ? "map" : void 0;
       };
     }, { "./assert": 4 }], 23: [function(require2, module2, exports2) {
-      const Reach = require2("./reach");
+      "use strict";
+      const Reach = require2("./reach"), internals = {};
       module2.exports = function(e, r, n) {
         return r.replace(/{([^{}]+)}/g, (r2, t) => {
           const c = Reach(e, t, n);
@@ -12116,6 +12199,8 @@ var senecaBrowser = { exports: {} };
         });
       };
     }, { "./reach": 22 }], 24: [function(require2, module2, exports2) {
+      "use strict";
+      const internals = {};
       module2.exports = function(...t) {
         try {
           return JSON.stringify(...t);
@@ -12126,6 +12211,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 25: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
+          "use strict";
           const internals = {};
           exports2 = module2.exports = { array: Array.prototype, buffer: Buffer2 && Buffer2.prototype, date: Date.prototype, error: Error.prototype, generic: Object.prototype, map: Map.prototype, promise: Promise.prototype, regex: RegExp.prototype, set: Set.prototype, weakMap: WeakMap.prototype, weakSet: WeakSet.prototype }, internals.typeMap = /* @__PURE__ */ new Map([["[object Error]", exports2.error], ["[object Map]", exports2.map], ["[object Promise]", exports2.promise], ["[object Set]", exports2.set], ["[object WeakMap]", exports2.weakMap], ["[object WeakSet]", exports2.weakSet]]), exports2.getInternalProto = function(e) {
             if (Array.isArray(e))
@@ -12144,10 +12230,13 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("buffer").Buffer);
     }, { "buffer": 46 }], 26: [function(require2, module2, exports2) {
+      "use strict";
+      const internals = {};
       exports2.keys = function(e, t = {}) {
         return false !== t.symbols ? Reflect.ownKeys(e) : Object.getOwnPropertyNames(e);
       };
     }, {}], 27: [function(require2, module2, exports2) {
+      "use strict";
       const internals = { maxTimer: __pow(2, 31) - 1 };
       module2.exports = function(e, t, r) {
         if ("bigint" == typeof e && (e = Number(e)), e >= Number.MAX_SAFE_INTEGER && (e = 1 / 0), "number" != typeof e && void 0 !== e)
@@ -12163,6 +12252,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 28: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
+          "use strict";
           const Events = require2("events"), Http = require2("http"), Https = require2("https"), Stream = require2("stream"), Url = require2("url"), Zlib = require2("zlib"), Boom = require2("@hapi/boom"), Bourne = require2("@hapi/bourne"), Hoek = require2("@hapi/hoek"), Payload = require2("./payload"), Recorder = require2("./recorder"), Tap = require2("./tap"), internals = { jsonRegex: /^application\/([a-z0-9.]*[+-]json|json)$/, shallowOptions: ["agent", "agents", "beforeRedirect", "payload", "redirected"], Client: class {
             constructor(e = {}) {
               Hoek.assert(!e.agents || e.agents.https && e.agents.http && e.agents.httpsAllowUnauthorized, 'Option agents must include "http", "https", and "httpsAllowUnauthorized"'), this._defaults = Hoek.clone(e, { shallow: internals.shallowOptions }), this.agents = this._defaults.agents || { https: new Https.Agent({ maxSockets: 1 / 0 }), http: new Http.Agent({ maxSockets: 1 / 0 }), httpsAllowUnauthorized: new Https.Agent({ maxSockets: 1 / 0, rejectUnauthorized: false }) }, this._defaults.events && (this.events = new Events.EventEmitter());
@@ -12401,8 +12491,9 @@ var senecaBrowser = { exports: {} };
     }, { "./payload": 29, "./recorder": 30, "./tap": 31, "@hapi/boom": 1, "@hapi/bourne": 2, "@hapi/hoek": 17, "buffer": 46, "events": 95, "http": 208, "https": 108, "stream": 192, "url": 229, "zlib": 44 }], 29: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
-          const Stream = require2("stream");
-          module2.exports = class extends Stream.Readable {
+          "use strict";
+          const Stream = require2("stream"), internals = {};
+          module2.exports = internals.Payload = class extends Stream.Readable {
             constructor(t, s) {
               super();
               const i = [].concat(t || "");
@@ -12423,8 +12514,9 @@ var senecaBrowser = { exports: {} };
     }, { "buffer": 46, "stream": 192 }], 30: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
-          const Stream = require2("stream"), Boom = require2("@hapi/boom");
-          module2.exports = class extends Stream.Writable {
+          "use strict";
+          const Stream = require2("stream"), Boom = require2("@hapi/boom"), internals = {};
+          module2.exports = internals.Recorder = class extends Stream.Writable {
             constructor(t) {
               super(), this.settings = t, this.buffers = [], this.length = 0;
             }
@@ -12440,8 +12532,9 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("buffer").Buffer);
     }, { "@hapi/boom": 1, "buffer": 46, "stream": 192 }], 31: [function(require2, module2, exports2) {
-      const Stream = require2("stream"), Payload = require2("./payload");
-      module2.exports = class extends Stream.Transform {
+      "use strict";
+      const Stream = require2("stream"), Payload = require2("./payload"), internals = {};
+      module2.exports = internals.Tap = class extends Stream.Transform {
         constructor() {
           super(), this.buffers = [];
         }
@@ -12453,6 +12546,7 @@ var senecaBrowser = { exports: {} };
         }
       };
     }, { "./payload": 29, "stream": 192 }], 32: [function(require2, module2, exports2) {
+      "use strict";
       var Call = require2("es-abstract/2021/Call"), Get = require2("es-abstract/2021/Get"), HasProperty = require2("es-abstract/2021/HasProperty"), IsCallable = require2("es-abstract/2021/IsCallable"), LengthOfArrayLike = require2("es-abstract/2021/LengthOfArrayLike"), ToObject = require2("es-abstract/2021/ToObject"), ToString = require2("es-abstract/2021/ToString"), callBound = require2("call-bind/callBound"), isString = require2("is-string"), $TypeError = TypeError, boxedString = Object("a"), splitString = "a" !== boxedString[0] || !(0 in boxedString), strSplit = callBound("%String.prototype.split%");
       module2.exports = function(r) {
         var e = ToObject(this), t = splitString && isString(e) ? strSplit(e, "") : e, i = LengthOfArrayLike(t);
@@ -12479,17 +12573,20 @@ var senecaBrowser = { exports: {} };
         return a;
       };
     }, { "call-bind/callBound": 48, "es-abstract/2021/Call": 52, "es-abstract/2021/Get": 55, "es-abstract/2021/HasProperty": 56, "es-abstract/2021/IsCallable": 58, "es-abstract/2021/LengthOfArrayLike": 63, "es-abstract/2021/ToObject": 71, "es-abstract/2021/ToString": 74, "is-string": 116 }], 33: [function(require2, module2, exports2) {
+      "use strict";
       var define2 = require2("define-properties"), RequireObjectCoercible = require2("es-abstract/2021/RequireObjectCoercible"), callBind = require2("call-bind"), callBound = require2("call-bind/callBound"), implementation = require2("./implementation"), getPolyfill = require2("./polyfill"), polyfill = callBind.apply(getPolyfill()), shim = require2("./shim"), $slice = callBound("%Array.prototype.slice%"), boundShim = function(e, i) {
         return RequireObjectCoercible(e), polyfill(e, $slice(arguments, 1));
       };
       define2(boundShim, { getPolyfill, implementation, shim }), module2.exports = boundShim;
     }, { "./implementation": 32, "./polyfill": 34, "./shim": 35, "call-bind": 49, "call-bind/callBound": 48, "define-properties": 50, "es-abstract/2021/RequireObjectCoercible": 65 }], 34: [function(require2, module2, exports2) {
+      "use strict";
       var arrayMethodBoxesProperly = require2("es-array-method-boxes-properly"), implementation = require2("./implementation");
       module2.exports = function() {
         var e = Array.prototype.reduce;
         return arrayMethodBoxesProperly(e) ? e : implementation;
       };
     }, { "./implementation": 32, "es-array-method-boxes-properly": 92 }], 35: [function(require2, module2, exports2) {
+      "use strict";
       var define2 = require2("define-properties"), getPolyfill = require2("./polyfill");
       module2.exports = function() {
         var e = getPolyfill();
@@ -12500,6 +12597,7 @@ var senecaBrowser = { exports: {} };
     }, { "./polyfill": 34, "define-properties": 50 }], 36: [function(require2, module2, exports2) {
       (function(global2) {
         (function() {
+          "use strict";
           var objectAssign = require2("object-assign");
           function compare(t, e) {
             if (t === e)
@@ -12820,7 +12918,7 @@ var senecaBrowser = { exports: {} };
           }
           function reduceToSingleString(e, r, t) {
             return e.reduce(function(e2, r2) {
-              return r2.indexOf("\n") >= 0 && 0, e2 + r2.replace(/\u001b\[\d\d?m/g, "").length + 1;
+              return 0, r2.indexOf("\n") >= 0 && 0, e2 + r2.replace(/\u001b\[\d\d?m/g, "").length + 1;
             }, 0) > 60 ? t[0] + ("" === r ? "" : r + "\n ") + " " + e.join(",\n  ") + " " + t[1] : t[0] + r + " " + e.join(", ") + " " + t[1];
           }
           function isArray(e) {
@@ -12906,6 +13004,7 @@ var senecaBrowser = { exports: {} };
     }, { "./support/isBuffer": 38, "_process": 158, "inherits": 37 }], 40: [function(require2, module2, exports2) {
       (function(global2) {
         (function() {
+          "use strict";
           var possibleNames = ["BigInt64Array", "BigUint64Array", "Float32Array", "Float64Array", "Int16Array", "Int32Array", "Int8Array", "Uint16Array", "Uint32Array", "Uint8Array", "Uint8ClampedArray"], g = "undefined" == typeof globalThis ? global2 : globalThis;
           module2.exports = function() {
             for (var r = [], a = 0; a < possibleNames.length; a++)
@@ -12915,6 +13014,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {}], 41: [function(require2, module2, exports2) {
+      "use strict";
       exports2.byteLength = byteLength, exports2.toByteArray = toByteArray, exports2.fromByteArray = fromByteArray;
       for (var lookup = [], revLookup = [], Arr = "undefined" != typeof Uint8Array ? Uint8Array : Array, code2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", i = 0, len = code2.length; i < len; ++i)
         lookup[i] = code2[i], revLookup[code2.charCodeAt(i)] = i;
@@ -12956,6 +13056,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 43: [function(require2, module2, exports2) {
       (function(process, Buffer2) {
         (function() {
+          "use strict";
           var assert = require2("assert"), Zstream = require2("pako/lib/zlib/zstream"), zlib_deflate = require2("pako/lib/zlib/deflate.js"), zlib_inflate = require2("pako/lib/zlib/inflate.js"), constants = require2("pako/lib/zlib/constants");
           for (var key2 in constants)
             exports2[key2] = constants[key2];
@@ -13093,6 +13194,7 @@ var senecaBrowser = { exports: {} };
     }, { "_process": 158, "assert": 36, "buffer": 46, "pako/lib/zlib/constants": 147, "pako/lib/zlib/deflate.js": 149, "pako/lib/zlib/inflate.js": 151, "pako/lib/zlib/zstream": 155 }], 44: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           var Buffer2 = require2("buffer").Buffer, Transform = require2("stream").Transform, binding = require2("./binding"), util = require2("util"), assert = require2("assert").ok, kMaxLength = require2("buffer").kMaxLength, kRangeErrorMessage = "Cannot create final Buffer. It would be larger than 0x" + kMaxLength.toString(16) + " bytes";
           binding.Z_MIN_WINDOWBITS = 8, binding.Z_MAX_WINDOWBITS = 15, binding.Z_DEFAULT_WINDOWBITS = 15, binding.Z_MIN_CHUNK = 64, binding.Z_MAX_CHUNK = 1 / 0, binding.Z_DEFAULT_CHUNK = 16384, binding.Z_MIN_MEMLEVEL = 1, binding.Z_MAX_MEMLEVEL = 9, binding.Z_DEFAULT_MEMLEVEL = 8, binding.Z_MIN_LEVEL = -1, binding.Z_MAX_LEVEL = 9, binding.Z_DEFAULT_LEVEL = binding.Z_DEFAULT_COMPRESSION;
           for (var bkeys = Object.keys(binding), bk = 0; bk < bkeys.length; bk++) {
@@ -13313,6 +13415,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 46: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
+          "use strict";
           var base64 = require2("base64-js"), ieee754 = require2("ieee754");
           exports2.Buffer = Buffer3, exports2.SlowBuffer = SlowBuffer, exports2.INSPECT_MAX_BYTES = 50;
           var K_MAX_LENGTH = 2147483647;
@@ -13794,10 +13897,10 @@ var senecaBrowser = { exports: {} };
               throw new RangeError("Index out of range");
           }
           function writeFloat(e, t, r, n, f) {
-            return t = +t, r >>>= 0, f || checkIEEE754(e, t, r, 4), ieee754.write(e, t, r, n, 23, 4), r + 4;
+            return t = +t, r >>>= 0, f || checkIEEE754(e, t, r, 4, 34028234663852886e22, -34028234663852886e22), ieee754.write(e, t, r, n, 23, 4), r + 4;
           }
           function writeDouble(e, t, r, n, f) {
-            return t = +t, r >>>= 0, f || checkIEEE754(e, t, r, 8), ieee754.write(e, t, r, n, 52, 8), r + 8;
+            return t = +t, r >>>= 0, f || checkIEEE754(e, t, r, 8, 17976931348623157e292, -17976931348623157e292), ieee754.write(e, t, r, n, 52, 8), r + 8;
           }
           Buffer3.prototype.slice = function(e, t) {
             var r = this.length;
@@ -14052,12 +14155,14 @@ var senecaBrowser = { exports: {} };
     }, { "base64-js": 41, "buffer": 46, "ieee754": 109 }], 47: [function(require2, module2, exports2) {
       module2.exports = { 100: "Continue", 101: "Switching Protocols", 102: "Processing", 200: "OK", 201: "Created", 202: "Accepted", 203: "Non-Authoritative Information", 204: "No Content", 205: "Reset Content", 206: "Partial Content", 207: "Multi-Status", 208: "Already Reported", 226: "IM Used", 300: "Multiple Choices", 301: "Moved Permanently", 302: "Found", 303: "See Other", 304: "Not Modified", 305: "Use Proxy", 307: "Temporary Redirect", 308: "Permanent Redirect", 400: "Bad Request", 401: "Unauthorized", 402: "Payment Required", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 406: "Not Acceptable", 407: "Proxy Authentication Required", 408: "Request Timeout", 409: "Conflict", 410: "Gone", 411: "Length Required", 412: "Precondition Failed", 413: "Payload Too Large", 414: "URI Too Long", 415: "Unsupported Media Type", 416: "Range Not Satisfiable", 417: "Expectation Failed", 418: "I'm a teapot", 421: "Misdirected Request", 422: "Unprocessable Entity", 423: "Locked", 424: "Failed Dependency", 425: "Unordered Collection", 426: "Upgrade Required", 428: "Precondition Required", 429: "Too Many Requests", 431: "Request Header Fields Too Large", 451: "Unavailable For Legal Reasons", 500: "Internal Server Error", 501: "Not Implemented", 502: "Bad Gateway", 503: "Service Unavailable", 504: "Gateway Timeout", 505: "HTTP Version Not Supported", 506: "Variant Also Negotiates", 507: "Insufficient Storage", 508: "Loop Detected", 509: "Bandwidth Limit Exceeded", 510: "Not Extended", 511: "Network Authentication Required" };
     }, {}], 48: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), callBind = require2("./"), $indexOf = callBind(GetIntrinsic("String.prototype.indexOf"));
       module2.exports = function(i, n) {
         var t = GetIntrinsic(i, !!n);
         return "function" == typeof t && $indexOf(i, ".prototype.") > -1 ? callBind(t) : t;
       };
     }, { "./": 49, "get-intrinsic": 101 }], 49: [function(require2, module2, exports2) {
+      "use strict";
       var bind = require2("function-bind"), GetIntrinsic = require2("get-intrinsic"), $apply = GetIntrinsic("%Function.prototype.apply%"), $call = GetIntrinsic("%Function.prototype.call%"), $reflectApply = GetIntrinsic("%Reflect.apply%", true) || bind.call($call, $apply), $gOPD = GetIntrinsic("%Object.getOwnPropertyDescriptor%", true), $defineProperty = GetIntrinsic("%Object.defineProperty%", true), $max = GetIntrinsic("%Math.max%");
       if ($defineProperty)
         try {
@@ -14075,6 +14180,7 @@ var senecaBrowser = { exports: {} };
       };
       $defineProperty ? $defineProperty(module2.exports, "apply", { value: applyBind }) : module2.exports.apply = applyBind;
     }, { "function-bind": 99, "get-intrinsic": 101 }], 50: [function(require2, module2, exports2) {
+      "use strict";
       var keys = require2("object-keys"), hasSymbols = "function" == typeof Symbol && "symbol" == typeof Symbol("foo"), toStr = Object.prototype.toString, concat = Array.prototype.concat, origDefineProperty = Object.defineProperty, isFunction = function(e) {
         return "function" == typeof e && "[object Function]" === toStr.call(e);
       }, hasPropertyDescriptors = require2("has-property-descriptors")(), supportsDescriptors = origDefineProperty && hasPropertyDescriptors, defineProperty = function(e, r, o, t) {
@@ -14087,6 +14193,7 @@ var senecaBrowser = { exports: {} };
       };
       defineProperties.supportsDescriptors = !!supportsDescriptors, module2.exports = defineProperties;
     }, { "has-property-descriptors": 103, "object-keys": 138 }], 51: [function(require, module, exports) {
+      "use strict";
       const Util = require("util");
       var Template = require("lodash.template");
       function eraro(e) {
@@ -14155,6 +14262,7 @@ var senecaBrowser = { exports: {} };
       }
       module.exports = eraro;
     }, { "lodash.template": 127, "util": 238 }], 52: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), callBound = require2("call-bind/callBound"), $TypeError = GetIntrinsic("%TypeError%"), IsArray = require2("./IsArray"), $apply = GetIntrinsic("%Reflect.apply%", true) || callBound("%Function.prototype.apply%");
       module2.exports = function(r, e) {
         var t = arguments.length > 2 ? arguments[2] : [];
@@ -14163,6 +14271,7 @@ var senecaBrowser = { exports: {} };
         return $apply(r, e, t);
       };
     }, { "./IsArray": 57, "call-bind/callBound": 48, "get-intrinsic": 101 }], 53: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $TypeError = GetIntrinsic("%TypeError%"), DefineOwnProperty = require2("../helpers/DefineOwnProperty"), FromPropertyDescriptor = require2("./FromPropertyDescriptor"), OrdinaryGetOwnProperty = require2("./OrdinaryGetOwnProperty"), IsDataDescriptor = require2("./IsDataDescriptor"), IsExtensible = require2("./IsExtensible"), IsPropertyKey = require2("./IsPropertyKey"), SameValue = require2("./SameValue"), Type = require2("./Type");
       module2.exports = function(r, e, t) {
         if ("Object" !== Type(r))
@@ -14173,11 +14282,13 @@ var senecaBrowser = { exports: {} };
         return !(i && !i["[[Configurable]]"] || !o) && DefineOwnProperty(IsDataDescriptor, SameValue, FromPropertyDescriptor, r, e, { "[[Configurable]]": true, "[[Enumerable]]": true, "[[Value]]": t, "[[Writable]]": true });
       };
     }, { "../helpers/DefineOwnProperty": 80, "./FromPropertyDescriptor": 54, "./IsDataDescriptor": 59, "./IsExtensible": 60, "./IsPropertyKey": 61, "./OrdinaryGetOwnProperty": 64, "./SameValue": 66, "./Type": 75, "get-intrinsic": 101 }], 54: [function(require2, module2, exports2) {
+      "use strict";
       var assertRecord = require2("../helpers/assertRecord"), fromPropertyDescriptor = require2("../helpers/fromPropertyDescriptor"), Type = require2("./Type");
       module2.exports = function(r) {
         return void 0 !== r && assertRecord(Type, "Property Descriptor", "Desc", r), fromPropertyDescriptor(r);
       };
     }, { "../helpers/assertRecord": 82, "../helpers/fromPropertyDescriptor": 83, "./Type": 75 }], 55: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $TypeError = GetIntrinsic("%TypeError%"), inspect2 = require2("object-inspect"), IsPropertyKey = require2("./IsPropertyKey"), Type = require2("./Type");
       module2.exports = function(e, r) {
         if ("Object" !== Type(e))
@@ -14187,6 +14298,7 @@ var senecaBrowser = { exports: {} };
         return e[r];
       };
     }, { "./IsPropertyKey": 61, "./Type": 75, "get-intrinsic": 101, "object-inspect": 136 }], 56: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $TypeError = GetIntrinsic("%TypeError%"), IsPropertyKey = require2("./IsPropertyKey"), Type = require2("./Type");
       module2.exports = function(e, r) {
         if ("Object" !== Type(e))
@@ -14196,15 +14308,19 @@ var senecaBrowser = { exports: {} };
         return r in e;
       };
     }, { "./IsPropertyKey": 61, "./Type": 75, "get-intrinsic": 101 }], 57: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = require2("../helpers/IsArray");
     }, { "../helpers/IsArray": 81 }], 58: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = require2("is-callable");
     }, { "is-callable": 112 }], 59: [function(require2, module2, exports2) {
+      "use strict";
       var has = require2("has"), assertRecord = require2("../helpers/assertRecord"), Type = require2("./Type");
       module2.exports = function(e) {
         return void 0 !== e && (assertRecord(Type, "Property Descriptor", "Desc", e), !(!has(e, "[[Value]]") && !has(e, "[[Writable]]")));
       };
     }, { "../helpers/assertRecord": 82, "./Type": 75, "has": 107 }], 60: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $preventExtensions = GetIntrinsic("%Object.preventExtensions%", true), $isExtensible = GetIntrinsic("%Object.isExtensible%", true), isPrimitive = require2("../helpers/isPrimitive");
       module2.exports = $preventExtensions ? function(i) {
         return !isPrimitive(i) && $isExtensible(i);
@@ -14212,10 +14328,12 @@ var senecaBrowser = { exports: {} };
         return !isPrimitive(i);
       };
     }, { "../helpers/isPrimitive": 88, "get-intrinsic": 101 }], 61: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = function(t) {
         return "string" == typeof t || "symbol" == typeof t;
       };
     }, {}], 62: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $match = GetIntrinsic("%Symbol.match%", true), hasRegExpMatcher = require2("is-regex"), ToBoolean = require2("./ToBoolean");
       module2.exports = function(e) {
         if (!e || "object" != typeof e)
@@ -14228,6 +14346,7 @@ var senecaBrowser = { exports: {} };
         return hasRegExpMatcher(e);
       };
     }, { "./ToBoolean": 67, "get-intrinsic": 101, "is-regex": 115 }], 63: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $TypeError = GetIntrinsic("%TypeError%"), Get = require2("./Get"), ToLength = require2("./ToLength"), Type = require2("./Type");
       module2.exports = function(e) {
         if ("Object" !== Type(e))
@@ -14235,6 +14354,7 @@ var senecaBrowser = { exports: {} };
         return ToLength(Get(e, "length"));
       };
     }, { "./Get": 55, "./ToLength": 69, "./Type": 75, "get-intrinsic": 101 }], 64: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $gOPD = require2("../helpers/getOwnPropertyDescriptor"), $TypeError = GetIntrinsic("%TypeError%"), callBound = require2("call-bind/callBound"), $isEnumerable = callBound("Object.prototype.propertyIsEnumerable"), has = require2("has"), IsArray = require2("./IsArray"), IsPropertyKey = require2("./IsPropertyKey"), IsRegExp = require2("./IsRegExp"), ToPropertyDescriptor = require2("./ToPropertyDescriptor"), Type = require2("./Type");
       module2.exports = function(r, e) {
         if ("Object" !== Type(r))
@@ -14250,29 +14370,35 @@ var senecaBrowser = { exports: {} };
         }
       };
     }, { "../helpers/getOwnPropertyDescriptor": 84, "./IsArray": 57, "./IsPropertyKey": 61, "./IsRegExp": 62, "./ToPropertyDescriptor": 73, "./Type": 75, "call-bind/callBound": 48, "get-intrinsic": 101, "has": 107 }], 65: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = require2("../5/CheckObjectCoercible");
     }, { "../5/CheckObjectCoercible": 78 }], 66: [function(require2, module2, exports2) {
+      "use strict";
       var $isNaN = require2("../helpers/isNaN");
       module2.exports = function(e, r) {
         return e === r ? 0 !== e || 1 / e == 1 / r : $isNaN(e) && $isNaN(r);
       };
     }, { "../helpers/isNaN": 87 }], 67: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = function(t) {
         return !!t;
       };
     }, {}], 68: [function(require2, module2, exports2) {
+      "use strict";
       var abs = require2("./abs"), floor = require2("./floor"), ToNumber = require2("./ToNumber"), $isNaN = require2("../helpers/isNaN"), $isFinite = require2("../helpers/isFinite"), $sign = require2("../helpers/sign");
       module2.exports = function(e) {
         var r = ToNumber(e);
         return $isNaN(r) || 0 === r ? 0 : $isFinite(r) ? $sign(r) * floor(abs(r)) : r;
       };
     }, { "../helpers/isFinite": 85, "../helpers/isNaN": 87, "../helpers/sign": 91, "./ToNumber": 70, "./abs": 76, "./floor": 77 }], 69: [function(require2, module2, exports2) {
+      "use strict";
       var MAX_SAFE_INTEGER = require2("../helpers/maxSafeInteger"), ToIntegerOrInfinity = require2("./ToIntegerOrInfinity");
       module2.exports = function(e) {
         var r = ToIntegerOrInfinity(e);
         return r <= 0 ? 0 : r > MAX_SAFE_INTEGER ? MAX_SAFE_INTEGER : r;
       };
     }, { "../helpers/maxSafeInteger": 89, "./ToIntegerOrInfinity": 68 }], 70: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $TypeError = GetIntrinsic("%TypeError%"), $Number = GetIntrinsic("%Number%"), $RegExp = GetIntrinsic("%RegExp%"), $parseInteger = GetIntrinsic("%parseInt%"), callBound = require2("call-bind/callBound"), regexTester = require2("../helpers/regexTester"), isPrimitive = require2("../helpers/isPrimitive"), $strSlice = callBound("String.prototype.slice"), isBinary = regexTester(/^0b[01]+$/i), isOctal = regexTester(/^0o[0-7]+$/i), isInvalidHexLiteral = regexTester(/^[-+]0x[0-9a-f]+$/i), nonWS = ["", "​", "￾"].join(""), nonWSregex = new $RegExp("[" + nonWS + "]", "g"), hasNonWS = regexTester(nonWSregex), ws = ["	\n\v\f\r   ᠎    ", "         　\u2028", "\u2029\uFEFF"].join(""), trimRegex = new RegExp("(^[" + ws + "]+)|([" + ws + "]+$)", "g"), $replace = callBound("String.prototype.replace"), $trim = function(e) {
         return $replace(e, trimRegex, "");
       }, ToPrimitive = require2("./ToPrimitive");
@@ -14296,16 +14422,19 @@ var senecaBrowser = { exports: {} };
         return $Number(i);
       };
     }, { "../helpers/isPrimitive": 88, "../helpers/regexTester": 90, "./ToPrimitive": 72, "call-bind/callBound": 48, "get-intrinsic": 101 }], 71: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $Object = GetIntrinsic("%Object%"), RequireObjectCoercible = require2("./RequireObjectCoercible");
       module2.exports = function(e) {
         return RequireObjectCoercible(e), $Object(e);
       };
     }, { "./RequireObjectCoercible": 65, "get-intrinsic": 101 }], 72: [function(require2, module2, exports2) {
+      "use strict";
       var toPrimitive = require2("es-to-primitive/es2015");
       module2.exports = function(i) {
         return arguments.length > 1 ? toPrimitive(i, arguments[1]) : toPrimitive(i);
       };
     }, { "es-to-primitive/es2015": 93 }], 73: [function(require2, module2, exports2) {
+      "use strict";
       var has = require2("has"), GetIntrinsic = require2("get-intrinsic"), $TypeError = GetIntrinsic("%TypeError%"), Type = require2("./Type"), ToBoolean = require2("./ToBoolean"), IsCallable = require2("./IsCallable");
       module2.exports = function(e) {
         if ("Object" !== Type(e))
@@ -14328,6 +14457,7 @@ var senecaBrowser = { exports: {} };
         return r;
       };
     }, { "./IsCallable": 58, "./ToBoolean": 67, "./Type": 75, "get-intrinsic": 101, "has": 107 }], 74: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $String = GetIntrinsic("%String%"), $TypeError = GetIntrinsic("%TypeError%");
       module2.exports = function(r) {
         if ("symbol" == typeof r)
@@ -14335,21 +14465,25 @@ var senecaBrowser = { exports: {} };
         return $String(r);
       };
     }, { "get-intrinsic": 101 }], 75: [function(require2, module2, exports2) {
+      "use strict";
       var ES5Type = require2("../5/Type");
       module2.exports = function(e) {
         return "symbol" == typeof e ? "Symbol" : "bigint" == typeof e ? "BigInt" : ES5Type(e);
       };
     }, { "../5/Type": 79 }], 76: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $abs = GetIntrinsic("%Math.abs%");
       module2.exports = function(t) {
         return $abs(t);
       };
     }, { "get-intrinsic": 101 }], 77: [function(require2, module2, exports2) {
+      "use strict";
       var $floor = Math.floor;
       module2.exports = function(o) {
         return $floor(o);
       };
     }, {}], 78: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $TypeError = GetIntrinsic("%TypeError%");
       module2.exports = function(r, e) {
         if (null == r)
@@ -14357,10 +14491,12 @@ var senecaBrowser = { exports: {} };
         return r;
       };
     }, { "get-intrinsic": 101 }], 79: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = function(e) {
         return null === e ? "Null" : void 0 === e ? "Undefined" : "function" == typeof e || "object" == typeof e ? "Object" : "number" == typeof e ? "Number" : "boolean" == typeof e ? "Boolean" : "string" == typeof e ? "String" : void 0;
       };
     }, {}], 80: [function(require2, module2, exports2) {
+      "use strict";
       var hasPropertyDescriptors = require2("has-property-descriptors"), GetIntrinsic = require2("get-intrinsic"), $defineProperty = hasPropertyDescriptors() && GetIntrinsic("%Object.defineProperty%", true), hasArrayLengthDefineBug = hasPropertyDescriptors.hasArrayLengthDefineBug(), isArray = hasArrayLengthDefineBug && require2("../helpers/IsArray"), callBound = require2("call-bind/callBound"), $isEnumerable = callBound("Object.prototype.propertyIsEnumerable");
       module2.exports = function(e, r, t, n, i, a) {
         if (!$defineProperty) {
@@ -14376,11 +14512,13 @@ var senecaBrowser = { exports: {} };
         return hasArrayLengthDefineBug && "length" === i && "[[Value]]" in a && isArray(n) && n.length !== a["[[Value]]"] ? (n.length = a["[[Value]]"], n.length === a["[[Value]]"]) : ($defineProperty(n, i, t(a)), true);
       };
     }, { "../helpers/IsArray": 81, "call-bind/callBound": 48, "get-intrinsic": 101, "has-property-descriptors": 103 }], 81: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $Array = GetIntrinsic("%Array%"), toStr = !$Array.isArray && require2("call-bind/callBound")("Object.prototype.toString");
       module2.exports = $Array.isArray || function(r) {
         return "[object Array]" === toStr(r);
       };
     }, { "call-bind/callBound": 48, "get-intrinsic": 101 }], 82: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $TypeError = GetIntrinsic("%TypeError%"), $SyntaxError = GetIntrinsic("%SyntaxError%"), has = require2("has"), isMatchRecord = require2("./isMatchRecord"), predicates = { "Property Descriptor": function(r) {
         var e = { "[[Configurable]]": true, "[[Enumerable]]": true, "[[Get]]": true, "[[Set]]": true, "[[Value]]": true, "[[Writable]]": true };
         for (var t in r)
@@ -14399,6 +14537,7 @@ var senecaBrowser = { exports: {} };
           throw new $TypeError(t + " must be a " + e);
       };
     }, { "./isMatchRecord": 86, "get-intrinsic": 101, "has": 107 }], 83: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = function(e) {
         if (void 0 === e)
           return e;
@@ -14406,6 +14545,7 @@ var senecaBrowser = { exports: {} };
         return "[[Value]]" in e && (i.value = e["[[Value]]"]), "[[Writable]]" in e && (i.writable = !!e["[[Writable]]"]), "[[Get]]" in e && (i.get = e["[[Get]]"]), "[[Set]]" in e && (i.set = e["[[Set]]"]), "[[Enumerable]]" in e && (i.enumerable = !!e["[[Enumerable]]"]), "[[Configurable]]" in e && (i.configurable = !!e["[[Configurable]]"]), i;
       };
     }, {}], 84: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $gOPD = GetIntrinsic("%Object.getOwnPropertyDescriptor%", true);
       if ($gOPD)
         try {
@@ -14415,6 +14555,7 @@ var senecaBrowser = { exports: {} };
         }
       module2.exports = $gOPD;
     }, { "get-intrinsic": 101 }], 85: [function(require2, module2, exports2) {
+      "use strict";
       var $isNaN = Number.isNaN || function(e) {
         return e != e;
       };
@@ -14422,22 +14563,27 @@ var senecaBrowser = { exports: {} };
         return "number" == typeof e && !$isNaN(e) && e !== 1 / 0 && e !== -1 / 0;
       };
     }, {}], 86: [function(require2, module2, exports2) {
+      "use strict";
       var has = require2("has");
       module2.exports = function(n) {
         return has(n, "[[StartIndex]]") && has(n, "[[EndIndex]]") && n["[[StartIndex]]"] >= 0 && n["[[EndIndex]]"] >= n["[[StartIndex]]"] && String(parseInt(n["[[StartIndex]]"], 10)) === String(n["[[StartIndex]]"]) && String(parseInt(n["[[EndIndex]]"], 10)) === String(n["[[EndIndex]]"]);
       };
     }, { "has": 107 }], 87: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = Number.isNaN || function(e) {
         return e != e;
       };
     }, {}], 88: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = function(t) {
         return null === t || "function" != typeof t && "object" != typeof t;
       };
     }, {}], 89: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $Math = GetIntrinsic("%Math%"), $Number = GetIntrinsic("%Number%");
       module2.exports = $Number.MAX_SAFE_INTEGER || $Math.pow(2, 53) - 1;
     }, { "get-intrinsic": 101 }], 90: [function(require2, module2, exports2) {
+      "use strict";
       var callBound = require2("call-bind/callBound"), $exec = callBound("RegExp.prototype.exec");
       module2.exports = function(e) {
         return function(l) {
@@ -14445,6 +14591,7 @@ var senecaBrowser = { exports: {} };
         };
       };
     }, { "call-bind/callBound": 48 }], 91: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = function(t) {
         return t >= 0 ? 1 : -1;
       };
@@ -14467,6 +14614,7 @@ var senecaBrowser = { exports: {} };
         return false;
       };
     }, {}], 93: [function(require2, module2, exports2) {
+      "use strict";
       var hasSymbols = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator, isPrimitive = require2("./helpers/isPrimitive"), isCallable = require2("is-callable"), isDate = require2("is-date-object"), isSymbol = require2("is-symbol"), ordinaryToPrimitive = function(r, e) {
         if (null == r)
           throw new TypeError("Cannot call method on " + r);
@@ -14498,10 +14646,12 @@ var senecaBrowser = { exports: {} };
         return "default" === i && (isDate(r) || isSymbol(r)) && (i = "string"), ordinaryToPrimitive(r, "default" === i ? "number" : i);
       };
     }, { "./helpers/isPrimitive": 94, "is-callable": 112, "is-date-object": 113, "is-symbol": 117 }], 94: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = function(t) {
         return null === t || "function" != typeof t && "object" != typeof t;
       };
     }, {}], 95: [function(require2, module2, exports2) {
+      "use strict";
       var ReflectOwnKeys, R = "object" == typeof Reflect ? Reflect : null, ReflectApply = R && "function" == typeof R.apply ? R.apply : function(e, t, n) {
         return Function.prototype.apply.call(e, t, n);
       };
@@ -14813,6 +14963,7 @@ var senecaBrowser = { exports: {} };
         };
       }
     }, {}], 97: [function(require2, module2, exports2) {
+      "use strict";
       var isCallable = require2("is-callable"), toStr = Object.prototype.toString, hasOwnProperty = Object.prototype.hasOwnProperty, forEachArray = function(r, t, a) {
         for (var o = 0, l = r.length; o < l; o++)
           hasOwnProperty.call(r, o) && (null == a ? t(r[o], o, r) : t.call(a, r[o], o, r));
@@ -14830,6 +14981,7 @@ var senecaBrowser = { exports: {} };
       };
       module2.exports = forEach;
     }, { "is-callable": 112 }], 98: [function(require2, module2, exports2) {
+      "use strict";
       var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ", slice = Array.prototype.slice, toStr = Object.prototype.toString, funcType = "[object Function]";
       module2.exports = function(t) {
         var n = this;
@@ -14851,19 +15003,26 @@ var senecaBrowser = { exports: {} };
         return o;
       };
     }, {}], 99: [function(require2, module2, exports2) {
+      "use strict";
       var implementation = require2("./implementation");
       module2.exports = Function.prototype.bind || implementation;
     }, { "./implementation": 98 }], 100: [function(require2, module2, exports2) {
       (function(global2) {
         (function() {
           !function(t) {
-            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = t() : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).GateExecutor = t();
+            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = t() : "function" == typeof define && define.amd ? define([], t) : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).GateExecutor = t();
           }(function() {
             var t, e, n, r, i = (t = function(t2, e2) {
               (function(t3, n2) {
                 (function() {
-                  var r2 = o.nextTick, i2 = Array.prototype.slice, l2 = {}, u2 = 0;
-                  e2.setImmediate = "function" == typeof t3 ? t3 : function(t4) {
+                  var r2 = o.nextTick, i2 = (Function.prototype.apply, Array.prototype.slice), l2 = {}, u2 = 0;
+                  function c2(t4, e3) {
+                    this._id = t4, this._clearFn = e3;
+                  }
+                  c2.prototype.unref = c2.prototype.ref = function() {
+                  }, c2.prototype.close = function() {
+                    this._clearFn.call(window, this._id);
+                  }, e2.setImmediate = "function" == typeof t3 ? t3 : function(t4) {
                     var n3 = u2++, o2 = !(arguments.length < 2) && i2.call(arguments, 1);
                     return l2[n3] = true, r2(function() {
                       l2[n3] && (o2 ? t4.apply(null, o2) : t4.call(null), e2.clearImmediate(n3));
@@ -14966,6 +15125,7 @@ var senecaBrowser = { exports: {} };
             var w = {};
             return function(t2) {
               (function() {
+                "use strict";
                 function e2(e3) {
                   return (e3 = e3 || {}).interval = null == e3.interval ? 111 : e3.interval, e3.timeout = null == e3.timeout ? 2222 : e3.timeout, function e4(n2, r2) {
                     let i2 = {};
@@ -15043,6 +15203,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {}], 101: [function(require2, module2, exports2) {
+      "use strict";
       var undefined$1, $SyntaxError = SyntaxError, $Function = Function, $TypeError = TypeError, getEvalledConstructor = function(r) {
         try {
           return $Function('"use strict"; return (' + r + ").constructor;")();
@@ -15140,7 +15301,7 @@ var senecaBrowser = { exports: {} };
       (function(global2) {
         (function() {
           !function(e) {
-            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = e() : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Gubu = e();
+            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = e() : "function" == typeof define && define.amd ? define([], e) : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Gubu = e();
           }(function() {
             var e = {}, t = {};
             Object.defineProperty(t, "__esModule", { value: true }), t.Gubu = void 0;
@@ -15586,6 +15747,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {}], 103: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), $defineProperty = GetIntrinsic("%Object.defineProperty%", true), hasPropertyDescriptors = function() {
         if ($defineProperty)
           try {
@@ -15605,11 +15767,13 @@ var senecaBrowser = { exports: {} };
         }
       }, module2.exports = hasPropertyDescriptors;
     }, { "get-intrinsic": 101 }], 104: [function(require2, module2, exports2) {
+      "use strict";
       var origSymbol = "undefined" != typeof Symbol && Symbol, hasSymbolSham = require2("./shams");
       module2.exports = function() {
         return "function" == typeof origSymbol && ("function" == typeof Symbol && ("symbol" == typeof origSymbol("foo") && ("symbol" == typeof Symbol("bar") && hasSymbolSham())));
       };
     }, { "./shams": 105 }], 105: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = function() {
         if ("function" != typeof Symbol || "function" != typeof Object.getOwnPropertySymbols)
           return false;
@@ -15641,11 +15805,13 @@ var senecaBrowser = { exports: {} };
         return true;
       };
     }, {}], 106: [function(require2, module2, exports2) {
+      "use strict";
       var hasSymbols = require2("has-symbols/shams");
       module2.exports = function() {
         return hasSymbols() && !!Symbol.toStringTag;
       };
     }, { "has-symbols/shams": 105 }], 107: [function(require2, module2, exports2) {
+      "use strict";
       var bind = require2("function-bind");
       module2.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
     }, { "function-bind": 99 }], 108: [function(require2, module2, exports2) {
@@ -15697,6 +15863,7 @@ var senecaBrowser = { exports: {} };
         }
       };
     }, {}], 111: [function(require2, module2, exports2) {
+      "use strict";
       var hasToStringTag = require2("has-tostringtag/shams")(), callBound = require2("call-bind/callBound"), $toString = callBound("Object.prototype.toString"), isStandardArguments = function(t) {
         return !(hasToStringTag && t && "object" == typeof t && Symbol.toStringTag in t) && "[object Arguments]" === $toString(t);
       }, isLegacyArguments = function(t) {
@@ -15706,6 +15873,7 @@ var senecaBrowser = { exports: {} };
       }();
       isStandardArguments.isLegacyArguments = isLegacyArguments, module2.exports = supportsStandardArguments ? isStandardArguments : isLegacyArguments;
     }, { "call-bind/callBound": 48, "has-tostringtag/shams": 106 }], 112: [function(require2, module2, exports2) {
+      "use strict";
       var badArrayLike, isCallableMarker, fnToStr = Function.prototype.toString, reflectApply = "object" == typeof Reflect && null !== Reflect && Reflect.apply;
       if ("function" == typeof reflectApply && "function" == typeof Object.defineProperty)
         try {
@@ -15766,6 +15934,7 @@ var senecaBrowser = { exports: {} };
         return e === fnClass || e === genClass;
       };
     }, {}], 113: [function(require2, module2, exports2) {
+      "use strict";
       var getDay = Date.prototype.getDay, tryDateObject = function(t) {
         try {
           return getDay.call(t), true;
@@ -15777,6 +15946,7 @@ var senecaBrowser = { exports: {} };
         return "object" == typeof t && null !== t && (hasToStringTag ? tryDateObject(t) : toStr.call(t) === dateClass);
       };
     }, { "has-tostringtag/shams": 106 }], 114: [function(require2, module2, exports2) {
+      "use strict";
       var GeneratorFunction, toStr = Object.prototype.toString, fnToStr = Function.prototype.toString, isFnRegex = /^\s*(?:function)?\*/, hasToStringTag = require2("has-tostringtag/shams")(), getProto = Object.getPrototypeOf, getGeneratorFunc = function() {
         if (!hasToStringTag)
           return false;
@@ -15801,6 +15971,7 @@ var senecaBrowser = { exports: {} };
         return getProto(t) === GeneratorFunction;
       };
     }, { "has-tostringtag/shams": 106 }], 115: [function(require2, module2, exports2) {
+      "use strict";
       var has, $exec, isRegexMarker, badStringifier, callBound = require2("call-bind/callBound"), hasToStringTag = require2("has-tostringtag/shams")();
       if (hasToStringTag) {
         has = callBound("Object.prototype.hasOwnProperty"), $exec = callBound("RegExp.prototype.exec"), isRegexMarker = {};
@@ -15825,6 +15996,7 @@ var senecaBrowser = { exports: {} };
         return !(!e || "object" != typeof e && "function" != typeof e) && $toString(e) === regexClass;
       };
     }, { "call-bind/callBound": 48, "has-tostringtag/shams": 106 }], 116: [function(require2, module2, exports2) {
+      "use strict";
       var strValue = String.prototype.valueOf, tryStringObject = function(t) {
         try {
           return strValue.call(t), true;
@@ -15836,6 +16008,7 @@ var senecaBrowser = { exports: {} };
         return "string" == typeof t || "object" == typeof t && (hasToStringTag ? tryStringObject(t) : toStr.call(t) === strClass);
       };
     }, { "has-tostringtag/shams": 106 }], 117: [function(require2, module2, exports2) {
+      "use strict";
       var toStr = Object.prototype.toString, hasSymbols = require2("has-symbols")();
       if (hasSymbols) {
         var symToStr = Symbol.prototype.toString, symStringRegex = /^Symbol\(.*\)$/, isSymbolObject = function(t) {
@@ -15859,6 +16032,7 @@ var senecaBrowser = { exports: {} };
     }, { "has-symbols": 104 }], 118: [function(require2, module2, exports2) {
       (function(global2) {
         (function() {
+          "use strict";
           var forEach = require2("for-each"), availableTypedArrays = require2("available-typed-arrays"), callBound = require2("call-bind/callBound"), $toString = callBound("Object.prototype.toString"), hasToStringTag = require2("has-tostringtag/shams")(), g = "undefined" == typeof globalThis ? global2 : globalThis, typedArrays = availableTypedArrays(), $indexOf = callBound("Array.prototype.indexOf", true) || function(r, t) {
             for (var e = 0; e < r.length; e += 1)
               if (r[e] === t)
@@ -15898,6 +16072,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, { "available-typed-arrays": 40, "call-bind/callBound": 48, "es-abstract/helpers/getOwnPropertyDescriptor": 84, "for-each": 97, "has-tostringtag/shams": 106 }], 119: [function(require2, module2, exports2) {
+      "use strict";
       (function() {
         var t = this || {}, r = t.jsonic, e = t.jsonic = function(t2) {
           return "[object String]" !== Object.prototype.toString.call(t2) ? Object.prototype.toString.call(t2).match(/\[object (Object|Array)\]/) ? t2 : "" + t2 : ("{" != (t2 = t2.trim())[0] && "[" != t2[0] && (t2 = "{" + t2 + "}"), n.parse(t2));
@@ -16166,7 +16341,7 @@ var senecaBrowser = { exports: {} };
               var t3, e3, n3, u2;
               return vr++, t3 = lr, 34 === r2.charCodeAt(lr) ? (e3 = U, lr++) : (e3 = i, 0 === vr && yr(D)), e3 !== i ? (34 === r2.charCodeAt(lr) ? (n3 = U, lr++) : (n3 = i, 0 === vr && yr(D)), n3 !== i && (u2 = qr()) !== i ? t3 = e3 = G() : (lr = t3, t3 = c)) : (lr = t3, t3 = c), t3 === i && (t3 = lr, 34 === r2.charCodeAt(lr) ? (e3 = U, lr++) : (e3 = i, 0 === vr && yr(D)), e3 !== i && (n3 = function() {
                 var t4, r3;
-                if (t4 = [], (r3 = Or()) !== i)
+                if (lr, t4 = [], (r3 = Or()) !== i)
                   for (; r3 !== i; )
                     t4.push(r3), r3 = Or();
                 else
@@ -16178,7 +16353,7 @@ var senecaBrowser = { exports: {} };
               var t3, e3, n3, u2;
               return vr++, t3 = lr, 39 === r2.charCodeAt(lr) ? (e3 = L2, lr++) : (e3 = i, 0 === vr && yr(M)), e3 !== i ? (39 === r2.charCodeAt(lr) ? (n3 = L2, lr++) : (n3 = i, 0 === vr && yr(M)), n3 !== i && (u2 = qr()) !== i ? t3 = e3 = G() : (lr = t3, t3 = c)) : (lr = t3, t3 = c), t3 === i && (t3 = lr, 39 === r2.charCodeAt(lr) ? (e3 = L2, lr++) : (e3 = i, 0 === vr && yr(M)), e3 !== i && (n3 = function() {
                 var t4, r3;
-                if (t4 = [], (r3 = Sr()) !== i)
+                if (lr, t4 = [], (r3 = Sr()) !== i)
                   for (; r3 !== i; )
                     t4.push(r3), r3 = Sr();
                 else
@@ -16215,7 +16390,7 @@ var senecaBrowser = { exports: {} };
             }
             function zr() {
               var t3, r3;
-              if (t3 = [], (r3 = Zr()) !== i)
+              if (lr, t3 = [], (r3 = Zr()) !== i)
                 for (; r3 !== i; )
                   t3.push(r3), r3 = Zr();
               else
@@ -17618,7 +17793,7 @@ var senecaBrowser = { exports: {} };
       (function(global2) {
         (function() {
           !function(e) {
-            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = e() : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Nid = e();
+            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = e() : "function" == typeof define && define.amd ? define([], e) : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Nid = e();
           }(function() {
             var e = {};
             Object.defineProperty(e, "__esModule", { value: true });
@@ -17633,7 +17808,7 @@ var senecaBrowser = { exports: {} };
               } : "function" == typeof e2 ? e2 : e2 instanceof RegExp ? (n2) => !!n2.match(e2) : () => false;
             }
             function f(e2) {
-              let f2 = t.len, u2 = t.alphabet;
+              let f2 = t.len || 0, u2 = t.alphabet;
               null == o && (l = n.map((e3) => e3.map((e4) => String.fromCharCode(e4)).join("")), o = r(l));
               let a = o;
               e2 && (f2 = e2.length || e2.len || f2 || 0, u2 = e2.alphabet || u2, a = e2.curses ? r(e2.curses) : a);
@@ -17666,6 +17841,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {}], 132: [function(require2, module2, exports2) {
+      "use strict";
       function peg$subclass(r, n) {
         function t() {
           this.constructor = r;
@@ -17729,7 +17905,7 @@ var senecaBrowser = { exports: {} };
               return new peg$SyntaxError(r4, null, null, n3);
             }(r3, n2);
           }('not a type character: "' + r2 + '"');
-        }, jr = 0, kr = 0, Nr = [{ line: 1, column: 1 }], Yr = 0, Mr = [];
+        }, jr = 0, kr = 0, Nr = [{ line: 1, column: 1 }], Yr = 0, Mr = [], Tr = 0;
         if ("startRule" in n) {
           if (!(n.startRule in u))
             throw new Error(`Can't start parsing from rule "` + n.startRule + '".');
@@ -17764,12 +17940,12 @@ var senecaBrowser = { exports: {} };
         function Jr() {
           var n2, t2, u2, o2, s2, h2, p2, g2;
           if (n2 = jr, (t2 = Kr()) === e && (t2 = null), t2 !== e)
-            if (123 === r.charCodeAt(jr) ? (u2 = c, jr++) : (u2 = e, Hr(a)), u2 === e && (u2 = null), u2 !== e)
+            if (123 === r.charCodeAt(jr) ? (u2 = c, jr++) : (u2 = e, 0 === Tr && Hr(a)), u2 === e && (u2 = null), u2 !== e)
               if ((o2 = Kr()) === e && (o2 = null), o2 !== e)
                 if (Or() !== e) {
                   for (s2 = [], h2 = jr, (p2 = Lr()) === e && (p2 = null), p2 !== e && (g2 = Or()) !== e ? h2 = p2 = [p2, g2] : (jr = h2, h2 = e); h2 !== e; )
                     s2.push(h2), h2 = jr, (p2 = Lr()) === e && (p2 = null), p2 !== e && (g2 = Or()) !== e ? h2 = p2 = [p2, g2] : (jr = h2, h2 = e);
-                  s2 !== e ? ((h2 = Lr()) === e && (h2 = null), h2 !== e ? (125 === r.charCodeAt(jr) ? (p2 = i, jr++) : (p2 = e, Hr(f)), p2 === e && (p2 = null), p2 !== e ? ((g2 = Kr()) === e && (g2 = null), g2 !== e ? (kr = n2, n2 = t2 = l(u2)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e);
+                  s2 !== e ? ((h2 = Lr()) === e && (h2 = null), h2 !== e ? (125 === r.charCodeAt(jr) ? (p2 = i, jr++) : (p2 = e, 0 === Tr && Hr(f)), p2 === e && (p2 = null), p2 !== e ? ((g2 = Kr()) === e && (g2 = null), g2 !== e ? (kr = n2, n2 = t2 = l(u2)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e);
                 } else
                   jr = n2, n2 = e;
               else
@@ -17782,29 +17958,29 @@ var senecaBrowser = { exports: {} };
         }
         function Kr() {
           var n2;
-          return s.test(r.charAt(jr)) ? (n2 = r.charAt(jr), jr++) : (n2 = e, Hr(h)), n2;
+          return s.test(r.charAt(jr)) ? (n2 = r.charAt(jr), jr++) : (n2 = e, 0 === Tr && Hr(h)), n2;
         }
         function Lr() {
           var n2, t2, u2, o2;
-          return n2 = jr, (t2 = Kr()) === e && (t2 = null), t2 !== e ? (44 === r.charCodeAt(jr) ? (u2 = p, jr++) : (u2 = e, Hr(g)), u2 === e && (u2 = null), u2 !== e ? ((o2 = Kr()) === e && (o2 = null), o2 !== e ? n2 = t2 = [t2, u2, o2] : (jr = n2, n2 = e)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e), n2;
+          return n2 = jr, (t2 = Kr()) === e && (t2 = null), t2 !== e ? (44 === r.charCodeAt(jr) ? (u2 = p, jr++) : (u2 = e, 0 === Tr && Hr(g)), u2 === e && (u2 = null), u2 !== e ? ((o2 = Kr()) === e && (o2 = null), o2 !== e ? n2 = t2 = [t2, u2, o2] : (jr = n2, n2 = e)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e), n2;
         }
         function Or() {
           var n2, t2, u2, o2;
           return n2 = jr, (t2 = function() {
             var n3, t3, u3, o3;
-            n3 = jr, A.test(r.charAt(jr)) ? (t3 = r.charAt(jr), jr++) : (t3 = e, Hr(v));
+            n3 = jr, A.test(r.charAt(jr)) ? (t3 = r.charAt(jr), jr++) : (t3 = e, 0 === Tr && Hr(v));
             if (t3 !== e) {
-              for (u3 = [], x.test(r.charAt(jr)) ? (o3 = r.charAt(jr), jr++) : (o3 = e, Hr(C)); o3 !== e; )
-                u3.push(o3), x.test(r.charAt(jr)) ? (o3 = r.charAt(jr), jr++) : (o3 = e, Hr(C));
-              u3 !== e ? (58 === r.charCodeAt(jr) ? (o3 = y, jr++) : (o3 = e, Hr(m2)), o3 !== e ? (kr = n3, t3 = E(t3, u3), n3 = t3) : (jr = n3, n3 = e)) : (jr = n3, n3 = e);
+              for (u3 = [], x.test(r.charAt(jr)) ? (o3 = r.charAt(jr), jr++) : (o3 = e, 0 === Tr && Hr(C)); o3 !== e; )
+                u3.push(o3), x.test(r.charAt(jr)) ? (o3 = r.charAt(jr), jr++) : (o3 = e, 0 === Tr && Hr(C));
+              u3 !== e ? (58 === r.charCodeAt(jr) ? (o3 = y, jr++) : (o3 = e, 0 === Tr && Hr(m2)), o3 !== e ? (kr = n3, t3 = E(t3, u3), n3 = t3) : (jr = n3, n3 = e)) : (jr = n3, n3 = e);
             } else
               jr = n3, n3 = e;
             return n3;
           }()) === e && (t2 = null), t2 !== e && (u2 = function() {
             var n3, t3, u3, o3, c2, a2, i2;
             if (n3 = jr, t3 = jr, (u3 = Pr()) !== e) {
-              for (o3 = [], c2 = jr, 124 === r.charCodeAt(jr) ? (a2 = j, jr++) : (a2 = e, Hr(k)), a2 !== e && (i2 = Pr()) !== e ? c2 = a2 = [a2, i2] : (jr = c2, c2 = e); c2 !== e; )
-                o3.push(c2), c2 = jr, 124 === r.charCodeAt(jr) ? (a2 = j, jr++) : (a2 = e, Hr(k)), a2 !== e && (i2 = Pr()) !== e ? c2 = a2 = [a2, i2] : (jr = c2, c2 = e);
+              for (o3 = [], c2 = jr, 124 === r.charCodeAt(jr) ? (a2 = j, jr++) : (a2 = e, 0 === Tr && Hr(k)), a2 !== e && (i2 = Pr()) !== e ? c2 = a2 = [a2, i2] : (jr = c2, c2 = e); c2 !== e; )
+                o3.push(c2), c2 = jr, 124 === r.charCodeAt(jr) ? (a2 = j, jr++) : (a2 = e, 0 === Tr && Hr(k)), a2 !== e && (i2 = Pr()) !== e ? c2 = a2 = [a2, i2] : (jr = c2, c2 = e);
               o3 !== e ? t3 = u3 = [u3, o3] : (jr = t3, t3 = e);
             } else
               jr = t3, t3 = e;
@@ -17812,9 +17988,9 @@ var senecaBrowser = { exports: {} };
             return n3 = t3;
           }()) !== e ? ((o2 = function() {
             var n3, t3;
-            n3 = jr, 63 === r.charCodeAt(jr) ? (t3 = S, jr++) : (t3 = e, Hr($));
+            n3 = jr, 63 === r.charCodeAt(jr) ? (t3 = S, jr++) : (t3 = e, 0 === Tr && Hr($));
             t3 !== e && (kr = n3, t3 = b());
-            (n3 = t3) === e && (n3 = jr, 42 === r.charCodeAt(jr) ? (t3 = w, jr++) : (t3 = e, Hr(F)), t3 !== e && (kr = n3, t3 = z()), (n3 = t3) === e && (n3 = jr, 43 === r.charCodeAt(jr) ? (t3 = R, jr++) : (t3 = e, Hr(U)), t3 !== e && (kr = n3, t3 = Z()), n3 = t3));
+            (n3 = t3) === e && (n3 = jr, 42 === r.charCodeAt(jr) ? (t3 = w, jr++) : (t3 = e, 0 === Tr && Hr(F)), t3 !== e && (kr = n3, t3 = z()), (n3 = t3) === e && (n3 = jr, 43 === r.charCodeAt(jr) ? (t3 = R, jr++) : (t3 = e, 0 === Tr && Hr(U)), t3 !== e && (kr = n3, t3 = Z()), n3 = t3));
             return n3;
           }()) === e && (o2 = null), o2 !== e ? (kr = n2, n2 = t2 = d(t2, u2, o2)) : (jr = n2, n2 = e)) : (jr = n2, n2 = e), n2;
         }
@@ -17822,71 +17998,71 @@ var senecaBrowser = { exports: {} };
           var n2, t2;
           return n2 = jr, (t2 = function() {
             var n3;
-            46 === r.charCodeAt(jr) ? (n3 = W, jr++) : (n3 = e, Hr(X));
+            46 === r.charCodeAt(jr) ? (n3 = W, jr++) : (n3 = e, 0 === Tr && Hr(X));
             return n3;
           }()) !== e && (kr = n2, t2 = Y()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            115 === r.charCodeAt(jr) ? (n3 = _, jr++) : (n3 = e, Hr(rr));
+            115 === r.charCodeAt(jr) ? (n3 = _, jr++) : (n3 = e, 0 === Tr && Hr(rr));
             return n3;
           }()) !== e && (kr = n2, t2 = M()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            105 === r.charCodeAt(jr) ? (n3 = nr, jr++) : (n3 = e, Hr(tr));
+            105 === r.charCodeAt(jr) ? (n3 = nr, jr++) : (n3 = e, 0 === Tr && Hr(tr));
             return n3;
           }()) !== e && (kr = n2, t2 = T()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            65 === r.charCodeAt(jr) ? (n3 = er, jr++) : (n3 = e, Hr(ur));
+            65 === r.charCodeAt(jr) ? (n3 = er, jr++) : (n3 = e, 0 === Tr && Hr(ur));
             return n3;
           }()) !== e && (kr = n2, t2 = q()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            89 === r.charCodeAt(jr) ? (n3 = or, jr++) : (n3 = e, Hr(cr));
+            89 === r.charCodeAt(jr) ? (n3 = or, jr++) : (n3 = e, 0 === Tr && Hr(cr));
             return n3;
           }()) !== e && (kr = n2, t2 = B()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            110 === r.charCodeAt(jr) ? (n3 = ar, jr++) : (n3 = e, Hr(ir));
+            110 === r.charCodeAt(jr) ? (n3 = ar, jr++) : (n3 = e, 0 === Tr && Hr(ir));
             return n3;
           }()) !== e && (kr = n2, t2 = D()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            98 === r.charCodeAt(jr) ? (n3 = fr, jr++) : (n3 = e, Hr(lr));
+            98 === r.charCodeAt(jr) ? (n3 = fr, jr++) : (n3 = e, 0 === Tr && Hr(lr));
             return n3;
           }()) !== e && (kr = n2, t2 = G()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            102 === r.charCodeAt(jr) ? (n3 = sr, jr++) : (n3 = e, Hr(hr));
+            102 === r.charCodeAt(jr) ? (n3 = sr, jr++) : (n3 = e, 0 === Tr && Hr(hr));
             return n3;
           }()) !== e && (kr = n2, t2 = H()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            97 === r.charCodeAt(jr) ? (n3 = pr, jr++) : (n3 = e, Hr(gr));
+            97 === r.charCodeAt(jr) ? (n3 = pr, jr++) : (n3 = e, 0 === Tr && Hr(gr));
             return n3;
           }()) !== e && (kr = n2, t2 = I()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            114 === r.charCodeAt(jr) ? (n3 = dr, jr++) : (n3 = e, Hr(Ar));
+            114 === r.charCodeAt(jr) ? (n3 = dr, jr++) : (n3 = e, 0 === Tr && Hr(Ar));
             return n3;
           }()) !== e && (kr = n2, t2 = J()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            100 === r.charCodeAt(jr) ? (n3 = vr, jr++) : (n3 = e, Hr(xr));
+            100 === r.charCodeAt(jr) ? (n3 = vr, jr++) : (n3 = e, 0 === Tr && Hr(xr));
             return n3;
           }()) !== e && (kr = n2, t2 = K()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            103 === r.charCodeAt(jr) ? (n3 = Cr, jr++) : (n3 = e, Hr(yr));
+            103 === r.charCodeAt(jr) ? (n3 = Cr, jr++) : (n3 = e, 0 === Tr && Hr(yr));
             return n3;
           }()) !== e && (kr = n2, t2 = L2()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            101 === r.charCodeAt(jr) ? (n3 = mr, jr++) : (n3 = e, Hr(Er));
+            101 === r.charCodeAt(jr) ? (n3 = mr, jr++) : (n3 = e, 0 === Tr && Hr(Er));
             return n3;
           }()) !== e && (kr = n2, t2 = O()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            78 === r.charCodeAt(jr) ? (n3 = Sr, jr++) : (n3 = e, Hr($r));
+            78 === r.charCodeAt(jr) ? (n3 = Sr, jr++) : (n3 = e, 0 === Tr && Hr($r));
             return n3;
           }()) !== e && (kr = n2, t2 = P()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            85 === r.charCodeAt(jr) ? (n3 = br, jr++) : (n3 = e, Hr(wr));
+            85 === r.charCodeAt(jr) ? (n3 = br, jr++) : (n3 = e, 0 === Tr && Hr(wr));
             return n3;
           }()) !== e && (kr = n2, t2 = Q()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
             var n3;
-            111 === r.charCodeAt(jr) ? (n3 = Fr, jr++) : (n3 = e, Hr(zr));
+            111 === r.charCodeAt(jr) ? (n3 = Fr, jr++) : (n3 = e, 0 === Tr && Hr(zr));
             return n3;
           }()) !== e && (kr = n2, t2 = V()), (n2 = t2) === e && (n2 = function() {
             var n3, t3;
-            n3 = jr, Rr.test(r.charAt(jr)) ? (t3 = r.charAt(jr), jr++) : (t3 = e, Hr(Ur));
+            n3 = jr, Rr.test(r.charAt(jr)) ? (t3 = r.charAt(jr), jr++) : (t3 = e, 0 === Tr && Hr(Ur));
             t3 !== e && (kr = n3, t3 = Zr(t3));
             return n3 = t3;
           }())))))))))))))))), n2;
@@ -17950,6 +18126,7 @@ var senecaBrowser = { exports: {} };
         }(n) + " found.";
       }, module2.exports = { SyntaxError: peg$SyntaxError, parse: peg$parse };
     }, {}], 133: [function(require2, module2, exports2) {
+      "use strict";
       var util = require2("util"), _ = {};
       _.isNaN = require2("lodash.isnan"), _.isRegExp = require2("lodash.isregexp"), _.isDate = require2("lodash.isdate"), _.isArguments = require2("lodash.isarguments");
       var error = require2("eraro")({ package: "norma" }), parser = require2("./norma-parser"), defopts = { onfail: "throw", desclen: 33 }, specmap = {};
@@ -18038,7 +18215,7 @@ var senecaBrowser = { exports: {} };
       (function(global2) {
         (function() {
           !function(e) {
-            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = e() : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Nua = e();
+            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = e() : "function" == typeof define && define.amd ? define([], e) : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Nua = e();
           }(function() {
             return function(e, t, o) {
               var n = (o = o || {}).depth || Number.MAX_VALUE, f = o.setter, l = !!o.preserve;
@@ -18066,6 +18243,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {}], 135: [function(require2, module2, exports2) {
+      "use strict";
       var getOwnPropertySymbols = Object.getOwnPropertySymbols, hasOwnProperty = Object.prototype.hasOwnProperty, propIsEnumerable = Object.prototype.propertyIsEnumerable;
       function toObject(e) {
         if (null == e)
@@ -18440,6 +18618,7 @@ var senecaBrowser = { exports: {} };
         return n;
       }
     }, { "./util.inspect": 42 }], 137: [function(require2, module2, exports2) {
+      "use strict";
       var keysShim;
       if (!Object.keys) {
         var has = Object.prototype.hasOwnProperty, toStr = Object.prototype.toString, isArgs = require2("./isArguments"), isEnumerable = Object.prototype.propertyIsEnumerable, hasDontEnumBug = !isEnumerable.call({ toString: null }, "toString"), hasProtoEnumBug = isEnumerable.call(function() {
@@ -18492,6 +18671,7 @@ var senecaBrowser = { exports: {} };
       }
       module2.exports = keysShim;
     }, { "./isArguments": 139 }], 138: [function(require2, module2, exports2) {
+      "use strict";
       var slice = Array.prototype.slice, isArgs = require2("./isArguments"), origKeys = Object.keys, keysShim = origKeys ? function(e) {
         return origKeys(e);
       } : require2("./implementation"), originalKeys = Object.keys;
@@ -18505,12 +18685,14 @@ var senecaBrowser = { exports: {} };
         return Object.keys || keysShim;
       }, module2.exports = keysShim;
     }, { "./implementation": 137, "./isArguments": 139 }], 139: [function(require2, module2, exports2) {
+      "use strict";
       var toStr = Object.prototype.toString;
       module2.exports = function(t) {
         var e = toStr.call(t), o = "[object Arguments]" === e;
         return o || (o = "[object Array]" !== e && null !== t && "object" == typeof t && "number" == typeof t.length && t.length >= 0 && "[object Function]" === toStr.call(t.callee)), o;
       };
     }, {}], 140: [function(require2, module2, exports2) {
+      "use strict";
       var CreateDataProperty = require2("es-abstract/2021/CreateDataProperty"), IsCallable = require2("es-abstract/2021/IsCallable"), RequireObjectCoercible = require2("es-abstract/2021/RequireObjectCoercible"), ToObject = require2("es-abstract/2021/ToObject"), callBound = require2("call-bind/callBound"), reduce = require2("array.prototype.reduce"), $gOPD = Object.getOwnPropertyDescriptor, $getOwnNames = Object.getOwnPropertyNames, $getSymbols = Object.getOwnPropertySymbols, $concat = callBound("Array.prototype.concat"), getAll = $getSymbols ? function(e) {
         return $concat($getOwnNames(e), $getSymbols(e));
       } : $getOwnNames, isES5 = IsCallable($gOPD) && IsCallable($getOwnNames);
@@ -18524,14 +18706,17 @@ var senecaBrowser = { exports: {} };
         }, {});
       };
     }, { "array.prototype.reduce": 33, "call-bind/callBound": 48, "es-abstract/2021/CreateDataProperty": 53, "es-abstract/2021/IsCallable": 58, "es-abstract/2021/RequireObjectCoercible": 65, "es-abstract/2021/ToObject": 71 }], 141: [function(require2, module2, exports2) {
+      "use strict";
       var define2 = require2("define-properties"), callBind = require2("call-bind"), implementation = require2("./implementation"), getPolyfill = require2("./polyfill"), shim = require2("./shim"), bound = callBind(getPolyfill(), Object);
       define2(bound, { getPolyfill, implementation, shim }), module2.exports = bound;
     }, { "./implementation": 140, "./polyfill": 142, "./shim": 143, "call-bind": 49, "define-properties": 50 }], 142: [function(require2, module2, exports2) {
+      "use strict";
       var implementation = require2("./implementation");
       module2.exports = function() {
         return "function" == typeof Object.getOwnPropertyDescriptors ? Object.getOwnPropertyDescriptors : implementation;
       };
     }, { "./implementation": 140 }], 143: [function(require2, module2, exports2) {
+      "use strict";
       var getPolyfill = require2("./polyfill"), define2 = require2("define-properties");
       module2.exports = function() {
         var e = getPolyfill();
@@ -18543,11 +18728,12 @@ var senecaBrowser = { exports: {} };
       (function(global2) {
         (function() {
           !function(t) {
-            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = t() : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Ordu = t();
+            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = t() : "function" == typeof define && define.amd ? define([], t) : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Ordu = t();
           }(function() {
             var t, e, r, n = (t = function(t2, e2) {
               (function(t3) {
                 (function() {
+                  "use strict";
                   function t4(t5) {
                     if (t5 > 2147483647)
                       throw new RangeError('The value "' + t5 + '" is invalid for option "size"');
@@ -19548,6 +19734,7 @@ var senecaBrowser = { exports: {} };
             } }, I = {};
             (function(t2) {
               (function() {
+                "use strict";
                 const e2 = {};
                 I = I = { array: Array.prototype, buffer: t2 && t2.prototype, date: Date.prototype, error: Error.prototype, generic: Object.prototype, map: Map.prototype, promise: Promise.prototype, regex: RegExp.prototype, set: Set.prototype, weakMap: WeakMap.prototype, weakSet: WeakSet.prototype }, e2.typeMap = /* @__PURE__ */ new Map([["[object Error]", I.error], ["[object Map]", I.map], ["[object Promise]", I.promise], ["[object Set]", I.set], ["[object WeakMap]", I.weakMap], ["[object WeakSet]", I.weakSet]]), I.getInternalProto = function(r2) {
                   if (Array.isArray(r2))
@@ -19570,6 +19757,7 @@ var senecaBrowser = { exports: {} };
             }, C = {};
             (function(t2) {
               (function() {
+                "use strict";
                 const e2 = { needsProtoHack: /* @__PURE__ */ new Set([I.set, I.map, I.weakSet, I.weakMap]) };
                 C = e2.clone = function(r2, n2 = {}, o2 = null) {
                   if ("object" != typeof r2 || null === r2)
@@ -19643,6 +19831,7 @@ var senecaBrowser = { exports: {} };
             var P, U = {};
             (function(t2) {
               (function() {
+                "use strict";
                 const e2 = {};
                 U = e2.merge = function(r2, n2, o2) {
                   if (E(r2 && "object" == typeof r2, "Invalid target value: must be an object"), E(null == n2 || "object" == typeof n2, "Invalid source value: must be null, undefined, or an object"), !n2)
@@ -19805,6 +19994,7 @@ var senecaBrowser = { exports: {} };
             var Q = {};
             (function(t2) {
               (function() {
+                "use strict";
                 const e2 = {};
                 Q = e2.Bench = class {
                   constructor() {
@@ -19827,6 +20017,7 @@ var senecaBrowser = { exports: {} };
             }, et = {};
             (function(t2) {
               (function() {
+                "use strict";
                 const e2 = { mismatched: null };
                 et = function(t3, r2, n2) {
                   return n2 = Object.assign({ prototype: true }, n2), !!e2.isDeepEqual(t3, r2, n2, []);
@@ -20373,6 +20564,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {}], 145: [function(require2, module2, exports2) {
+      "use strict";
       var TYPED_OK = "undefined" != typeof Uint8Array && "undefined" != typeof Uint16Array && "undefined" != typeof Int32Array;
       function _has(r, t) {
         return Object.prototype.hasOwnProperty.call(r, t);
@@ -20414,6 +20606,7 @@ var senecaBrowser = { exports: {} };
         r ? (exports2.Buf8 = Uint8Array, exports2.Buf16 = Uint16Array, exports2.Buf32 = Int32Array, exports2.assign(exports2, fnTyped)) : (exports2.Buf8 = Array, exports2.Buf16 = Array, exports2.Buf32 = Array, exports2.assign(exports2, fnUntyped));
       }, exports2.setTyped(TYPED_OK);
     }, {}], 146: [function(require2, module2, exports2) {
+      "use strict";
       function adler32(e, r, o, t) {
         for (var d = 65535 & e | 0, l = e >>> 16 & 65535 | 0, u = 0; 0 !== o; ) {
           o -= u = o > 2e3 ? 2e3 : o;
@@ -20426,8 +20619,10 @@ var senecaBrowser = { exports: {} };
       }
       module2.exports = adler32;
     }, {}], 147: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = { Z_NO_FLUSH: 0, Z_PARTIAL_FLUSH: 1, Z_SYNC_FLUSH: 2, Z_FULL_FLUSH: 3, Z_FINISH: 4, Z_BLOCK: 5, Z_TREES: 6, Z_OK: 0, Z_STREAM_END: 1, Z_NEED_DICT: 2, Z_ERRNO: -1, Z_STREAM_ERROR: -2, Z_DATA_ERROR: -3, Z_BUF_ERROR: -5, Z_NO_COMPRESSION: 0, Z_BEST_SPEED: 1, Z_BEST_COMPRESSION: 9, Z_DEFAULT_COMPRESSION: -1, Z_FILTERED: 1, Z_HUFFMAN_ONLY: 2, Z_RLE: 3, Z_FIXED: 4, Z_DEFAULT_STRATEGY: 0, Z_BINARY: 0, Z_TEXT: 1, Z_UNKNOWN: 2, Z_DEFLATED: 8 };
     }, {}], 148: [function(require2, module2, exports2) {
+      "use strict";
       function makeTable() {
         for (var r, a = [], c = 0; c < 256; c++) {
           r = c;
@@ -20447,6 +20642,7 @@ var senecaBrowser = { exports: {} };
       }
       module2.exports = crc32;
     }, {}], 149: [function(require2, module2, exports2) {
+      "use strict";
       var configuration_table, utils = require2("../utils/common"), trees = require2("./trees"), adler32 = require2("./adler32"), crc32 = require2("./crc32"), msg2 = require2("./messages"), Z_NO_FLUSH = 0, Z_PARTIAL_FLUSH = 1, Z_FULL_FLUSH = 3, Z_FINISH = 4, Z_BLOCK = 5, Z_OK = 0, Z_STREAM_END = 1, Z_STREAM_ERROR = -2, Z_DATA_ERROR = -3, Z_BUF_ERROR = -5, Z_DEFAULT_COMPRESSION = -1, Z_FILTERED = 1, Z_HUFFMAN_ONLY = 2, Z_RLE = 3, Z_FIXED = 4, Z_DEFAULT_STRATEGY = 0, Z_UNKNOWN = 2, Z_DEFLATED = 8, MAX_MEM_LEVEL = 9, MAX_WBITS = 15, DEF_MEM_LEVEL = 8, LENGTH_CODES = 29, LITERALS = 256, L_CODES = LITERALS + 1 + LENGTH_CODES, D_CODES = 30, BL_CODES = 19, HEAP_SIZE = 2 * L_CODES + 1, MAX_BITS = 15, MIN_MATCH = 3, MAX_MATCH = 258, MIN_LOOKAHEAD = MAX_MATCH + MIN_MATCH + 1, PRESET_DICT = 32, INIT_STATE = 42, EXTRA_STATE = 69, NAME_STATE = 73, COMMENT_STATE = 91, HCRC_STATE = 103, BUSY_STATE = 113, FINISH_STATE = 666, BS_NEED_MORE = 1, BS_BLOCK_DONE = 2, BS_FINISH_STARTED = 3, BS_FINISH_DONE = 4, OS_CODE = 3;
       function err(t, e) {
         return t.msg = msg2[e], e;
@@ -20725,6 +20921,7 @@ var senecaBrowser = { exports: {} };
       }
       configuration_table = [new Config(0, 0, 0, 0, deflate_stored), new Config(4, 4, 8, 4, deflate_fast), new Config(4, 5, 16, 8, deflate_fast), new Config(4, 6, 32, 32, deflate_fast), new Config(4, 4, 16, 16, deflate_slow), new Config(8, 16, 32, 32, deflate_slow), new Config(8, 16, 128, 128, deflate_slow), new Config(8, 32, 128, 256, deflate_slow), new Config(32, 128, 258, 1024, deflate_slow), new Config(32, 258, 258, 4096, deflate_slow)], exports2.deflateInit = deflateInit, exports2.deflateInit2 = deflateInit2, exports2.deflateReset = deflateReset, exports2.deflateResetKeep = deflateResetKeep, exports2.deflateSetHeader = deflateSetHeader, exports2.deflate = deflate, exports2.deflateEnd = deflateEnd, exports2.deflateSetDictionary = deflateSetDictionary, exports2.deflateInfo = "pako deflate (from Nodeca project)";
     }, { "../utils/common": 145, "./adler32": 146, "./crc32": 148, "./messages": 153, "./trees": 154 }], 150: [function(require2, module2, exports2) {
+      "use strict";
       var BAD = 30, TYPE = 12;
       module2.exports = function(i, e) {
         var o, a, t, d, n, l, s, f, r, b, c, u, v, m2, w, h, k, _, x, g, A, B, D, p, E;
@@ -20817,6 +21014,7 @@ var senecaBrowser = { exports: {} };
         a -= g = v >> 3, u &= (1 << (v -= g << 3)) - 1, i.next_in = a, i.next_out = d, i.avail_in = a < t ? t - a + 5 : 5 - (a - t), i.avail_out = d < l ? l - d + 257 : 257 - (d - l), o.hold = u, o.bits = v;
       };
     }, {}], 151: [function(require2, module2, exports2) {
+      "use strict";
       var utils = require2("../utils/common"), adler32 = require2("./adler32"), crc32 = require2("./crc32"), inflate_fast = require2("./inffast"), inflate_table = require2("./inftrees"), CODES = 0, LENS = 1, DISTS = 2, Z_FINISH = 4, Z_BLOCK = 5, Z_TREES = 6, Z_OK = 0, Z_STREAM_END = 1, Z_NEED_DICT = 2, Z_STREAM_ERROR = -2, Z_DATA_ERROR = -3, Z_MEM_ERROR = -4, Z_BUF_ERROR = -5, Z_DEFLATED = 8, HEAD = 1, FLAGS = 2, TIME = 3, OS = 4, EXLEN = 5, EXTRA = 6, NAME = 7, COMMENT = 8, HCRC = 9, DICTID = 10, DICT = 11, TYPE = 12, TYPEDO = 13, STORED = 14, COPY_ = 15, COPY = 16, TABLE = 17, LENLENS = 18, CODELENS = 19, LEN_ = 20, LEN = 21, LENEXT = 22, DIST = 23, DISTEXT = 24, MATCH = 25, LIT = 26, CHECK = 27, LENGTH = 28, DONE = 29, BAD = 30, MEM = 31, SYNC = 32, ENOUGH_LENS = 852, ENOUGH_DISTS = 592, MAX_WBITS = 15, DEF_WBITS = MAX_WBITS;
       function zswap32(e) {
         return (e >>> 24 & 255) + (e >>> 8 & 65280) + ((65280 & e) << 8) + ((255 & e) << 24);
@@ -21296,6 +21494,7 @@ var senecaBrowser = { exports: {} };
       }
       exports2.inflateReset = inflateReset, exports2.inflateReset2 = inflateReset2, exports2.inflateResetKeep = inflateResetKeep, exports2.inflateInit = inflateInit, exports2.inflateInit2 = inflateInit2, exports2.inflate = inflate, exports2.inflateEnd = inflateEnd, exports2.inflateGetHeader = inflateGetHeader, exports2.inflateSetDictionary = inflateSetDictionary, exports2.inflateInfo = "pako inflate (from Nodeca project)";
     }, { "../utils/common": 145, "./adler32": 146, "./crc32": 148, "./inffast": 150, "./inftrees": 152 }], 152: [function(require2, module2, exports2) {
+      "use strict";
       var utils = require2("../utils/common"), MAXBITS = 15, ENOUGH_LENS = 852, ENOUGH_DISTS = 592, CODES = 0, LENS = 1, DISTS = 2, lbase = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0], lext = [16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 72, 78], dbase = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577, 0, 0], dext = [16, 16, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 64, 64];
       module2.exports = function(r, S, e, f, t, i, u, o) {
         var E, l, s, n, I, N, T, B, D, O = o.bits, b = 0, a = 0, A = 0, L2 = 0, M = 0, X = 0, d = 0, G = 0, H = 0, U = 0, _ = null, x = 0, c = new utils.Buf16(MAXBITS + 1), m2 = new utils.Buf16(MAXBITS + 1), w = null, C = 0;
@@ -21343,8 +21542,10 @@ var senecaBrowser = { exports: {} };
         return 0 !== U && (t[I + U] = b - d << 24 | 64 << 16 | 0), o.bits = M, 0;
       };
     }, { "../utils/common": 145 }], 153: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = { 2: "need dictionary", 1: "stream end", 0: "", "-1": "file error", "-2": "stream error", "-3": "data error", "-4": "insufficient memory", "-5": "buffer error", "-6": "incompatible version" };
     }, {}], 154: [function(require2, module2, exports2) {
+      "use strict";
       var utils = require2("../utils/common"), Z_FIXED = 4, Z_BINARY = 0, Z_TEXT = 1, Z_UNKNOWN = 2;
       function zero(e) {
         for (var _ = e.length; --_ >= 0; )
@@ -21549,6 +21750,7 @@ var senecaBrowser = { exports: {} };
       }
       exports2._tr_init = _tr_init, exports2._tr_stored_block = _tr_stored_block, exports2._tr_flush_block = _tr_flush_block, exports2._tr_tally = _tr_tally, exports2._tr_align = _tr_align;
     }, { "../utils/common": 145 }], 155: [function(require2, module2, exports2) {
+      "use strict";
       function ZStream() {
         this.input = null, this.next_in = 0, this.avail_in = 0, this.total_in = 0, this.output = null, this.next_out = 0, this.avail_out = 0, this.total_out = 0, this.msg = "", this.state = null, this.data_type = 2, this.adler = 0;
       }
@@ -21556,6 +21758,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 156: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           function assertPath(e) {
             if ("string" != typeof e)
               throw new TypeError("Path must be a string. Received " + JSON.stringify(e));
@@ -21731,7 +21934,7 @@ var senecaBrowser = { exports: {} };
       (function(global2) {
         (function() {
           !function(e) {
-            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = e() : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Patrun = e();
+            "object" == typeof exports2 && "undefined" != typeof module2 ? module2.exports = e() : "function" == typeof define && define.amd ? define([], e) : ("undefined" != typeof window ? window : "undefined" != typeof global2 ? global2 : "undefined" != typeof self ? self : this).Patrun = e();
           }(function() {
             var e = { exports: {} };
             (function(t2) {
@@ -21858,7 +22061,7 @@ var senecaBrowser = { exports: {} };
               }
               make(e2, f2) {
                 if ("string" == typeof f2 && f2.match(/[=<>.[()\]]/)) {
-                  let e3 = f2.match(h);
+                  let e3 = f2.match(h), d2 = { jo: "and", o0: "err", n0: NaN, o1: "err", n1: NaN }, g2 = (e4) => false;
                   if (null != e3) {
                     let h2 = c.normop(e3[1]) || c.normop(e3[5]), m3 = c.normop(e3[8]) || c.normop(e3[10]), v = p(this, "=" === h2 ? a : "<" === h2 || ")" === h2 ? l : "<=" === h2 || "]" === h2 ? u : ">" === h2 || "(" === h2 ? i : ">=" === h2 || "[" === h2 ? o : s, "f"), x = Number(e3[2]), k = null == e3[9] ? NaN : Number(e3[9]), y = e3[7], w = null == y ? p(this, n, "f") : "&" === y.substring(0, 1) || "," === y.substring(0, 1) ? p(this, t, "f") : p(this, n, "f");
                     ".." === y && (w = p(this, t, "f"), v = p(this, s, "f") === v ? p(this, o, "f") : v, m3 = "" === m3 ? "<=" : m3);
@@ -21868,7 +22071,7 @@ var senecaBrowser = { exports: {} };
                       k = x, x = t2, ".." !== y && (N = v, v = e4);
                     }
                     let b = v(x), O = N(k), j = w(b, O);
-                    return { kind: "interval", fix: f2, meta: { jo: j.name, o0: b.name, n0: x, o1: O.name, n1: k }, match: (e4) => {
+                    return { kind: "interval", fix: f2, meta: d2 = { jo: j.name, o0: b.name, n0: x, o1: O.name, n1: k }, match: g2 = (e4) => {
                       let t2 = false, n2 = parseFloat(e4);
                       return isNaN(n2) || (t2 = j(n2)), t2;
                     }, same(e4) {
@@ -22222,8 +22425,10 @@ var senecaBrowser = { exports: {} };
               return A(e2, function(e3) {
                 return v.test(e3) ? S(e3.slice(4).toLowerCase()) : e3;
               });
-            } }, "function" == typeof define)
-              ;
+            } }, "function" == typeof define && "object" == typeof define.amd && define.amd)
+              define("punycode", function() {
+                return r;
+              });
             else if (o && n)
               if (module2.exports == o)
                 n.exports = r;
@@ -22236,6 +22441,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {}], 160: [function(require2, module2, exports2) {
+      "use strict";
       function hasOwnProperty(r, e) {
         return Object.prototype.hasOwnProperty.call(r, e);
       }
@@ -22260,6 +22466,7 @@ var senecaBrowser = { exports: {} };
         return "[object Array]" === Object.prototype.toString.call(r);
       };
     }, {}], 161: [function(require2, module2, exports2) {
+      "use strict";
       var stringifyPrimitive = function(r) {
         switch (typeof r) {
           case "string":
@@ -22297,8 +22504,10 @@ var senecaBrowser = { exports: {} };
         return e;
       };
     }, {}], 162: [function(require2, module2, exports2) {
+      "use strict";
       exports2.decode = exports2.parse = require2("./decode"), exports2.encode = exports2.stringify = require2("./encode");
     }, { "./decode": 160, "./encode": 161 }], 163: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       class Stats {
         constructor(t, s, i) {
@@ -22380,6 +22589,7 @@ var senecaBrowser = { exports: {} };
     }, { "buffer": 46 }], 165: [function(require2, module2, exports2) {
       (function(setImmediate) {
         (function() {
+          "use strict";
           var Util2 = require2("util");
           function promisify(t) {
           }
@@ -22436,6 +22646,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("timers").setImmediate);
     }, { "timers": 228, "util": 238 }], 166: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       const meta_1 = require2("./meta"), common_1 = require2("./common");
       exports2.api_act = function() {
@@ -22529,6 +22740,7 @@ var senecaBrowser = { exports: {} };
         d.seneca || (d = (0, common_1.error)(d, "act_callback", (0, common_1.deep)({}, d.details, { message: d.message, pattern: l.pattern, fn: l.func, callback: i, instance: e.toString(), callpoint: o }))), e.log.error(intern2.actlog(l, m2, s, c, { kind: "act", case: "ERR", info: d.message, code: d.code, err: d, duration: a, did: e.did })), e.emit("act-err", m2, d, n.res), g.errhandler && g.errhandler.call(e, d, d.meta$);
       } };
     }, { "./common": 170, "./meta": 175 }], 167: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true }), exports2.addActions = void 0;
       const legacy_1 = require2("./legacy"), Common = require2("./common");
       function addActions(t) {
@@ -22563,6 +22775,7 @@ var senecaBrowser = { exports: {} };
     }, { "./common": 170, "./legacy": 173 }], 168: [function(require2, module2, exports2) {
       (function(setImmediate) {
         (function() {
+          "use strict";
           Object.defineProperty(exports2, "__esModule", { value: true }), exports2.task = exports2.api_add = void 0;
           const gubu_1 = require2("gubu"), common_1 = require2("./common"), Jsonic = require2("jsonic");
           function api_add() {
@@ -22627,6 +22840,7 @@ var senecaBrowser = { exports: {} };
     }, { "./common": 170, "gubu": 102, "jsonic": 119, "timers": 228 }], 169: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           Object.defineProperty(exports2, "__esModule", { value: true }), exports2.API = void 0;
           var Jsonic = require2("jsonic"), Norma = require2("norma"), Common = require2("./common"), errlog = Common.make_standard_err_log_entry, intern2 = {};
           function wrap(t, e, r) {
@@ -22913,6 +23127,7 @@ var senecaBrowser = { exports: {} };
     }, { "./common": 170, "_process": 158, "jsonic": 119, "norma": 133 }], 170: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           var __importDefault = this && this.__importDefault || function(e) {
             return e && e.__esModule ? e : { default: e };
           };
@@ -23084,14 +23299,23 @@ var senecaBrowser = { exports: {} };
             return r = r.substring(0, t) + (t < r.length ? "..." : "");
           }
           exports2.print = print, exports2.each = each, exports2.makedie = makedie, exports2.make_standard_act_log_entry = make_standard_act_log_entry, exports2.make_standard_err_log_entry = make_standard_err_log_entry, exports2.resolve_option = resolve_option, exports2.autoincr = autoincr, exports2.isError = isError, exports2.inspect = inspect2, exports2.make_callpoint = make_callpoint, exports2.make_trace_desc = make_trace_desc, exports2.msgstr = msgstr;
+          const TRACE_PATTERN = 0;
           exports2.TRACE_PATTERN = 0;
+          const TRACE_ID = 1;
           exports2.TRACE_ID = 1;
+          const TRACE_INSTANCE = 2;
           exports2.TRACE_INSTANCE = 2;
+          const TRACE_TAG = 3;
           exports2.TRACE_TAG = 3;
+          const TRACE_VERSION = 4;
           exports2.TRACE_VERSION = 4;
+          const TRACE_START = 5;
           exports2.TRACE_START = 5;
+          const TRACE_END = 6;
           exports2.TRACE_END = 6;
+          const TRACE_SYNC = 7;
           exports2.TRACE_SYNC = 7;
+          const TRACE_ACTION = 8;
           function history(e) {
             return new ActHistory(e);
           }
@@ -23156,8 +23380,10 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "./errors": 171, "./print": 179, "_process": 158, "eraro": 51, "fast-safe-stringify": 96, "jsonic": 119, "lodash.defaultsdeep": 121, "nid": 131, "norma": 133, "util": 238 }], 171: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true }), exports2.default = { test_msg: "Test message.", test_args: "Test args <%=arg0%> <%=arg1%>.", test_prop: "TESTING: exists: <%=exists%>, notfound:<%=notfound%>, str=<%=str%>, obj=<%=obj%>, arr=<%=arr%>, bool=<%=bool%>, null=<%=null$%>, delete=<%=delete$%>, undefined=<%=undefined$%>, void=<%=void$%>, NaN=<%=NaN$%>", add_string_pattern_syntax: 'Could not add action due to syntax error in pattern string: "<%=argstr%>": Line:<%=line%>, Column:<%=col%>; <%=syntax%>', act_string_args_syntax: 'Could execute action due to syntax error in argument string: "<%=argstr%>": Line:<%=line%>, Column:<%=col%>; <%=syntax%>', add_pattern_object_expected_after_string_pattern: 'Could not add action; unexpected argument; a pattern object or function should follow the pattern string; arguments were: "<%=args%>".', add_pattern_object_expected: 'Could not add action; unexpected argument; a pattern object or string should be the first argument; arguments were: "<%=args%>".', add_action_function_expected: 'Could not add action: the action function should appear after the pattern; arguments were: "<%=args%>".', add_action_metadata_not_an_object: "Could not add action: the argument after the action function should be a metadata object: <%=actdef%>.", add_empty_pattern: 'Could not add action, as the action pattern is empty: "<%=args%>"', act_if_expects_boolean: 'The method act_if expects a boolean value as its first argument, was: "<%=first%>".', act_not_found: "No matching action pattern found for <%=args%>, and no default result provided (using a default$ property).", act_default_bad: "No matching action pattern found for <%=args%>, and default result is not a plain object or an array: <%=xdefault%>.", act_no_args: 'No action pattern defined in "<%=args%>"; the first argument should be a string or object pattern.', act_invalid_msg: "Action <%=pattern%> received an invalid message; <%=message%>; message content was: <%=msg%>.", act_execute: "Action <%=pattern%> failed: <%=message%>.", act_callback: "Action <%=pattern%> callback threw: <%=message%>.", act_loop: "Action <%=pattern%> loops back on itself. Action details: <%=actdef%>, history: <%=history%>", result_not_objarr: "Action <%=pattern%> responded with result that was not an object or array: <%=result%>; Use option strict:{result:false} to allow; arguments were: <%=args%>", no_client: 'Transport client was not created; arguments were: "<%=args%>".', invalid_options: "Invalid options; <%=message%>", plugin_required: "The <%=name%> plugin depends on the <%=dependency%> plugin, which is not loaded yet.", plugin_init: "The <%=name%> plugin failed to initialize: <%=plugin_error%>.", plugin_init_timeout: 'The <%=name%> plugin failed to initialize within <%=timeout%> milliseconds (The init:<%=name%> action did not call the "done" callback in time).', export_not_found: "The export <%=key%> has not been defined by a plugin.", store_cmd_missing: 'Entity data store implementation is missing a command; "<%=cmd%>": "<%=store%>".', sub_function_catch: "Pattern subscription function threw: <%=message%> on message: <%=msg%>, result: <%=result%>.", sub_inward_action_failed: "Subscription action on inward pattern <%=pattern%> threw: <%=errmsg%> at <%=errline%> on message data: <%=msg%>. To start debugging, find the `seneca.sub` method call that defines the subscription action, and review the code of the action function.", sub_outward_action_failed: "Subscription action on outward pattern <%=pattern%> threw: <%=errmsg%> at <%=errline%> on message data: <%=msg%>. To start debugging, find the `seneca.sub` method call that defines the subscription action, and review the code of the action function.", ready_failed: "Ready function failed: <%=message%>", unknown_message_reply: "Reply for message <%=id%> failed as message is unknown: <%=args%>", maxparents: "Message has too many parent messages (<%=maxparents%>). There may be an infinite loop. Parents: <%=parents%>, Message: <%=args%>", plugin_define_failed: "The definition action for the plugin <%=fullname%> has failed: <%=message%>. This error is considered fatal as all plugins have to initialize correctly. You should test the plugin by itself to verify that it is working correctly. Also ensure that the configuration options passed to the plugin are correct. These are shown below under in the DETAILS section. There could also be a bug in the plugin. If you think that is the case, please create a github issue on the plugin's repository<%=repo%>, and include this error report.", no_transport_client: "The transport client defined by <%=config%> does not exist for message: <%=msg%>", invalid_plugin_option: "Plugin <%=name%>: option value is not valid: <%=err_msg%> in options <%=options%>", no_prior_action: "The `prior` method must be called inside an action function. Arguments were: <%=args%>", missing_plugin_name: "The plugin name string was missing or empty.", bad_plugin_name: "The plugin name string cannot be empty and must be alphanumeric (matching /^[a-zA-Z][a-zA-Z0-9_]*$/), and cannot be longer than 1024 characters. Name was '<%=name.substring(0,1032)%>'.", bad_plugin_tag: "The plugin tag string, if defined, must be alphanumeric (matching /^[a-zA-Z0-9_]+$/), and cannot be longer than 1024 characters. Name was '<%=name.substring(0,1032)%>', and tag was '<%=tag.substring(0,1032)%>'.", bad_jsonic: "Data string provided in Jsonic format (https://github.com/rjrodger/jsonic) has a syntax error: <%=syntax%> (line:<%=line%>, col:<%=col%>); original: <%=argstr%>", no_error_code: "The Seneca.error or Seneca.fail method was called without an error code string as first argument.", fail_wrong_number_of_args: "The Seneca.fail method was called with the wrong number of arguments: <%=num_args%>", fail_cond_must_be_bool: "The Seneca.fail method expected the `cond` param to be a boolean.", action_timeout: "<%=legacy_string%>Action <%=pattern%> timed out. Timeout was: <%=timeout%> (start: <%=start%>, end: <%=end%>. Message was: <%=message%>.", use_no_args: "The seneca.use method needs at least one argument to define a plugin.", act_invalid_args: "Action <%=pattern%> has invalid arguments; <%=message%>; arguments were: <%=msg%>.", deprecation: { seneca_parent: "Seneca.parent has been renamed to Seneca.prior. Seneca.parent will be removed in Seneca 4.x.", seneca_next_act: "Seneca.next_act will be removed in Seneca 3.x" } };
     }, {}], 172: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true }), exports2.Inward = void 0;
       const common_1 = require2("./common"), intern2 = {};
       function inward_msg_modify(a) {
@@ -23259,6 +23485,7 @@ var senecaBrowser = { exports: {} };
         }, e.seneca.bad = function(a2) {
           e.seneca.log.warn("seneca.bad is deprecated and will be removed in 4.0.0"), c(a2);
         }, e.seneca.reply = function a2(e2, t2) {
+          a2(e2, t2);
         }, e.seneca.explain = intern2.explain.bind(e.seneca, n), n.explain && e.seneca.explain({ explain$: true, msg$: (0, common_1.clean)(t.msg) });
       }
       function inward_sub(a) {
@@ -23285,6 +23512,7 @@ var senecaBrowser = { exports: {} };
       let Inward = { inward_msg_modify, inward_closed, inward_act_cache, inward_act_default, inward_act_not_found, inward_validate_msg, inward_warnings, inward_msg_meta, inward_limit_msg, inward_act_stats, inward_prepare_delegate, inward_announce, inward_sub, intern: intern2 };
       exports2.Inward = Inward;
     }, { "./common": 170 }], 173: [function(require2, module2, exports2) {
+      "use strict";
       var __importDefault = this && this.__importDefault || function(r) {
         return r && r.__esModule ? r : { default: r };
       };
@@ -23377,6 +23605,7 @@ var senecaBrowser = { exports: {} };
       const Legacy = { flatten, nil, copydata, recurse, argprops, next_act, findpins, act_if, hasact, make_legacy_fail };
       exports2.Legacy = Legacy;
     }, { "./common": 170, "./errors": 171, "eraro": 51, "jsonic": 119, "lodash.flatten": 122, "norma": 133, "util": 238 }], 174: [function(require2, module2, exports2) {
+      "use strict";
       var __importDefault = this && this.__importDefault || function(e) {
         return e && e.__esModule ? e : { default: e };
       };
@@ -23509,6 +23738,7 @@ var senecaBrowser = { exports: {} };
       } };
       make_logging.intern = intern2;
     }, { "./common": 170, "util": 238 }], 175: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true }), exports2.Meta = void 0;
       class Meta {
         constructor(t, s, i, e) {
@@ -23525,6 +23755,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 176: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           var __importDefault = this && this.__importDefault || function(e) {
             return e && e.__esModule ? e : { default: e };
           };
@@ -23601,6 +23832,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "./common": 170, "_process": 158, "eraro": 51, "fs": 45, "gubu": 102, "jsonic": 119, "minimist": 130, "path": 156 }], 177: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true }), exports2.Outward = void 0;
       var Util2 = require2("util"), Common = require2("./common"), intern2 = {};
       function outward_make_error(e) {
@@ -23710,6 +23942,7 @@ var senecaBrowser = { exports: {} };
       const Outward = { test$: { intern: intern2 }, outward_act_cache, outward_res_object, outward_act_stats, outward_make_error, outward_announce, outward_trace, outward_act_error, outward_res_entity, outward_msg_meta, outward_sub };
       exports2.Outward = Outward;
     }, { "./common": 170, "util": 238 }], 178: [function(require2, module2, exports2) {
+      "use strict";
       var __importDefault = this && this.__importDefault || function(e) {
         return e && e.__esModule ? e : { default: e };
       };
@@ -23876,6 +24109,7 @@ var senecaBrowser = { exports: {} };
       const Plugin = { api_use, intern: intern2 };
       exports2.Plugin = Plugin;
     }, { "./common": 170, "./print": 179, "eraro": 51, "lodash.uniq": 129, "nua": 134, "ordu": 144 }], 179: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true }), exports2.Print = void 0;
       var Util2 = require2("util"), Minimist = require2("minimist");
       function Print(n, i) {
@@ -23900,6 +24134,7 @@ var senecaBrowser = { exports: {} };
       }
       exports2.Print = Print, Object.assign(Print, { print_options, internal_log, internal_err, plugin_options, print: print_reply });
     }, { "minimist": 130, "util": 238 }], 180: [function(require2, module2, exports2) {
+      "use strict";
       var __importDefault = this && this.__importDefault || function(r) {
         return r && r.__esModule ? r : { default: r };
       };
@@ -23932,6 +24167,7 @@ var senecaBrowser = { exports: {} };
       const Prior = { api_prior };
       exports2.Prior = Prior;
     }, { "./act": 166, "./common": 170, "./inward": 172, "./meta": 175, "ordu": 144, "util": 238 }], 181: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true }), exports2.make_ready = void 0;
       const Common = require2("./common");
       function make_ready(e) {
@@ -23969,6 +24205,7 @@ var senecaBrowser = { exports: {} };
       }
       exports2.make_ready = make_ready;
     }, { "./common": 170 }], 182: [function(require2, module2, exports2) {
+      "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true }), exports2.api_sub = void 0;
       const Common = require2("./common");
       function api_sub() {
@@ -23985,6 +24222,7 @@ var senecaBrowser = { exports: {} };
     }, { "./common": 170 }], 183: [function(require2, module2, exports2) {
       (function(Buffer2) {
         (function() {
+          "use strict";
           var __importDefault = this && this.__importDefault || function(e) {
             return e && e.__esModule ? e : { default: e };
           };
@@ -24131,6 +24369,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("buffer").Buffer);
     }, { "./common": 170, "./legacy": 173, "@hapi/wreck": 28, "buffer": 46, "http": 208, "https": 108, "jsonic": 119, "qs": 185, "url": 229, "util": 238 }], 184: [function(require2, module2, exports2) {
+      "use strict";
       var replace = String.prototype.replace, percentTwenties = /%20/g, Format = { RFC1738: "RFC1738", RFC3986: "RFC3986" };
       module2.exports = { default: Format.RFC3986, formatters: { RFC1738: function(e) {
         return replace.call(e, percentTwenties, "+");
@@ -24138,9 +24377,11 @@ var senecaBrowser = { exports: {} };
         return String(e);
       } }, RFC1738: Format.RFC1738, RFC3986: Format.RFC3986 };
     }, {}], 185: [function(require2, module2, exports2) {
+      "use strict";
       var stringify = require2("./stringify"), parse = require2("./parse"), formats = require2("./formats");
       module2.exports = { formats, parse, stringify };
     }, { "./formats": 184, "./parse": 186, "./stringify": 187 }], 186: [function(require2, module2, exports2) {
+      "use strict";
       var utils = require2("./utils"), has = Object.prototype.hasOwnProperty, isArray = Array.isArray, defaults = { allowDots: false, allowPrototypes: false, allowSparse: false, arrayLimit: 20, charset: "utf-8", charsetSentinel: false, comma: false, decoder: utils.decode, delimiter: "&", depth: 5, ignoreQueryPrefix: false, interpretNumericEntities: false, parameterLimit: 1e3, parseArrays: true, plainObjects: false, strictNullHandling: false }, interpretNumericEntities = function(e) {
         return e.replace(/&#(\d+);/g, function(e2, t) {
           return String.fromCharCode(parseInt(t, 10));
@@ -24209,6 +24450,7 @@ var senecaBrowser = { exports: {} };
         return true === r.allowSparse ? i : utils.compact(i);
       };
     }, { "./utils": 188 }], 187: [function(require2, module2, exports2) {
+      "use strict";
       var getSideChannel = require2("side-channel"), utils = require2("./utils"), formats = require2("./formats"), has = Object.prototype.hasOwnProperty, arrayPrefixGenerators = { brackets: function(e) {
         return e + "[]";
       }, comma: "comma", indices: function(e, r) {
@@ -24308,6 +24550,7 @@ var senecaBrowser = { exports: {} };
         return i.charsetSentinel && ("iso-8859-1" === i.charset ? y += "utf8=%26%2310003%3B&" : y += "utf8=%E2%9C%93&"), c.length > 0 ? y + c : "";
       };
     }, { "./formats": 184, "./utils": 188, "side-channel": 191 }], 188: [function(require2, module2, exports2) {
+      "use strict";
       var formats = require2("./formats"), has = Object.prototype.hasOwnProperty, isArray = Array.isArray, hexTable = function() {
         for (var e = [], r = 0; r < 256; ++r)
           e.push("%" + ((r < 16 ? "0" : "") + r.toString(16)).toUpperCase());
@@ -24526,6 +24769,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 190: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           var __importDefault = this && this.__importDefault || function(e) {
             return e && e.__esModule ? e : { default: e };
           };
@@ -24604,6 +24848,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "./lib/act": 166, "./lib/actions": 167, "./lib/add": 168, "./lib/api": 169, "./lib/common": 170, "./lib/inward": 172, "./lib/legacy": 173, "./lib/logging": 174, "./lib/options": 176, "./lib/outward": 177, "./lib/plugin": 178, "./lib/print": 179, "./lib/prior": 180, "./lib/ready": 181, "./lib/sub": 182, "./lib/transport": 183, "./package.json": 189, "_process": 158, "eraro": 51, "events": 95, "gate-executor": 100, "gubu": 102, "jsonic": 119, "nid": 131, "ordu": 144, "patrun": 157, "rolling-stats": 163, "use-plugin": 231, "util": 238 }], 191: [function(require2, module2, exports2) {
+      "use strict";
       var GetIntrinsic = require2("get-intrinsic"), callBound = require2("call-bind/callBound"), inspect2 = require2("object-inspect"), $TypeError = GetIntrinsic("%TypeError%"), $WeakMap = GetIntrinsic("%WeakMap%", true), $Map = GetIntrinsic("%Map%", true), $weakMapGet = callBound("WeakMap.prototype.get", true), $weakMapSet = callBound("WeakMap.prototype.set", true), $weakMapHas = callBound("WeakMap.prototype.has", true), $mapGet = callBound("Map.prototype.get", true), $mapSet = callBound("Map.prototype.set", true), $mapHas = callBound("Map.prototype.has", true), listGetNode = function(e, t) {
         for (var n, a = e; null !== (n = a.next); a = n)
           if (n.key === t)
@@ -24677,6 +24922,7 @@ var senecaBrowser = { exports: {} };
         return t.on("error", m2), e.on("error", m2), t.on("end", l), t.on("close", l), e.on("close", l), e.emit("pipe", t), e;
       };
     }, { "events": 95, "inherits": 110, "readable-stream/lib/_stream_duplex.js": 194, "readable-stream/lib/_stream_passthrough.js": 195, "readable-stream/lib/_stream_readable.js": 196, "readable-stream/lib/_stream_transform.js": 197, "readable-stream/lib/_stream_writable.js": 198, "readable-stream/lib/internal/streams/end-of-stream.js": 202, "readable-stream/lib/internal/streams/pipeline.js": 204 }], 193: [function(require2, module2, exports2) {
+      "use strict";
       function _inheritsLoose(e, r) {
         e.prototype = Object.create(r.prototype), e.prototype.constructor = e, e.__proto__ = r;
       }
@@ -24732,6 +24978,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 194: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           var objectKeys = Object.keys || function(e) {
             var t = [];
             for (var r in e)
@@ -24770,6 +25017,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "./_stream_readable": 196, "./_stream_writable": 198, "_process": 158, "inherits": 110 }], 195: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = PassThrough;
       var Transform = require2("./_stream_transform");
       function PassThrough(r) {
@@ -24783,10 +25031,10 @@ var senecaBrowser = { exports: {} };
     }, { "./_stream_transform": 197, "inherits": 110 }], 196: [function(require2, module2, exports2) {
       (function(process, global2) {
         (function() {
+          "use strict";
           var Duplex;
           module2.exports = Readable, Readable.ReadableState = ReadableState;
-          require2("events").EventEmitter;
-          var EElistenerCount = function(e, t) {
+          var EE = require2("events").EventEmitter, EElistenerCount = function(e, t) {
             return e.listeners(t).length;
           }, Stream = require2("./internal/streams/stream"), Buffer2 = require2("buffer").Buffer, OurUint8Array = global2.Uint8Array || function() {
           };
@@ -25065,6 +25313,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"), typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, { "../errors": 193, "./_stream_duplex": 194, "./internal/streams/async_iterator": 199, "./internal/streams/buffer_list": 200, "./internal/streams/destroy": 201, "./internal/streams/from": 203, "./internal/streams/state": 205, "./internal/streams/stream": 206, "_process": 158, "buffer": 46, "events": 95, "inherits": 110, "string_decoder/": 207, "util": 42 }], 197: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = Transform;
       var _require$codes = require2("../errors").codes, ERR_METHOD_NOT_IMPLEMENTED = _require$codes.ERR_METHOD_NOT_IMPLEMENTED, ERR_MULTIPLE_CALLBACK = _require$codes.ERR_MULTIPLE_CALLBACK, ERR_TRANSFORM_ALREADY_TRANSFORMING = _require$codes.ERR_TRANSFORM_ALREADY_TRANSFORMING, ERR_TRANSFORM_WITH_LENGTH_0 = _require$codes.ERR_TRANSFORM_WITH_LENGTH_0, Duplex = require2("./_stream_duplex");
       function afterTransform(r, e) {
@@ -25118,6 +25367,10 @@ var senecaBrowser = { exports: {} };
     }, { "../errors": 193, "./_stream_duplex": 194, "inherits": 110 }], 198: [function(require2, module2, exports2) {
       (function(process, global2) {
         (function() {
+          "use strict";
+          function WriteReq(e, t, r) {
+            this.chunk = e, this.encoding = t, this.callback = r, this.next = null;
+          }
           function CorkedRequest(e) {
             var t = this;
             this.next = null, this.entry = null, this.finish = function() {
@@ -25303,6 +25556,7 @@ var senecaBrowser = { exports: {} };
     }, { "../errors": 193, "./_stream_duplex": 194, "./internal/streams/destroy": 201, "./internal/streams/state": 205, "./internal/streams/stream": 206, "_process": 158, "buffer": 46, "inherits": 110, "util-deprecate": 232 }], 199: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           var _Object$setPrototypeO;
           function _defineProperty(e, t, r) {
             return t in e ? Object.defineProperty(e, t, { value: r, enumerable: true, configurable: true, writable: true }) : e[t] = r, e;
@@ -25380,6 +25634,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "./end-of-stream": 202, "_process": 158 }], 200: [function(require2, module2, exports2) {
+      "use strict";
       function ownKeys(e, t) {
         var n = Object.keys(e);
         if (Object.getOwnPropertySymbols) {
@@ -25484,6 +25739,7 @@ var senecaBrowser = { exports: {} };
     }, { "buffer": 46, "util": 42 }], 201: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           function destroy(t, e) {
             var r = this, i = this._readableState && this._readableState.destroyed, a = this._writableState && this._writableState.destroyed;
             return i || a ? (e ? e(t) : t && (this._writableState ? this._writableState.errorEmitted || (this._writableState.errorEmitted = true, process.nextTick(emitErrorNT, this, t)) : process.nextTick(emitErrorNT, this, t)), this) : (this._readableState && (this._readableState.destroyed = true), this._writableState && (this._writableState.destroyed = true), this._destroy(t || null, function(t2) {
@@ -25510,6 +25766,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "_process": 158 }], 202: [function(require2, module2, exports2) {
+      "use strict";
       var ERR_STREAM_PREMATURE_CLOSE = require2("../../../errors").codes.ERR_STREAM_PREMATURE_CLOSE;
       function once(e) {
         var r = false;
@@ -25555,6 +25812,7 @@ var senecaBrowser = { exports: {} };
         throw new Error("Readable.from is not available in the browser");
       };
     }, {}], 204: [function(require2, module2, exports2) {
+      "use strict";
       var eos;
       function once(e) {
         var r = false;
@@ -25611,6 +25869,7 @@ var senecaBrowser = { exports: {} };
       }
       module2.exports = pipeline;
     }, { "../../../errors": 193, "./end-of-stream": 202 }], 205: [function(require2, module2, exports2) {
+      "use strict";
       var ERR_INVALID_OPT_VALUE = require2("../../../errors").codes.ERR_INVALID_OPT_VALUE;
       function highWaterMarkFrom(r, e, t) {
         return null != r.highWaterMark ? r.highWaterMark : e ? r[t] : null;
@@ -25628,6 +25887,7 @@ var senecaBrowser = { exports: {} };
     }, { "../../../errors": 193 }], 206: [function(require2, module2, exports2) {
       module2.exports = require2("events").EventEmitter;
     }, { "events": 95 }], 207: [function(require2, module2, exports2) {
+      "use strict";
       var Buffer2 = require2("safe-buffer").Buffer, isEncoding = Buffer2.isEncoding || function(t) {
         switch ((t = "" + t) && t.toLowerCase()) {
           case "hex":
@@ -25716,7 +25976,7 @@ var senecaBrowser = { exports: {} };
         }
       }
       function utf8FillLast(t) {
-        var e = this.lastTotal - this.lastNeed, s = utf8CheckExtraBytes(this, t);
+        var e = this.lastTotal - this.lastNeed, s = utf8CheckExtraBytes(this, t, e);
         return void 0 !== s ? s : this.lastNeed <= t.length ? (t.copy(this.lastChar, e, 0, this.lastNeed), this.lastChar.toString(this.encoding, 0, this.lastTotal)) : (t.copy(this.lastChar, e, 0, t.length), void (this.lastNeed -= t.length));
       }
       function utf8Text(t, e) {
@@ -26059,6 +26319,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"), typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {}, require2("buffer").Buffer);
     }, { "./capability": 209, "_process": 158, "buffer": 46, "inherits": 110, "readable-stream": 226 }], 212: [function(require2, module2, exports2) {
+      "use strict";
       function _inheritsLoose(e, r) {
         e.prototype = Object.create(r.prototype), e.prototype.constructor = e, e.__proto__ = r;
       }
@@ -26114,6 +26375,7 @@ var senecaBrowser = { exports: {} };
     }, {}], 213: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           var objectKeys = Object.keys || function(e) {
             var t = [];
             for (var r in e)
@@ -26152,6 +26414,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "./_stream_readable": 215, "./_stream_writable": 217, "_process": 158, "inherits": 110 }], 214: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = PassThrough;
       var Transform = require2("./_stream_transform");
       function PassThrough(r) {
@@ -26165,10 +26428,10 @@ var senecaBrowser = { exports: {} };
     }, { "./_stream_transform": 216, "inherits": 110 }], 215: [function(require2, module2, exports2) {
       (function(process, global2) {
         (function() {
+          "use strict";
           var Duplex;
           module2.exports = Readable, Readable.ReadableState = ReadableState;
-          require2("events").EventEmitter;
-          var EElistenerCount = function(e, t) {
+          var EE = require2("events").EventEmitter, EElistenerCount = function(e, t) {
             return e.listeners(t).length;
           }, Stream = require2("./internal/streams/stream"), Buffer2 = require2("buffer").Buffer, OurUint8Array = global2.Uint8Array || function() {
           };
@@ -26447,6 +26710,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"), typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, { "../errors": 212, "./_stream_duplex": 213, "./internal/streams/async_iterator": 218, "./internal/streams/buffer_list": 219, "./internal/streams/destroy": 220, "./internal/streams/from": 222, "./internal/streams/state": 224, "./internal/streams/stream": 225, "_process": 158, "buffer": 46, "events": 95, "inherits": 110, "string_decoder/": 227, "util": 42 }], 216: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = Transform;
       var _require$codes = require2("../errors").codes, ERR_METHOD_NOT_IMPLEMENTED = _require$codes.ERR_METHOD_NOT_IMPLEMENTED, ERR_MULTIPLE_CALLBACK = _require$codes.ERR_MULTIPLE_CALLBACK, ERR_TRANSFORM_ALREADY_TRANSFORMING = _require$codes.ERR_TRANSFORM_ALREADY_TRANSFORMING, ERR_TRANSFORM_WITH_LENGTH_0 = _require$codes.ERR_TRANSFORM_WITH_LENGTH_0, Duplex = require2("./_stream_duplex");
       function afterTransform(r, e) {
@@ -26500,6 +26764,10 @@ var senecaBrowser = { exports: {} };
     }, { "../errors": 212, "./_stream_duplex": 213, "inherits": 110 }], 217: [function(require2, module2, exports2) {
       (function(process, global2) {
         (function() {
+          "use strict";
+          function WriteReq(e, t, r) {
+            this.chunk = e, this.encoding = t, this.callback = r, this.next = null;
+          }
           function CorkedRequest(e) {
             var t = this;
             this.next = null, this.entry = null, this.finish = function() {
@@ -26685,6 +26953,7 @@ var senecaBrowser = { exports: {} };
     }, { "../errors": 212, "./_stream_duplex": 213, "./internal/streams/destroy": 220, "./internal/streams/state": 224, "./internal/streams/stream": 225, "_process": 158, "buffer": 46, "inherits": 110, "util-deprecate": 232 }], 218: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           var _Object$setPrototypeO;
           function _defineProperty(e, t, r) {
             return t in e ? Object.defineProperty(e, t, { value: r, enumerable: true, configurable: true, writable: true }) : e[t] = r, e;
@@ -26762,6 +27031,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "./end-of-stream": 221, "_process": 158 }], 219: [function(require2, module2, exports2) {
+      "use strict";
       function ownKeys(e, t) {
         var n = Object.keys(e);
         if (Object.getOwnPropertySymbols) {
@@ -26866,6 +27136,7 @@ var senecaBrowser = { exports: {} };
     }, { "buffer": 46, "util": 42 }], 220: [function(require2, module2, exports2) {
       (function(process) {
         (function() {
+          "use strict";
           function destroy(t, e) {
             var r = this, i = this._readableState && this._readableState.destroyed, a = this._writableState && this._writableState.destroyed;
             return i || a ? (e ? e(t) : t && (this._writableState ? this._writableState.errorEmitted || (this._writableState.errorEmitted = true, process.nextTick(emitErrorNT, this, t)) : process.nextTick(emitErrorNT, this, t)), this) : (this._readableState && (this._readableState.destroyed = true), this._writableState && (this._writableState.destroyed = true), this._destroy(t || null, function(t2) {
@@ -26892,6 +27163,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("_process"));
     }, { "_process": 158 }], 221: [function(require2, module2, exports2) {
+      "use strict";
       var ERR_STREAM_PREMATURE_CLOSE = require2("../../../errors").codes.ERR_STREAM_PREMATURE_CLOSE;
       function once(e) {
         var r = false;
@@ -26937,6 +27209,7 @@ var senecaBrowser = { exports: {} };
         throw new Error("Readable.from is not available in the browser");
       };
     }, {}], 223: [function(require2, module2, exports2) {
+      "use strict";
       var eos;
       function once(e) {
         var r = false;
@@ -26993,6 +27266,7 @@ var senecaBrowser = { exports: {} };
       }
       module2.exports = pipeline;
     }, { "../../../errors": 212, "./end-of-stream": 221 }], 224: [function(require2, module2, exports2) {
+      "use strict";
       var ERR_INVALID_OPT_VALUE = require2("../../../errors").codes.ERR_INVALID_OPT_VALUE;
       function highWaterMarkFrom(r, e, t) {
         return null != r.highWaterMark ? r.highWaterMark : e ? r[t] : null;
@@ -27012,6 +27286,7 @@ var senecaBrowser = { exports: {} };
     }, { "events": 95 }], 226: [function(require2, module2, exports2) {
       exports2 = module2.exports = require2("./lib/_stream_readable.js"), exports2.Stream = exports2, exports2.Readable = exports2, exports2.Writable = require2("./lib/_stream_writable.js"), exports2.Duplex = require2("./lib/_stream_duplex.js"), exports2.Transform = require2("./lib/_stream_transform.js"), exports2.PassThrough = require2("./lib/_stream_passthrough.js"), exports2.finished = require2("./lib/internal/streams/end-of-stream.js"), exports2.pipeline = require2("./lib/internal/streams/pipeline.js");
     }, { "./lib/_stream_duplex.js": 213, "./lib/_stream_passthrough.js": 214, "./lib/_stream_readable.js": 215, "./lib/_stream_transform.js": 216, "./lib/_stream_writable.js": 217, "./lib/internal/streams/end-of-stream.js": 221, "./lib/internal/streams/pipeline.js": 223 }], 227: [function(require2, module2, exports2) {
+      "use strict";
       var Buffer2 = require2("safe-buffer").Buffer, isEncoding = Buffer2.isEncoding || function(t) {
         switch ((t = "" + t) && t.toLowerCase()) {
           case "hex":
@@ -27100,7 +27375,7 @@ var senecaBrowser = { exports: {} };
         }
       }
       function utf8FillLast(t) {
-        var e = this.lastTotal - this.lastNeed, s = utf8CheckExtraBytes(this, t);
+        var e = this.lastTotal - this.lastNeed, s = utf8CheckExtraBytes(this, t, e);
         return void 0 !== s ? s : this.lastNeed <= t.length ? (t.copy(this.lastChar, e, 0, this.lastNeed), this.lastChar.toString(this.encoding, 0, this.lastTotal)) : (t.copy(this.lastChar, e, 0, t.length), void (this.lastNeed -= t.length));
       }
       function utf8Text(t, e) {
@@ -27202,6 +27477,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, require2("timers").setImmediate, require2("timers").clearImmediate);
     }, { "process/browser.js": 158, "timers": 228 }], 229: [function(require2, module2, exports2) {
+      "use strict";
       var punycode = require2("punycode"), util = require2("./util");
       function Url() {
         this.protocol = null, this.slashes = null, this.auth = null, this.host = null, this.port = null, this.hostname = null, this.hash = null, this.search = null, this.query = null, this.pathname = null, this.path = null, this.href = null;
@@ -27364,6 +27640,7 @@ var senecaBrowser = { exports: {} };
         s && (":" !== (s = s[0]) && (this.port = s.substr(1)), t = t.substr(0, t.length - s.length)), t && (this.hostname = t);
       };
     }, { "./util": 230, "punycode": 159, "querystring": 162 }], 230: [function(require2, module2, exports2) {
+      "use strict";
       module2.exports = { isString: function(n) {
         return "string" == typeof n;
       }, isObject: function(n) {
@@ -27374,6 +27651,7 @@ var senecaBrowser = { exports: {} };
         return null == n;
       } };
     }, {}], 231: [function(require2, module2, exports2) {
+      "use strict";
       const Path = require2("path"), Module = require2("module"), Nid = require2("nid"), Norma = require2("norma"), Eraro = require2("eraro"), DefaultsDeep = require2("lodash.defaultsdeep");
       function make(e) {
         e = Object.assign({ prefix: "plugin-", builtin: "../plugin/", module: module2.parent, errmsgprefix: true, system_modules: intern2.make_system_modules(), merge_defaults: true, gubu: true }, e);
@@ -27519,6 +27797,7 @@ var senecaBrowser = { exports: {} };
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {}], 233: [function(require2, module2, exports2) {
+      "use strict";
       var forEach = require2("for-each"), isES5 = "function" == typeof Object.defineProperty, hasProto = [].__proto__ === Array.prototype;
       if (!isES5 || !hasProto)
         throw new TypeError("util.promisify requires a true ES5 environment, that also supports `__proto__`");
@@ -27564,11 +27843,13 @@ var senecaBrowser = { exports: {} };
         }), i;
       }, module2.exports.custom = kCustomPromisifiedSymbol, module2.exports.customPromisifyArgs = kCustomPromisifyArgsSymbol;
     }, { "call-bind/callBound": 48, "for-each": 97, "has-symbols": 104, "object.getownpropertydescriptors": 141 }], 234: [function(require2, module2, exports2) {
+      "use strict";
       var util = require2("util"), implementation = require2("./implementation");
       module2.exports = function() {
         return "function" == typeof util.promisify && util.promisify.custom === implementation.custom ? util.promisify : implementation;
       };
     }, { "./implementation": 233, "util": 238 }], 235: [function(require2, module2, exports2) {
+      "use strict";
       var util = require2("util"), getPolyfill = require2("./polyfill");
       module2.exports = function() {
         var e = getPolyfill();
@@ -27579,6 +27860,7 @@ var senecaBrowser = { exports: {} };
         return o && "object" == typeof o && "function" == typeof o.copy && "function" == typeof o.fill && "function" == typeof o.readUInt8;
       };
     }, {}], 237: [function(require2, module2, exports2) {
+      "use strict";
       var isArgumentsObject = require2("is-arguments"), isGeneratorFunction = require2("is-generator-function"), whichTypedArray = require2("which-typed-array"), isTypedArray = require2("is-typed-array");
       function uncurryThis(r) {
         return r.call.bind(r);
@@ -27860,7 +28142,7 @@ var senecaBrowser = { exports: {} };
           }
           function reduceToSingleString(e, r, t) {
             return e.reduce(function(e2, r2) {
-              return r2.indexOf("\n") >= 0 && 0, e2 + r2.replace(/\u001b\[\d\d?m/g, "").length + 1;
+              return 0, r2.indexOf("\n") >= 0 && 0, e2 + r2.replace(/\u001b\[\d\d?m/g, "").length + 1;
             }, 0) > 60 ? t[0] + ("" === r ? "" : r + "\n ") + " " + e.join(",\n  ") + " " + t[1] : t[0] + r + " " + e.join(", ") + " " + t[1];
           }
           function isArray(e) {
@@ -28000,6 +28282,7 @@ var senecaBrowser = { exports: {} };
     }, { "./support/isBuffer": 236, "./support/types": 237, "_process": 158, "inherits": 110 }], 239: [function(require2, module2, exports2) {
       (function(global2) {
         (function() {
+          "use strict";
           var forEach = require2("for-each"), availableTypedArrays = require2("available-typed-arrays"), callBound = require2("call-bind/callBound"), $toString = callBound("Object.prototype.toString"), hasToStringTag = require2("has-tostringtag/shams")(), g = "undefined" == typeof globalThis ? global2 : globalThis, typedArrays = availableTypedArrays(), $slice = callBound("String.prototype.slice"), toStrTags = {}, gOPD = require2("es-abstract/helpers/getOwnPropertyDescriptor"), getPrototypeOf = Object.getPrototypeOf;
           hasToStringTag && gOPD && getPrototypeOf && forEach(typedArrays, function(r) {
             if ("function" == typeof g[r]) {
@@ -28093,13 +28376,14 @@ var senecaBrowser = { exports: {} };
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, { "seneca": 190, "seneca-promisify": 165, "timers": 228, "util.promisify/shim": 235 }] }, {}, [241])(241);
   });
-})(senecaBrowser);
-var senecaBrowserExports = senecaBrowser.exports;
+})(senecaBrowser$1, senecaBrowser$1.exports);
+var senecaBrowserExports = senecaBrowser$1.exports;
 const Seneca = /* @__PURE__ */ getDefaultExportFromCjs(senecaBrowserExports);
 var entity = { exports: {} };
 var make_entity = {};
+"use strict";
 Object.defineProperty(make_entity, "__esModule", { value: true });
-make_entity.Entity = make_entity.MakeEntity = void 0;
+var Entity_1 = make_entity.Entity = MakeEntity_1 = make_entity.MakeEntity = void 0;
 const proto = Object.getPrototypeOf;
 const toString_map = {
   // '': make_toString(),
@@ -28209,15 +28493,19 @@ class Entity {
     for (const p in props) {
       if (Object.prototype.hasOwnProperty.call(props, p)) {
         if (!~p.indexOf("$")) {
+          ;
           entity2[p] = props[p];
         } else if (p.length > 2 && p.slice(-2) === "_$") {
+          ;
           entity2[p.slice(0, -2)] = props[p];
         }
       }
     }
     if (Object.prototype.hasOwnProperty.call(props, "id$")) {
+      ;
       entity2.id$ = props.id$;
     }
+    ;
     self2.log$ && self2.log$("make", entity2.canon$({ string: true }), entity2);
     return entity2;
   }
@@ -28471,7 +28759,7 @@ class Entity {
     return {};
   }
 }
-make_entity.Entity = Entity;
+Entity_1 = make_entity.Entity = Entity;
 function entityPromise(si, entmsg) {
   var _a;
   let attachMeta = true === ((_a = entmsg.q) === null || _a === void 0 ? void 0 : _a.meta$);
@@ -28547,7 +28835,7 @@ function canonstr(canon) {
 function handle_options(entopts, seneca) {
   var _a;
   entopts = entopts || /* @__PURE__ */ Object.create(null);
-  seneca.util.Jsonic;
+  let Jsonic = seneca.util.Jsonic;
   if (entopts.hide) {
     Object.keys(entopts.hide).forEach((hidden_fields) => {
       const canon_in = entopts.hide[hidden_fields];
@@ -28557,10 +28845,11 @@ function handle_options(entopts, seneca) {
         canon.base == null ? "-" : canon.base,
         canon.name == null ? "-" : canon.name
       ].join("/");
-      toString_map[canon_str] = make_toString(canon_str, hidden_fields, entopts);
+      toString_map[canon_str] = make_toString(canon_str, hidden_fields, entopts, Jsonic);
     });
   }
   if (false === ((_a = entopts.meta) === null || _a === void 0 ? void 0 : _a.provide)) {
+    ;
     Entity.prototype.done$ = (done2) => {
       return null == done2 ? void 0 : function(err, out) {
         done2.call(this, err, out);
@@ -28617,7 +28906,7 @@ function MakeEntity(canon, seneca, opts) {
   delete ent.private$;
   return ent;
 }
-make_entity.MakeEntity = MakeEntity;
+var MakeEntity_1 = make_entity.MakeEntity = MakeEntity;
 MakeEntity.parsecanon = parsecanon;
 MakeEntity.canonstr = canonstr;
 function jsonic_strify(val2, opts, depth) {
@@ -28701,8 +28990,9 @@ function jsonic_stringify(val2, callopts) {
   }
 }
 var store = {};
+"use strict";
 Object.defineProperty(store, "__esModule", { value: true });
-store.Store = store.Intern = void 0;
+var Store_1 = store.Store = Intern_1 = store.Intern = void 0;
 const allcmds = ["save", "load", "list", "remove", "close", "native"];
 function Store() {
   const tag_count_map = {};
@@ -28802,7 +29092,7 @@ function Store() {
   };
   return store2;
 }
-store.Store = Store;
+Store_1 = store.Store = Store;
 const Intern = {
   // Ensure entity objects are instantiated
   reify_entity_wrap: function(cmdfunc, cmd, zone, base, name2) {
@@ -28842,14 +29132,15 @@ const Intern = {
     return outfunc;
   }
 };
-store.Intern = Intern;
-var memStore = { exports: {} };
+var Intern_1 = store.Intern = Intern;
+var memStore$1 = { exports: {} };
 var intern = {};
 var hasRequiredIntern;
 function requireIntern() {
   if (hasRequiredIntern)
     return intern;
   hasRequiredIntern = 1;
+  "use strict";
   Object.defineProperty(intern, "__esModule", { value: true });
   intern.intern = void 0;
   let intern$1 = class intern2 {
@@ -28998,12 +29289,14 @@ function requireIntern() {
   intern.intern = intern$1;
   return intern;
 }
+var memStore = memStore$1.exports;
 var hasRequiredMemStore;
 function requireMemStore() {
   if (hasRequiredMemStore)
-    return memStore.exports;
+    return memStore$1.exports;
   hasRequiredMemStore = 1;
   (function(module2, exports2) {
+    "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     const intern_1 = requireIntern();
     let internals = {
@@ -29222,13 +29515,15 @@ function requireMemStore() {
     mem_store.intern = intern_1.intern;
     Object.defineProperty(mem_store, "name", { value: "mem-store" });
     exports2.default = mem_store;
-    {
+    if (true) {
       module2.exports = mem_store;
     }
-  })(memStore, memStore.exports);
-  return memStore.exports;
+  })(memStore$1, memStore$1.exports);
+  return memStore$1.exports;
 }
+var entity_1 = entity.exports;
 (function(module2, exports2) {
+  "use strict";
   Object.defineProperty(exports2, "__esModule", { value: true });
   const make_entity_1 = make_entity;
   const store_1 = store;
@@ -29524,7 +29819,7 @@ function requireMemStore() {
     };
   }
   exports2.default = entity2;
-  {
+  if (true) {
     module2.exports = entity2;
   }
 })(entity, entity.exports);
@@ -29605,7 +29900,7 @@ L.RasterCoords.prototype = {
     log("PQAM", "script-load", "create", scriptID);
   }
   let $ = D.querySelector.bind(D);
-  D.querySelectorAll.bind(D);
+  let $All = D.querySelectorAll.bind(D);
   let Element2 = D.createElement.bind(D);
   let rc;
   function PlantQuestAssetMap() {
@@ -29769,8 +30064,19 @@ L.RasterCoords.prototype = {
           pqam: self2
         };
         let seneca = yield self2.getSeneca();
+        let reset = () => {
+          self2.data.deps = {};
+          self2.data.roomMap = {};
+          self2.data.assetMap = {};
+          self2.data.assets = [];
+          self2.data.rooms = [];
+          self2.data.buildings = [];
+          self2.data.levels = [];
+          self2.data.maps = [];
+        };
         let processData = (json) => __async(this, null, function* () {
           self2.data = json;
+          let assets = [];
           let assetMap = {};
           let assetProps = self2.data.assets[0];
           for (let rowI = 1; rowI < self2.data.assets.length; rowI++) {
@@ -30084,7 +30390,7 @@ L.RasterCoords.prototype = {
               className: "polygon-labels"
             });
             poly.bindTooltip(tooltip);
-            poly.getBounds().getCenter();
+            let _c = poly.getBounds().getCenter();
             tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
             poly_labels[poly.name$] = poly;
           }
@@ -30550,13 +30856,13 @@ L.RasterCoords.prototype = {
       assetCurrent2.stateName = stateName;
       let color = stateDef.color;
       let ay_poly = convert_poly_y(self2.config.mapImg, ay);
-      convertRoomPoly(self2.config.mapImg, [
+      let room_poly = convertRoomPoly(self2.config.mapImg, [
         [ay_poly + 10, ax],
         [ay_poly - 10, ax + 10],
         [ay_poly - 10, ax - 10]
       ]);
       if (null == assetCurrent2.indicator) {
-        assetCurrent2.indicator = L$1.circle(
+        let assetMarker = assetCurrent2.indicator = L$1.circle(
           c_asset_coords({ x: ax, y: ay }),
           {
             radius: 0.2,
@@ -30734,6 +31040,7 @@ L.RasterCoords.prototype = {
         });
         seneca.test().use(SenecaEntity).ready(function() {
           return __async(this, null, function* () {
+            const seneca2 = this;
           });
         });
         yield seneca.client({
@@ -31056,6 +31363,11 @@ L.RasterCoords.prototype = {
     ];
     return html.join("");
   }
+  function fixid(idstr) {
+    return idstr.replace(/[ \t]/g, "-");
+  }
+  function clear() {
+  }
   function clone(obj) {
     if (null != obj && "object" === typeof obj) {
       return JSON.parse(JSON.stringify(obj));
@@ -31235,6 +31547,11 @@ L.RasterCoords.prototype = {
       assetMap,
       roomMap
     };
+  }
+  function depsUnitTest(deps) {
+    const { deepEqual, deepStrictEqual } = require("assert");
+    let copy = JSON.parse(JSON.stringify(require("./test_data.json").deps));
+    deepStrictEqual(deps, copy, "deepEqual Relations test");
   }
   W.PlantQuestAssetMap = new PlantQuestAssetMap();
   function injectStyle() {
