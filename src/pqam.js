@@ -1623,8 +1623,13 @@ import './rastercoords.js'
       return tileLyr
     },
     
-    self.showMap = function(mapIndex) {
-      self.log('showMap', mapIndex, self.loc)
+    self.showMap = function(mapIndex, flags) {
+      self.log('showMap', mapIndex, flags, self.loc)
+
+      flags = flags || {}
+      let startZoom = false === flags.startZoom ? false : true
+      let showAllAssets = false === flags.showAllAssets ? false : true
+      
       self.closeAssetInfo()
       self.closeClusterInfo()
       
@@ -1639,12 +1644,13 @@ import './rastercoords.js'
         self.leaflet.maptile.addTo(self.map)
         self.loc.map = mapIndex
 
-        self.map.setView(self.config.mapStart, self.config.mapStartZoom)
+        self.map.setView(
+          self.config.mapStart,
+          startZoom ? self.config.mapStartZoom : self.map.getZoom()
+        )
         
         // render labels
         self.zoomEndRender()
-
-	
 
         self.unselectRoom()
 
@@ -1663,7 +1669,7 @@ import './rastercoords.js'
           })
         }
 
-        if(self.config.showAllAssets) {
+        if(showAllAssets && self.config.showAllAssets) {
           self.send({
             srv:'plantquest',
             part:'assetmap',
@@ -2031,7 +2037,11 @@ import './rastercoords.js'
               if(null != assetMapIndex) {
                 let mapIndex = (+assetMapIndex)-1
                 if(mapIndex !== self.loc.map) {
-                  self.showMap(mapIndex)
+                  // QQQ
+                  self.showMap(mapIndex, {
+                    startZoom: false,
+                    showAllAssets: false,
+                  })
                 }
               }
               
@@ -2624,6 +2634,11 @@ div.plantquest-assetmap-asset-label-red {
 .leaflet-toolbar-0>li>.leaflet-toolbar-icon {
   width: 80px;
 }
+
+ul.leaflet-control-toolbar > li {
+  margin: 0px;
+}
+
 
 .control-panel {
   position: absolute;
