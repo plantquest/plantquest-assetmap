@@ -174,7 +174,7 @@ import './rastercoords.js'
     }
     
     
-    self.start = function(config) {
+    self.start = function(config, ready) {
       if(self.current.started) {
         self.clearRoomAssets()
         self.unselectRoom()
@@ -182,7 +182,7 @@ import './rastercoords.js'
         self.map.setView(self.config.mapStart, self.config.mapStartZoom)
         return
       }
-      
+
       // self.config = { ...self.config, ...(config || {}) }
       self.config = Seneca.util.deep(self.config,config)
       self.log('start', JSON.stringify(config))
@@ -221,6 +221,15 @@ import './rastercoords.js'
             
             self.render(()=>{
               self.log('start','render-done')
+
+              if(ready) {
+                try {
+                  ready(self)
+                }
+                catch(e) {
+                  self.log('ERROR', 'ready', e)
+                }
+              }
               
               self.emit({
                 srv:'plantquest',
@@ -448,8 +457,7 @@ import './rastercoords.js'
 
     self.listen = function(listener) {
       if(null == listener || 'function' !== typeof(listener)) {
-        self.log('ERROR', 'listen', 'bad-listener', listener)
-                 
+        self.log('ERROR', 'listen', 'bad-listener', listener)                 
       }
       else {
         self.listeners.push(listener)
@@ -1677,18 +1685,18 @@ import './rastercoords.js'
             asset: null,
           })
         }
-        
-        self.emit({
-          srv:'plantquest',
-          part:'assetmap',
-          show:'map',
-          map: self.loc.map,
-          level: self.data.levels[self.loc.map],
-        })
       }
       else {
         self.map.setView(self.config.mapStart, self.config.mapStartZoom)
       }
+
+      self.emit({
+        srv:'plantquest',
+        part:'assetmap',
+        show:'map',
+        map: self.loc.map,
+        level: self.data.levels[self.loc.map],
+      })
     }
 
     
@@ -2080,15 +2088,14 @@ import './rastercoords.js'
 
           // console.log('geofenceIDList', geofenceIDList, 'hide'===msg.geofence)
           
-          for(let geofenceID of geofenceIDList) {
+          // for(let geofenceID of geofenceIDList) {
+          for(let geofenceID of Object.keys(self.geofence.map)) {
             let geofence = self.geofence.map[geofenceID]
               
             if(geofence) {
               let shown = showAll || -1!=geofenceIDList.indexOf(geofenceID)
-                
               shown = 'geofence'===msg.hide ? false : shown
-
-              // shown = geofence.map-1 == self.loc.map ? shown : false
+              shown = geofence.ent.map == self.loc.map ? shown : false
               
               self.showGeofence(geofence, shown)
             }
@@ -2175,13 +2182,25 @@ import './rastercoords.js'
         if(this.ctx.cfg.geofence.click.active) {
           this.poly.on('click', this.onClick.bind(this))
         }
+
+        let tooltip = L.tooltip({
+          permanent: true,
+          direction: 'center',
+          opacity: 1,
+          className: 'polygon-labels',
+        })
+
+        this.poly.bindTooltip(tooltip)
+
+        tooltip
+          .setContent(`<div class="leaflet-zoom-animted"> ${this.ent.title} ${this.ent.id}</div>`)
       }
       
       this.poly.addTo(layer)
     }
 
     hide() {
-      this.poly.remove()
+      this.poly && this.poly.remove()
     }
     
     onClick(event) {
