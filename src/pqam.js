@@ -126,6 +126,11 @@ import './rastercoords.js'
 
         asset: {
           cluster: true
+        },
+
+        update: {
+          active: false,
+          interval: 30000,
         }
       },
       
@@ -223,6 +228,10 @@ import './rastercoords.js'
             self.render(()=>{
               self.log('start','render-done')
 
+              if(self.config.update.active) {
+                self.updates()
+              }
+              
               if(ready) {
                 try {
                   ready(self)
@@ -414,6 +423,58 @@ import './rastercoords.js'
       }
     }
 
+
+    self.updates = function() {
+      clearInterval(self.current.updateInterval)
+      self.current.updateInterval = setInterval(async function() {
+        let res =
+            await self.seneca.post(
+              'aim:web,on:assetmap,list:asset',
+              {query:{t_m:{$gte:(Date.now()-(2*self.config.update.interval))}}}
+            )
+
+        if(res.ok) {
+          let updatedAssets = res.list
+          // console.log('updatedAssets', updatedAssets)
+
+          for(let asset of updatedAssets) {
+            try {
+              let existing = self.data.assetMap[asset.id]
+              if(existing.t_m < asset.t_m) {
+                self.data.assetMap[asset.id] = asset
+                let index = self.data.assets.findIndex(a=>a.id===asset.id)
+                if(-1 < index) {
+                  self.data.assets[index] = asset
+                }
+                let assetCurrent = self.current.asset[asset.id]
+                if(assetCurrent.show) {
+                  self.layer.asset.removeLayer(assetCurrent.label)
+                  assetCurrent.label = null
+                  assetCurrent.indicator.remove()
+                  assetCurrent.indicator = null
+                  self.showAsset(
+                    asset.id,
+                    assetCurrent.stateName,
+                    false,
+                    false,
+                    false,
+                    assetCurrent.infobox
+                  )
+                }
+                else {
+                  delete self.current.asset[asset.id]
+                }
+              }
+            }
+            catch(e) {
+              console.log('UPDATE ERROR', asset, e)
+            }
+          }
+        }
+        
+      }, self.config.update.interval)
+    }
+
     
     self.render = function(done) {      
       injectStyle()
@@ -550,10 +611,51 @@ import './rastercoords.js'
 
 
       self.map.getContainer().addEventListener('wheel', (event) => {
-        let classes = ''+(event.target && event.target.className || '')
-        
-        if(-1 != classes.indexOf('plantquest-assetmap-vis')) {
+
+        try {
+
+          let elem = event.target
+          let stop = 99
+          let count = 0
+          let classes = ''+(elem && elem.className)
+          while(
+            null != elem && 
+              count < stop
+          ) {
+            count++
+            classes = ''+(elem && elem.className)
+            if(
+              -1 != classes.indexOf('plantquest-assetmap-assetcluster') ||
+                -1 != classes.indexOf('plantquest-assetmap-assetinfo')
+            ) {
+              return
+            }
+            else if(-1 != classes.indexOf('leaflet')) {
+              break
+            }
+            elem = elem.parentElement
+          }
+          
           self.map.scrollWheelZoom._onWheelScroll(event)
+        
+
+
+        //   let classes = ''+(event.target && event.target.className || '')
+
+        //   // console.log('ZOOM', event, '['+classes+']')
+        //   let leafletElement =
+        //       (null != event.target._leaflet_id) ||
+        //       (null != event.target.parentElement._leaflet_id)
+        
+        //   if(
+        //     leafletElement ||
+        //       -1 != classes.indexOf('plantquest-assetmap-vis')
+        //   ) {
+        //     self.map.scrollWheelZoom._onWheelScroll(event)
+        //   }
+        }
+        catch(e) {
+          console.log('ZOOM EVENT ERROR', e, event)
         }
       })
 
@@ -1473,27 +1575,30 @@ import './rastercoords.js'
       //     }
       // }
       
-      if(hide) {
-        if(assetCurrent.label) {
-          self.layer.asset.removeLayer(assetCurrent.label)
+        if(hide) {
+          assetCurrent.show = false
+          if(assetCurrent.label) {
+            self.layer.asset.removeLayer(assetCurrent.label)
+          }
+          if(assetCurrent.indicator) {
+            assetCurrent.indicator.remove()
+          }
+          delete self.current.assetInfoShown[assetID]
+          return
         }
-        if(assetCurrent.indicator) {
-          assetCurrent.indicator.remove()
+        else if(infobox) {
+          self.current.assetInfoShown[assetID] = assetCurrent
         }
-        delete self.current.assetInfoShown[assetID]
-        return
-      }
-      else if(infobox) {
-        self.current.assetInfoShown[assetID] = assetCurrent
-      }
 
-      let assetPoint = [
-        assetProps.yco,
-        assetProps.xco,
-      ]
-      let ax = assetPoint[1]
-      let ay = assetPoint[0]
-      
+        assetCurrent.show = true
+        
+        let assetPoint = [
+          assetProps.yco,
+          assetProps.xco,
+        ]
+        let ax = assetPoint[1]
+        let ay = assetPoint[0]
+        
       assetCurrent.stateName = stateName
       let color = stateDef.color
       
@@ -1622,7 +1727,7 @@ import './rastercoords.js'
                 
                 let t_c = new Date(hist.t_c)
                 let when = t_c.toISOString()
-                tooltip.setContent(`${when}`)
+                tooltip.setContent(`<span style="color:#CCC;font-size:6pt;">${when}<span>`)
                 
                 histdot.bindTooltip(tooltip)
                 
@@ -2072,7 +2177,7 @@ import './rastercoords.js'
           }
 
           if('string' === typeof msg.asset) {
-            console.log('SHOW ASSET SINGLE', msg.asset)
+            // console.log('SHOW ASSET SINGLE', msg.asset)
             
             let assetRoom = self.data.deps.cp.asset[msg.asset]
             let assetData = self.data.assetMap[msg.asset]
@@ -2256,7 +2361,8 @@ import './rastercoords.js'
         this.poly.bindTooltip(tooltip)
 
         tooltip
-          .setContent(`<div class="leaflet-zoom-animted"> ${this.ent.title} ${this.ent.id}</div>`)
+        // .setContent(`<div class="leaflet-zoom-animted"> ${this.ent.title} ${this.ent.id}</div>`)
+        .setContent(`<div class="leaflet-zoom-animted">${this.ent.title}</div>`)
       }
       
       this.poly.addTo(layer)
@@ -2537,16 +2643,17 @@ import './rastercoords.js'
     }
 
   }
+
   
-  function depsUnitTest(deps) {
-    const { deepEqual, deepStrictEqual } = require('assert')
+  // function depsUnitTest(deps) {
+  //   const { deepEqual, deepStrictEqual } = require('assert')
     
-    // let copy = JSON.parse(JSON.stringify(require('./test_data.json').deps))
+  //   // let copy = JSON.parse(JSON.stringify(require('./test_data.json').deps))
     
-    // console.log( deps, copy )
+  //   // console.log( deps, copy )
     
-    // deepStrictEqual(deps, copy, 'deepEqual Relations test')
-  }
+  //   // deepStrictEqual(deps, copy, 'deepEqual Relations test')
+  // }
   
   
     
