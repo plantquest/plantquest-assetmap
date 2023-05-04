@@ -247,6 +247,7 @@ import './rastercoords.js'
 
     
     self.load = async function(done) {
+      done = done || (()=>{})
       let ctx = {
         cfg: self.config,
         pqam: self
