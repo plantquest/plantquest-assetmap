@@ -143,6 +143,7 @@ import './rastercoords.js'
         clusterInfo: null,
         
         assetInfoShown: {},
+        assetHistory: [],
       },
       
       upload: {
@@ -1425,7 +1426,17 @@ import './rastercoords.js'
     }
 
 
-    self.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox) {
+    self.showAsset = function(
+      assetID,
+      stateName,
+      hide,
+      blink,
+      showRoom,
+      infobox,
+      history
+    ) {
+      // console.log('showAsset', assetID, history)
+      
       let assetCurrent =
           self.current.asset[assetID] || (self.current.asset[assetID]={})
 
@@ -1436,18 +1447,19 @@ import './rastercoords.js'
       let assetProps = self.data.assetMap[assetID]
 
       try {
-      self.closeAssetInfo()
-      self.closeClusterInfo()
+        self.closeAssetInfo()
+        self.closeClusterInfo()
 
 
-      // Ignore assets with invalid coords
-      if(null == assetProps || null == assetProps.xco || null == assetProps.yco) {
-        return
-      }
+        // Ignore assets with invalid coords
+        if(null == assetProps || null == assetProps.xco || null == assetProps.yco) {
+          return
+        }
       
-      assetCurrent.infobox = infobox == null ? true : !!infobox
-      
-            
+        assetCurrent.infobox = infobox == null ? true : !!infobox
+
+        assetCurrent.assetID = assetID
+        
       // if(showRoom) {
       //   self.showRoom(assetProps.room, stateName)
       
@@ -1567,9 +1579,9 @@ import './rastercoords.js'
       }
 
 
-      if(infobox) {
-        self.openAssetInfo({
-          asset: assetProps,
+        if(infobox) {
+          self.openAssetInfo({
+            asset: assetProps,
           assetMarker: assetCurrent.indicator,
           xco: assetProps.xco,
           yco: assetProps.yco
@@ -1579,6 +1591,46 @@ import './rastercoords.js'
       // window.assetCurrent = assetCurrent
       
         self.zoomEndRender()
+
+        if(history) {
+          
+          self.seneca.act('aim:web,on:assetmap,load:asset',{
+            query: { id:assetProps.id }, history: true
+          }, (err, res) => {
+            if(err) return;
+            // console.log('ASSET HIST', asset)
+            
+            if(res.ok) {
+              self.current.assetHistory.map(hist=>hist.remove())
+              self.current.assetHistory.length = 0
+              
+              for(let hist of res.item.history) {
+                let histdot = L.circle(
+                  c_asset_coords({x: hist.xco, y: hist.yco}), {
+                    radius: 0.1,
+                    color: 'black',
+                    weight: 4,
+                  })
+                
+                let tooltip = L.tooltip({
+                  permanent: true,
+                  direction: 'bottom',
+                  opacity: 1,
+                  className: 'polygon-labels',
+                })
+                
+                let t_c = new Date(hist.t_c)
+                let when = t_c.toISOString()
+                tooltip.setContent(`${when}`)
+                
+                histdot.bindTooltip(tooltip)
+                
+                histdot.addTo(self.layer.indicator)
+                self.current.assetHistory.push(histdot)
+              }
+            }
+          })
+        }
       }
       catch(e) {
         self.log('ERROR','showAsset','1050',
@@ -1960,9 +2012,12 @@ import './rastercoords.js'
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
           }
 
-          if(Array.isArray(msg.asset) || null === msg.asset) {
+          self.current.assetHistory.map(hist=>hist.remove())
+          self.current.assetHistory.length = 0
+          
+          if(Array.isArray(msg.asset) || null === msg.asset || msg.only) {
             let allAssetIDs = Object.keys(self.data.assetMap)
-            let assetIDList = msg.asset || allAssetIDs
+            let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
             let showAll = null === msg.asset
 
             // console.log('showAssetMsg', allAssetIDs.length, assetIDList && assetIDList.length, showAll)
@@ -2014,7 +2069,10 @@ import './rastercoords.js'
               //                'asset' === msg.hide, !!msg.blink, false, showInfoBox)
             }
           }
-          else { 
+
+          if('string' === typeof msg.asset) {
+            console.log('SHOW ASSET SINGLE', msg.asset)
+            
             let assetRoom = self.data.deps.cp.asset[msg.asset]
             let assetData = self.data.assetMap[msg.asset]
             let zoom = msg.zoom || self.config.mapMaxZoom
@@ -2045,7 +2103,6 @@ import './rastercoords.js'
               if(null != assetMapIndex) {
                 let mapIndex = (+assetMapIndex)-1
                 if(mapIndex !== self.loc.map) {
-                  // QQQ
                   self.showMap(mapIndex, {
                     startZoom: false,
                     showAllAssets: false,
@@ -2056,7 +2113,12 @@ import './rastercoords.js'
               self.showAsset(
                 msg.asset,
                 msg.state,
-                'asset' === msg.hide, !!msg.blink, false, showInfoBox)
+                'asset' === msg.hide,
+                !!msg.blink,
+                false,
+                showInfoBox,
+                msg.history,
+              )
             }
             else {
               self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)

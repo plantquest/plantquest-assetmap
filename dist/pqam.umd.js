@@ -31934,7 +31934,8 @@ var __async = (__this, __arguments, generator) => {
           asset: {},
           assetInfo: null,
           clusterInfo: null,
-          assetInfoShown: {}
+          assetInfoShown: {},
+          assetHistory: []
         },
         upload: {
           assetI: 0,
@@ -32793,7 +32794,7 @@ var __async = (__this, __arguments, generator) => {
           geofence.hide();
         }
       };
-      self2.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox) {
+      self2.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox, history) {
         let assetCurrent2 = self2.current.asset[assetID] || (self2.current.asset[assetID] = {});
         stateName = stateName || assetCurrent2.stateName || Object.keys(self2.config.states)[0];
         let stateDef = self2.config.states[stateName];
@@ -32805,6 +32806,7 @@ var __async = (__this, __arguments, generator) => {
             return;
           }
           assetCurrent2.infobox = infobox == null ? true : !!infobox;
+          assetCurrent2.assetID = assetID;
           if (hide) {
             if (assetCurrent2.label) {
               self2.layer.asset.removeLayer(assetCurrent2.label);
@@ -32885,6 +32887,41 @@ var __async = (__this, __arguments, generator) => {
             });
           }
           self2.zoomEndRender();
+          if (history) {
+            self2.seneca.act("aim:web,on:assetmap,load:asset", {
+              query: { id: assetProps.id },
+              history: true
+            }, (err, res) => {
+              if (err)
+                return;
+              if (res.ok) {
+                self2.current.assetHistory.map((hist) => hist.remove());
+                self2.current.assetHistory.length = 0;
+                for (let hist of res.item.history) {
+                  let histdot = L$1.circle(
+                    c_asset_coords({ x: hist.xco, y: hist.yco }),
+                    {
+                      radius: 0.1,
+                      color: "black",
+                      weight: 4
+                    }
+                  );
+                  let tooltip = L$1.tooltip({
+                    permanent: true,
+                    direction: "bottom",
+                    opacity: 1,
+                    className: "polygon-labels"
+                  });
+                  let t_c = new Date(hist.t_c);
+                  let when = t_c.toISOString();
+                  tooltip.setContent(`${when}`);
+                  histdot.bindTooltip(tooltip);
+                  histdot.addTo(self2.layer.indicator);
+                  self2.current.assetHistory.push(histdot);
+                }
+              }
+            });
+          }
         } catch (e) {
           self2.log(
             "ERROR",
@@ -33184,9 +33221,11 @@ var __async = (__this, __arguments, generator) => {
                 if (msg2.reset) {
                   yield this.post("srv:plantquest,part:assetmap,cmd:reset");
                 }
-                if (Array.isArray(msg2.asset) || null === msg2.asset) {
+                self2.current.assetHistory.map((hist) => hist.remove());
+                self2.current.assetHistory.length = 0;
+                if (Array.isArray(msg2.asset) || null === msg2.asset || msg2.only) {
                   let allAssetIDs = Object.keys(self2.data.assetMap);
-                  let assetIDList = msg2.asset || allAssetIDs;
+                  let assetIDList = Array.isArray(msg2.asset) ? msg2.asset : allAssetIDs;
                   let showAll = null === msg2.asset;
                   let stateName = msg2.state;
                   for (let assetID of msg2.only ? allAssetIDs : assetIDList) {
@@ -33207,7 +33246,9 @@ var __async = (__this, __arguments, generator) => {
                       }, 11);
                     }
                   }
-                } else {
+                }
+                if ("string" === typeof msg2.asset) {
+                  console.log("SHOW ASSET SINGLE", msg2.asset);
                   let assetRoom = self2.data.deps.cp.asset[msg2.asset];
                   let assetData = self2.data.assetMap[msg2.asset];
                   let zoom = msg2.zoom || self2.config.mapMaxZoom;
@@ -33244,7 +33285,8 @@ var __async = (__this, __arguments, generator) => {
                       "asset" === msg2.hide,
                       !!msg2.blink,
                       false,
-                      showInfoBox
+                      showInfoBox,
+                      msg2.history
                     );
                   } else {
                     self2.log("ERROR", "send", "asset", "unknown-asset", msg2);
