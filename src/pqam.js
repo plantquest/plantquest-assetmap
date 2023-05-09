@@ -164,6 +164,10 @@ import './rastercoords.js'
         map: {}
       },
 
+      building: {
+        map: {}
+      },
+
       ux: {
         room: {
 
@@ -360,6 +364,9 @@ import './rastercoords.js'
           self.geofence.map[ent.id] = new Geofence(ent, ctx)
         })
 
+        self.data.buildings.forEach(ent=>{
+          self.building.map[ent.id] = new Building(ent, ctx)
+        })
         
         self.data.deps = {}
         
@@ -2285,6 +2292,15 @@ import './rastercoords.js'
     return self
   }
 
+  class Building {
+    ent = null
+    ctx = null
+    
+    constructor(ent,ctx) {
+      this.ent = ent
+      this.ctx = ctx
+    }
+  }
 
 
   class Room {
