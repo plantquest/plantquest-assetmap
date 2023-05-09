@@ -2117,6 +2117,15 @@ import './rastercoords.js'
     return self
   }
 
+  class Building {
+    ent = null
+    ctx = null
+    
+    constructor(ent,ctx) {
+      this.ent = ent
+      this.ctx = ctx
+    }
+  }
 
 
   class Room {
