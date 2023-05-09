@@ -345,7 +345,6 @@ import './rastercoords.js'
         })
 
         self.data.buildings.forEach(ent=>{
-          console.log('building', ent)
           self.building.map[ent.id] = new Building(ent, ctx)
         })
         
