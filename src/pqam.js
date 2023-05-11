@@ -104,6 +104,9 @@ import './rastercoords.js'
           outline: {
             active: true
           },
+          label: {
+            zoom: null,
+          },
           color: '#33f',
         },
 
@@ -574,6 +577,8 @@ import './rastercoords.js'
       },
       stateShown: {},
       asset: {},
+
+      // TODO: use proper levels instead
       map: -1,
     }
 
@@ -670,16 +675,36 @@ import './rastercoords.js'
       // Separate Pane to ensure ordering below assets,
       // prevents lost click events.
 
+
+      self.map.createPane('room')
+      let roomPane = self.map.getPane('room')
+      roomPane.style.zIndex = 220
+      roomPane.style.pointerEvents = 'none'
+
+      self.map.createPane('roomLabel')
+      let roomLabelPane = self.map.getPane('roomLabel')
+      roomLabelPane.style.zIndex = 210
+      roomLabelPane.style.pointerEvents = 'none'
+      
       self.map.createPane('geofence')
       let geofencePane = self.map.getPane('geofence')
-      geofencePane.style.zIndex = 210
+      geofencePane.style.zIndex = 230
       geofencePane.style.pointerEvents = 'none'
-
       
+      self.map.createPane('indicator')
+      let indicatorPane = self.map.getPane('indicator')
+      indicatorPane.style.zIndex = 2000
+      // indicatorPane.style.pointerEvents = 'none'
+
       self.map.createPane('label')
       let labelPane = self.map.getPane('label')
-      labelPane.style.zIndex = 220
+      labelPane.style.zIndex = 2100
       labelPane.style.pointerEvents = 'none'
+
+      self.map.createPane('info')
+      let infoPane = self.map.getPane('info')
+      infoPane.style.zIndex = 3000
+      // labelPane.style.pointerEvents = 'none'
 
 
 
@@ -687,12 +712,23 @@ import './rastercoords.js'
       self.layer.label = L.layerGroup(null,{pane:'label'}).addTo(self.map)
       self.layer.label.name$ = 'label'
 
-
-      self.layer.room = L.layerGroup().addTo(self.map)
+      self.layer.room = L.layerGroup(null,{pane:'room'}).addTo(self.map)
       self.layer.room.name$ = 'room'
 
+      self.layer.roomLabel = L.layerGroup(null,{pane:'roomLabel'}).addTo(self.map)
+      self.layer.roomLabel.name$ = 'roomLabel'
+      
       self.layer.geofence = L.layerGroup(null,{pane:'geofence'}).addTo(self.map)
       self.layer.geofence.name$ = 'geofence'
+
+      self.layer.clusterInfo = L.layerGroup(null,{pane:'info'}).addTo(self.map)
+      self.layer.clusterInfo.name$ = 'clusterInfo'
+
+      self.layer.assetInfo = L.layerGroup(null,{pane:'info'}).addTo(self.map)
+      self.layer.assetInfo.name$ = 'assetInfo'
+
+      self.layer.indicator = L.layerGroup(null,{pane:'indicator'}).addTo(self.map)
+      self.layer.indicator.name$ = 'indicator'
 
       
       self.map.on('zoomstart', self.zoomStartRender)
@@ -707,11 +743,8 @@ import './rastercoords.js'
       },self.config.mapInterval/2)
       
       
-      self.layer.indicator = L.layerGroup().addTo(self.map)
-      self.layer.indicator.name$ = 'indicator'
 
       if( self.config.asset.cluster) {
-                
         self.layer.asset = L.markerClusterGroup({
           animateAddingMarkers: false,
           spiderfyOnMaxZoom: false,
@@ -729,14 +762,6 @@ import './rastercoords.js'
           spiderfyLinearDistance: 30,
           spiderfyLinearSeparation: 45,
         }).addTo(self.map)
-
-
-        self.layer.clusterInfo = L.layerGroup().addTo(self.map)
-        self.layer.clusterInfo.name$ = 'clusterInfo'
-
-
-        self.layer.assetInfo = L.layerGroup().addTo(self.map)
-        self.layer.assetInfo.name$ = 'assetInfo'
 
         
         self.layer.asset.on('clusterclick', mev=>{
@@ -828,7 +853,8 @@ import './rastercoords.js'
         self.layer.asset = L.layerGroup().addTo(self.map)
       }
       
-      
+
+      /*
       // TODO: move to generate
       function generate_labels() {
         for (let room of self.data.rooms) {
@@ -868,6 +894,7 @@ import './rastercoords.js'
         }
       }
       generate_labels()
+      */
       
       
       // Define a custom control
@@ -1054,43 +1081,56 @@ import './rastercoords.js'
       let zoom = self.map.getZoom()
       if (null == zoom) return;
 
-      let pos = (1+self.loc.map)
+      // TODO: need to define a zoom event schema
+      Object.values(self.room.map).map(room=>
+        room.onZoom(zoom, self.loc.map, self.layer.roomLabel))
+
+      // Object.values(self.current.asset).map(ac=>{
+      //   if(ac.label) {
+      //     ac.label.setLatLng(c_asset_coords({
+      //       x: ac.xco+(100*self.map.getZoom()/self.config.mapMaxZoom),
+      //       y: ac.yco
+      //     }))
+      //   }
+      // })
       
-      let labels = Object.values(self.ux.room.label[pos] || {}) || []
-      self.prev_labels = self.prev_labels || []
+     //  let pos = (1+self.loc.map)
+      
+     //  let labels = Object.values(self.ux.room.label[pos] || {}) || []
+     //  self.prev_labels = self.prev_labels || []
       
       
-      let labelZoomLevel =
-          null == self.config.label.zoom ? self.config.mapMaxZoom : 
-          self.config.label.zoom
+     //  let labelZoomLevel =
+     //      null == self.config.label.zoom ? self.config.mapMaxZoom : 
+     //      self.config.label.zoom
       
-      // if (zoom >= 6) {
-      if (zoom >= labelZoomLevel) {
-        for(let label of self.prev_labels) {
-          label.remove()
-        }
+     //  // if (zoom >= 6) {
+     //  if (zoom >= labelZoomLevel) {
+     //    for(let label of self.prev_labels) {
+     //      label.remove()
+     //    }
         
         
-        for(let label of labels) {
-          label.remove()
-          label.addTo(self.layer.label)
-        }
+     //    for(let label of labels) {
+     //      label.remove()
+     //      label.addTo(self.layer.label)
+     //    }
           
-        self.setLabel = true
-        self.prev_labels = labels
+     //    self.setLabel = true
+     //    self.prev_labels = labels
 
-      } 
-      else {
-        for(let label of self.prev_labels) {
-          label.remove()
-        }
+     //  } 
+     //  else {
+     //    for(let label of self.prev_labels) {
+     //      label.remove()
+     //    }
         
-        for (let label of labels) {
-          label.remove()
-        }
+     //    for (let label of labels) {
+     //      label.remove()
+     //    }
 
-        self.setLabel = false
-     }
+     //    self.setLabel = false
+     // }
     }
     
     
@@ -1259,9 +1299,10 @@ import './rastercoords.js'
                          // self.map.getZoom())
                          
 
-        self.showRoomAssets(room.room)
-        self.clearRoomAssets(room.room)
-        // self.zoomEndRender()
+        // self.showRoomAssets(room.room)
+        // self.clearRoomAssets(room.room)
+
+        self.zoomEndRender()
         
         if(!opts.mute) {
           self.click({select:'room', room:self.loc.chosen.room.room})
@@ -1420,6 +1461,7 @@ import './rastercoords.js'
         c_asset_coords({x: xco+1, y: yco+20 }),
         {
           zIndexOffset: 1000,
+          pane: 'info',
           icon: L.divIcon(
             {
               className: 'plantquest-assetmap-assetinfo',
@@ -1476,6 +1518,7 @@ import './rastercoords.js'
       let clusterInfo = self.current.clusterInfo = L.marker(
         c_asset_coords({x: xco+1, y: yco+20 }),
         {
+          pane: 'info',
           zIndexOffset: 1000,
           icon: L.divIcon(
             {
@@ -1562,6 +1605,8 @@ import './rastercoords.js'
         assetCurrent.infobox = infobox == null ? true : !!infobox
 
         assetCurrent.assetID = assetID
+        assetCurrent.xco = assetProps.xco
+        assetCurrent.yco = assetProps.yco
         
       // if(showRoom) {
       //   self.showRoom(assetProps.room, stateName)
@@ -1623,6 +1668,7 @@ import './rastercoords.js'
               radius: 0.2,
               color: color,
               weight: 2,
+              pane: 'indicator'
             })
           .on('click', ()=>{
             if(self.current.assetInfoShown[assetProps.id]) 
@@ -1666,7 +1712,9 @@ import './rastercoords.js'
 
           // NOTE: this marker gets clustered!
           assetCurrent.label = L.marker(
-            c_asset_coords({x: ax+20, y: ay-2 }),
+            // c_asset_coords({x: ax+(100*(self.map.getZoom()/Math.pow(self.config.mapMaxZoom,0.9))), y: ay-2 }),
+            // c_asset_coords({x: ax+(100*self.map.getZoom()/self.config.mapMaxZoom), y: ay }),
+            c_asset_coords({x: ax+14, y: ay+(7*Math.random()) }),
             { icon: L.divIcon({
               className: 'plantquest-assetmap-asset-marker',
               html: `<div>${assetProps.tag.replace(/\s+/g,'&nbsp;')}</div>`
@@ -1791,6 +1839,7 @@ import './rastercoords.js'
     
     self.showMap = function(mapIndex, flags) {
       self.log('showMap', mapIndex, flags, self.loc)
+      console.log('showMap', mapIndex, flags, self.loc)
 
       flags = flags || {}
       let startZoom = false === flags.startZoom ? false : true
@@ -1808,13 +1857,9 @@ import './rastercoords.js'
         self.leaflet.maptile = self.createTile(mapIndex+1)
         // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
         self.leaflet.maptile.addTo(self.map)
-        self.loc.map = mapIndex
 
-        self.map.setView(
-          self.config.mapStart,
-          startZoom ? self.config.mapStartZoom : self.map.getZoom()
-        )
-        
+        self.loc.map = mapIndex
+                
         // render labels
         self.zoomEndRender()
 
@@ -1825,7 +1870,11 @@ import './rastercoords.js'
           self.loc.room = null
         }
 
-
+        self.map.setView(
+          self.config.mapStart,
+          startZoom ? self.config.mapStartZoom : self.map.getZoom()
+        )
+        
         if(self.config.geofence.show.all) {
           self.send({
             srv:'plantquest',
@@ -1848,6 +1897,7 @@ import './rastercoords.js'
         self.map.setView(self.config.mapStart, self.config.mapStartZoom)
       }
 
+      
       self.emit({
         srv:'plantquest',
         part:'assetmap',
@@ -2292,6 +2342,7 @@ import './rastercoords.js'
     ctx = null
     poly = null
     cfgroom = null
+    label = null
     
     constructor(ent,ctx) {
       this.ent = ent
@@ -2307,6 +2358,7 @@ import './rastercoords.js'
       if(null == this.poly) {
         this.poly = L.polygon(
           room_poly, {
+            pane: "room",
             color: this.cfgroom.color
           })
 
@@ -2318,6 +2370,64 @@ import './rastercoords.js'
       this.poly.addTo(layer)
       
       return this.poly
+    }
+
+
+    // TODO: need a mapState object
+    onZoom(zoom, mapID, layer) {
+      let mapMatch = 1+mapID == this.ent.map
+      
+      let showNameZoom =
+          null == this.cfgroom.label.zoom ? this.ctx.cfg.mapMaxZoom :
+          this.cfgroom.label.zoom
+
+      let showLabel = showNameZoom <= zoom && mapMatch
+
+      // if('1203 Vestibule' === this.ent.name) {
+      //   console.log('RZ', showLabel, mapMatch, showNameZoom, zoom, mapID, this.ent.name, this.ent.map)
+      // }
+      
+      if(showLabel) {
+        if(null == this.label && this.ent.poly) {
+          this.label = L.polygon(
+            convertRoomPoly(this.ctx.cfg.mapImg, this.ent.poly),
+            {
+              color: 'transparent',
+              pane: 'roomLabel',
+              interactive: false,
+            })
+
+          this.label.name$ = 'ROOM:'+this.ent.name
+
+          let tooltip = L.tooltip({
+            permanent: true,
+            direction: 'center',
+            opacity: 1,
+            className: 'polygon-labels',
+            // offset: L.point({x: 100*Math.random(), y: 100*Math.random()})
+          })
+
+          tooltip
+            .setContent(`<div class="leaflet-zoom-animted"> ${this.ent.name} </div>`)
+          
+          this.label.bindTooltip(tooltip)
+          
+          // let _c = poly.getBounds().getCenter()
+
+          // tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`)
+
+          // console.log('ROOM LABEL: ', this.ent)
+        }
+
+        if(layer) {
+          this.label.addTo(layer)
+        }
+      }
+      else {
+        if(null != this.label) {
+          this.label.remove()
+        }
+      }
     }
     
     onClick(event) {
@@ -2885,7 +2995,7 @@ div.plantquest-assetmap-asset-state-down {
     border: 2px solid #666;
     border-radius: 4px;
     background-color: #666;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 div.plantquest-assetmap-asset-state-missing {
@@ -2893,7 +3003,7 @@ div.plantquest-assetmap-asset-state-missing {
     border: 2px solid #f3f;
     border-radius: 4px;
     background-color: #f3f;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 div.plantquest-assetmap-asset-state-alarm {
@@ -2901,7 +3011,7 @@ div.plantquest-assetmap-asset-state-alarm {
     border: 2px solid #f33;
     border-radius: 4px;
     background-color: #f33;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 

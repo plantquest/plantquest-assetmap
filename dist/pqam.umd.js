@@ -31911,6 +31911,9 @@ var __async = (__this, __arguments, generator) => {
             outline: {
               active: true
             },
+            label: {
+              zoom: null
+            },
             color: "#33f"
           },
           geofence: {
@@ -32278,6 +32281,7 @@ var __async = (__this, __arguments, generator) => {
         },
         stateShown: {},
         asset: {},
+        // TODO: use proper levels instead
         map: -1
       };
       self2.leaflet = {};
@@ -32325,20 +32329,42 @@ var __async = (__this, __arguments, generator) => {
           }
         });
         self2.map.scrollWheelZoom._delta = 0;
+        self2.map.createPane("room");
+        let roomPane = self2.map.getPane("room");
+        roomPane.style.zIndex = 220;
+        roomPane.style.pointerEvents = "none";
+        self2.map.createPane("roomLabel");
+        let roomLabelPane = self2.map.getPane("roomLabel");
+        roomLabelPane.style.zIndex = 210;
+        roomLabelPane.style.pointerEvents = "none";
         self2.map.createPane("geofence");
         let geofencePane = self2.map.getPane("geofence");
-        geofencePane.style.zIndex = 210;
+        geofencePane.style.zIndex = 230;
         geofencePane.style.pointerEvents = "none";
+        self2.map.createPane("indicator");
+        let indicatorPane = self2.map.getPane("indicator");
+        indicatorPane.style.zIndex = 2e3;
         self2.map.createPane("label");
         let labelPane = self2.map.getPane("label");
-        labelPane.style.zIndex = 220;
+        labelPane.style.zIndex = 2100;
         labelPane.style.pointerEvents = "none";
+        self2.map.createPane("info");
+        let infoPane = self2.map.getPane("info");
+        infoPane.style.zIndex = 3e3;
         self2.layer.label = L$1.layerGroup(null, { pane: "label" }).addTo(self2.map);
         self2.layer.label.name$ = "label";
-        self2.layer.room = L$1.layerGroup().addTo(self2.map);
+        self2.layer.room = L$1.layerGroup(null, { pane: "room" }).addTo(self2.map);
         self2.layer.room.name$ = "room";
+        self2.layer.roomLabel = L$1.layerGroup(null, { pane: "roomLabel" }).addTo(self2.map);
+        self2.layer.roomLabel.name$ = "roomLabel";
         self2.layer.geofence = L$1.layerGroup(null, { pane: "geofence" }).addTo(self2.map);
         self2.layer.geofence.name$ = "geofence";
+        self2.layer.clusterInfo = L$1.layerGroup(null, { pane: "info" }).addTo(self2.map);
+        self2.layer.clusterInfo.name$ = "clusterInfo";
+        self2.layer.assetInfo = L$1.layerGroup(null, { pane: "info" }).addTo(self2.map);
+        self2.layer.assetInfo.name$ = "assetInfo";
+        self2.layer.indicator = L$1.layerGroup(null, { pane: "indicator" }).addTo(self2.map);
+        self2.layer.indicator.name$ = "indicator";
         self2.map.on("zoomstart", self2.zoomStartRender);
         self2.map.on("zoomend", self2.zoomEndRender);
         setTimeout(() => {
@@ -32346,8 +32372,6 @@ var __async = (__this, __arguments, generator) => {
           self2.map.setView(mapStart, self2.config.mapStartZoom);
           self2.leaflet.mapCenter = self2.map.getCenter();
         }, self2.config.mapInterval / 2);
-        self2.layer.indicator = L$1.layerGroup().addTo(self2.map);
-        self2.layer.indicator.name$ = "indicator";
         if (self2.config.asset.cluster) {
           self2.layer.asset = L$1.markerClusterGroup({
             animateAddingMarkers: false,
@@ -32364,10 +32388,6 @@ var __async = (__this, __arguments, generator) => {
             spiderfyLinearDistance: 30,
             spiderfyLinearSeparation: 45
           }).addTo(self2.map);
-          self2.layer.clusterInfo = L$1.layerGroup().addTo(self2.map);
-          self2.layer.clusterInfo.name$ = "clusterInfo";
-          self2.layer.assetInfo = L$1.layerGroup().addTo(self2.map);
-          self2.layer.assetInfo.name$ = "assetInfo";
           self2.layer.asset.on("clusterclick", (mev) => {
             let clusterMarker = mev.layer;
             let { xco, yco } = convert_latlng(mev.latlng);
@@ -32412,33 +32432,6 @@ var __async = (__this, __arguments, generator) => {
         } else {
           self2.layer.asset = L$1.layerGroup().addTo(self2.map);
         }
-        function generate_labels() {
-          for (let room of self2.data.rooms) {
-            let poly_labels = self2.ux.room.label[room.map] = self2.ux.room.label[room.map] || {};
-            if (self2.data.roomMap[room.room] && room.area === "1" && room.poly) {
-              let room_poly = convertRoomPoly(self2.config.mapImg, room.poly);
-              let poly = L$1.polygon(
-                room_poly,
-                {
-                  color: "transparent",
-                  pane: "label"
-                }
-              );
-              poly.name$ = "ROOM:" + room.room;
-              var tooltip = L$1.tooltip({
-                permanent: true,
-                direction: "center",
-                opacity: 1,
-                className: "polygon-labels"
-              });
-              poly.bindTooltip(tooltip);
-              let _c = poly.getBounds().getCenter();
-              tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
-              poly_labels[poly.name$] = poly;
-            }
-          }
-        }
-        generate_labels();
         function createDebugLog(content) {
           let debugLog = L$1.Control.extend({
             options: {
@@ -32574,29 +32567,7 @@ var __async = (__this, __arguments, generator) => {
         let zoom = self2.map.getZoom();
         if (null == zoom)
           return;
-        let pos = 1 + self2.loc.map;
-        let labels = Object.values(self2.ux.room.label[pos] || {}) || [];
-        self2.prev_labels = self2.prev_labels || [];
-        let labelZoomLevel = null == self2.config.label.zoom ? self2.config.mapMaxZoom : self2.config.label.zoom;
-        if (zoom >= labelZoomLevel) {
-          for (let label of self2.prev_labels) {
-            label.remove();
-          }
-          for (let label of labels) {
-            label.remove();
-            label.addTo(self2.layer.label);
-          }
-          self2.setLabel = true;
-          self2.prev_labels = labels;
-        } else {
-          for (let label of self2.prev_labels) {
-            label.remove();
-          }
-          for (let label of labels) {
-            label.remove();
-          }
-          self2.setLabel = false;
-        }
+        Object.values(self2.room.map).map((room) => room.onZoom(zoom, self2.loc.map, self2.layer.roomLabel));
       };
       self2.checkRooms = function() {
         let xco = self2.loc.x;
@@ -32678,8 +32649,7 @@ var __async = (__this, __arguments, generator) => {
             autoClose: false,
             closeOnClick: false
           }).setLatLng(roompos).setContent(self2.roomPopup(self2.loc.chosen.room)).openOn(self2.map);
-          self2.showRoomAssets(room.room);
-          self2.clearRoomAssets(room.room);
+          self2.zoomEndRender();
           if (!opts.mute) {
             self2.click({ select: "room", room: self2.loc.chosen.room.room });
           }
@@ -32787,6 +32757,7 @@ var __async = (__this, __arguments, generator) => {
           c_asset_coords({ x: xco + 1, y: yco + 20 }),
           {
             zIndexOffset: 1e3,
+            pane: "info",
             icon: L$1.divIcon(
               {
                 className: "plantquest-assetmap-assetinfo",
@@ -32831,6 +32802,7 @@ var __async = (__this, __arguments, generator) => {
         let clusterInfo = self2.current.clusterInfo = L$1.marker(
           c_asset_coords({ x: xco + 1, y: yco + 20 }),
           {
+            pane: "info",
             zIndexOffset: 1e3,
             icon: L$1.divIcon(
               {
@@ -32883,6 +32855,8 @@ var __async = (__this, __arguments, generator) => {
           }
           assetCurrent2.infobox = infobox == null ? true : !!infobox;
           assetCurrent2.assetID = assetID;
+          assetCurrent2.xco = assetProps.xco;
+          assetCurrent2.yco = assetProps.yco;
           if (hide) {
             assetCurrent2.show = false;
             if (assetCurrent2.label) {
@@ -32917,7 +32891,8 @@ var __async = (__this, __arguments, generator) => {
               {
                 radius: 0.2,
                 color,
-                weight: 2
+                weight: 2,
+                pane: "indicator"
               }
             ).on("click", () => {
               if (self2.current.assetInfoShown[assetProps.id]) {
@@ -32944,7 +32919,9 @@ var __async = (__this, __arguments, generator) => {
           assetCurrent2.blink = null == blink ? false : blink;
           if (null == assetCurrent2.label) {
             assetCurrent2.label = L$1.marker(
-              c_asset_coords({ x: ax + 20, y: ay - 2 }),
+              // c_asset_coords({x: ax+(100*(self.map.getZoom()/Math.pow(self.config.mapMaxZoom,0.9))), y: ay-2 }),
+              // c_asset_coords({x: ax+(100*self.map.getZoom()/self.config.mapMaxZoom), y: ay }),
+              c_asset_coords({ x: ax + 14, y: ay + 7 * Math.random() }),
               { icon: L$1.divIcon({
                 className: "plantquest-assetmap-asset-marker",
                 html: `<div>${assetProps.tag.replace(/\s+/g, "&nbsp;")}</div>`
@@ -33048,6 +33025,7 @@ var __async = (__this, __arguments, generator) => {
         return tileLyr;
       }, self2.showMap = function(mapIndex, flags) {
         self2.log("showMap", mapIndex, flags, self2.loc);
+        console.log("showMap", mapIndex, flags, self2.loc);
         flags = flags || {};
         let startZoom = false === flags.startZoom ? false : true;
         let showAllAssets = false === flags.showAllAssets ? false : true;
@@ -33060,16 +33038,16 @@ var __async = (__this, __arguments, generator) => {
           self2.leaflet.maptile = self2.createTile(mapIndex + 1);
           self2.leaflet.maptile.addTo(self2.map);
           self2.loc.map = mapIndex;
-          self2.map.setView(
-            self2.config.mapStart,
-            startZoom ? self2.config.mapStartZoom : self2.map.getZoom()
-          );
           self2.zoomEndRender();
           self2.unselectRoom();
           if (self2.loc.poly) {
             self2.loc.poly.remove(self2.layer.room);
             self2.loc.room = null;
           }
+          self2.map.setView(
+            self2.config.mapStart,
+            startZoom ? self2.config.mapStartZoom : self2.map.getZoom()
+          );
           if (self2.config.geofence.show.all) {
             self2.send({
               srv: "plantquest",
@@ -33414,6 +33392,7 @@ var __async = (__this, __arguments, generator) => {
         __publicField(this, "ctx", null);
         __publicField(this, "poly", null);
         __publicField(this, "cfgroom", null);
+        __publicField(this, "label", null);
         this.ent = ent;
         this.ctx = ctx;
         this.cfgroom = ctx.cfg.room;
@@ -33423,6 +33402,7 @@ var __async = (__this, __arguments, generator) => {
           this.poly = L$1.polygon(
             room_poly,
             {
+              pane: "room",
               color: this.cfgroom.color
             }
           );
@@ -33432,6 +33412,41 @@ var __async = (__this, __arguments, generator) => {
         }
         this.poly.addTo(layer);
         return this.poly;
+      }
+      // TODO: need a mapState object
+      onZoom(zoom, mapID, layer) {
+        let mapMatch = 1 + mapID == this.ent.map;
+        let showNameZoom = null == this.cfgroom.label.zoom ? this.ctx.cfg.mapMaxZoom : this.cfgroom.label.zoom;
+        let showLabel = showNameZoom <= zoom && mapMatch;
+        if (showLabel) {
+          if (null == this.label && this.ent.poly) {
+            this.label = L$1.polygon(
+              convertRoomPoly(this.ctx.cfg.mapImg, this.ent.poly),
+              {
+                color: "transparent",
+                pane: "roomLabel",
+                interactive: false
+              }
+            );
+            this.label.name$ = "ROOM:" + this.ent.name;
+            let tooltip = L$1.tooltip({
+              permanent: true,
+              direction: "center",
+              opacity: 1,
+              className: "polygon-labels"
+              // offset: L.point({x: 100*Math.random(), y: 100*Math.random()})
+            });
+            tooltip.setContent(`<div class="leaflet-zoom-animted"> ${this.ent.name} </div>`);
+            this.label.bindTooltip(tooltip);
+          }
+          if (layer) {
+            this.label.addTo(layer);
+          }
+        } else {
+          if (null != this.label) {
+            this.label.remove();
+          }
+        }
       }
       onClick(event) {
         this.ctx.pqam.selectRoom(this.ent.id);
@@ -33892,7 +33907,7 @@ div.plantquest-assetmap-asset-state-down {
     border: 2px solid #666;
     border-radius: 4px;
     background-color: #666;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 div.plantquest-assetmap-asset-state-missing {
@@ -33900,7 +33915,7 @@ div.plantquest-assetmap-asset-state-missing {
     border: 2px solid #f3f;
     border-radius: 4px;
     background-color: #f3f;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 div.plantquest-assetmap-asset-state-alarm {
@@ -33908,7 +33923,7 @@ div.plantquest-assetmap-asset-state-alarm {
     border: 2px solid #f33;
     border-radius: 4px;
     background-color: #f33;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 
