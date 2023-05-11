@@ -2316,7 +2316,7 @@ import './rastercoords.js'
 
     setupIndicator() {
       return L.circle(
-        c_asset_coords({x: this.xco, y: this.yco}), {
+        c_asset_coords({x: this.ent.xco, y: this.ent.yco}), {
           radius: 0.2,
           color: color,
           weight: 2,
