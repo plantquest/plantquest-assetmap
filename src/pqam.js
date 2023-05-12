@@ -1634,7 +1634,7 @@ import './rastercoords.js'
       // else {
 
       if(null == assetCurrent.indicator) {
-        assetCurrent.indicator = asset.setupIndicator().on('click', ()=>{
+        assetCurrent.indicator = asset.setupIndicator({ color }).on('click', ()=>{
           if(self.current.assetInfoShown[assetProps.id]) {
             self.closeAssetInfo()
           }
@@ -2314,11 +2314,14 @@ import './rastercoords.js'
       this.ctx = ctx
     }
 
-    setupIndicator() {
+    setupIndicator(args) {
+      const {
+        color
+      } = args
       return L.circle(
         c_asset_coords({x: this.ent.xco, y: this.ent.yco}), {
           radius: 0.2,
-          color: color,
+          color,
           weight: 2,
         })
     }
