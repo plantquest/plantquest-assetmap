@@ -697,6 +697,12 @@ import './rastercoords.js'
       let geofencePane = self.map.getPane('geofence')
       geofencePane.style.zIndex = 230
       geofencePane.style.pointerEvents = 'none'
+
+      self.map.createPane('geofenceLabel')
+      let geofenceLabelPane = self.map.getPane('geofenceLabel')
+      geofenceLabelPane.style.zIndex = 235
+      geofenceLabelPane.style.pointerEvents = 'none'
+
       
       self.map.createPane('indicator')
       let indicatorPane = self.map.getPane('indicator')
@@ -1186,6 +1192,22 @@ import './rastercoords.js'
             self.loc.poly = roomInst.show(self.layer.room, room_poly)
             // }
 
+
+
+            let tooltip = L.tooltip({
+              permanent: true,
+              direction: 'center',
+              opacity: 1,
+              className: 'polygon-labels',
+              // offset: L.point({x: 100*Math.random(), y: 100*Math.random()})
+            })
+            
+            tooltip
+              .setContent(`<div class="leaflet-zoom-animted `+
+                          `plantquest-room-hi-label"> ${room.name} </div>`)
+          
+            self.loc.poly.bindTooltip(tooltip)
+
             
             // roomInst.buildPoly(self.loc, room_poly, self.layer.room)
             
@@ -1654,12 +1676,12 @@ import './rastercoords.js'
       assetCurrent.stateName = stateName
       let color = stateDef.color
       
-      let ay_poly = convert_poly_y(self.config.mapImg, ay)
-      let room_poly = convertRoomPoly(self.config.mapImg, [
-          [ay_poly+10,ax],
-          [ay_poly-10,ax+10],
-          [ay_poly-10,ax-10],
-      ])
+      // let ay_poly = convert_poly_y(self.config.mapImg, ay)
+      // let room_poly = convertRoomPoly(self.config.mapImg, [
+      //     [ay_poly+10,ax],
+      //     [ay_poly-10,ax+10],
+      //     [ay_poly-10,ax-10],
+      // ])
       
       // if('alert' === stateDef.marker) {
       //   assetCurrent.indicator = L.polygon(room_poly, {
@@ -1721,7 +1743,7 @@ import './rastercoords.js'
           assetCurrent.label = L.marker(
             // c_asset_coords({x: ax+(100*(self.map.getZoom()/Math.pow(self.config.mapMaxZoom,0.9))), y: ay-2 }),
             // c_asset_coords({x: ax+(100*self.map.getZoom()/self.config.mapMaxZoom), y: ay }),
-            c_asset_coords({x: ax+14, y: ay+(7*Math.random()) }),
+            c_asset_coords({x: ax+10, y: ay-5+(10*Math.random()) }),
             { icon: L.divIcon({
               className: 'plantquest-assetmap-asset-marker',
               html: `<div>${assetProps.tag.replace(/\s+/g,'&nbsp;')}</div>`
@@ -2170,9 +2192,12 @@ import './rastercoords.js'
       async function showAssetMsg(msg) {
         // console.log('showAssetMsg START', msg)
 
+        let out = { multiple: false }
+        
         try {
           if(msg.reset) {
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
+            out.reset = true
           }
 
           self.current.assetHistory.map(hist=>hist.remove())
@@ -2186,10 +2211,10 @@ import './rastercoords.js'
             // console.log('showAssetMsg', allAssetIDs.length, assetIDList && assetIDList.length, showAll)
             
             let stateName = msg.state
-            
+
+            out.multiple = true
             for(let assetID of (msg.only?allAssetIDs:assetIDList)) {
               let assetData = self.data.assetMap[assetID]
-
               
               if(assetData) {
                 let shown = showAll || -1!=assetIDList.indexOf(assetID)
@@ -2282,16 +2307,20 @@ import './rastercoords.js'
                 showInfoBox,
                 msg.history,
               )
+
+              out.asset = assetData
             }
             else {
               self.log('ERROR', 'send', 'asset', 'unknown-asset', msg)
             }
           }
-
         }
         catch(e) {
           console.log('ERROR showAssetMsg', e)
+          out.err = e
         }
+
+        return out
       }
 
 
@@ -2470,6 +2499,7 @@ import './rastercoords.js'
       
         this.poly = L.polygon(
           polyCoords, {
+            pane: 'geofence',
             color: this.ctx.cfg.geofence.color
           })
         
@@ -2478,6 +2508,7 @@ import './rastercoords.js'
         }
 
         let tooltip = L.tooltip({
+          pane: 'geofenceLabel',
           permanent: true,
           direction: 'center',
           opacity: 1,
