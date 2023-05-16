@@ -1701,7 +1701,9 @@ import './rastercoords.js'
       // else {
 
       if(null == assetCurrent.indicator) {
-        assetCurrent.indicator = asset.setupIndicator({ color }).on('click', ()=>{
+        assetCurrent.indicator = asset
+          .buildIndicator({ color })
+          .on('click', ()=>{
           if(self.current.assetInfoShown[assetProps.id]) {
             self.closeAssetInfo()
           }
@@ -2393,7 +2395,7 @@ import './rastercoords.js'
       this.ctx = ctx
     }
 
-    setupIndicator(args) {
+    buildIndicator(args) {
       const {
         color
       } = args
