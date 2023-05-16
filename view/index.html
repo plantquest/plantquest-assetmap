@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <script src="dist/pqam.umd.js"></script>
+</head>
+<body>
+  <h2>VIEW MAP</h2>
+  <div id="plantquest-assetmap"></div>
+  
+  <script>
+    window.PlantQuestAssetMap.start({
+  debugClick: false,
+
+  showAllAssets: true,
+  
+  width: '100%',
+  height: '100%',
+  mapImg: [6140, 4602],
+  mapMinZoom: 2,
+  mapStartZoom: 1.5,
+
+  // mode: MODE,
+  // plant_id: PLANT_ID,
+  // project_id: PROJECT_ID,
+  // stage: STAGE,
+  // endpoint: ENDPOINT,
+  // apikey: APIKEY,
+  // tilesEndPoint: TILES,
+  
+  states: {
+    up: { color: '#696', name: 'Up', marker: 'standard' },
+    down: { color: '#666', name: 'Down', marker: 'standard' },
+    missing: { color: '#f3f', name: 'Missing', marker: 'alert' },
+    alarm: { color: '#f33', name: 'Alarm', marker: 'alert' },
+  },
+  
+  start: {
+    map: 0,
+    level: 0,
+  },
+  
+  levels: [
+    { name: 'Ground Floor', index: 0 },
+    { name: 'First Floor', index: 1  }
+  ],
+
+  asset: {
+    cluster: true,
+  },
+  
+  room: {
+    color: '#33f',
+    click: {
+      active: true
+    },
+    outline: {
+      active: true
+    }
+  },
+
+  geofence: {
+    show: {
+      all: true
+    }
+  },
+
+  update: {
+    active: true,
+    interval: 10000
+  }
+
+    })
+  </script>
+</body>
+</html>

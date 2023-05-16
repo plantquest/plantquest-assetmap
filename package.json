@@ -13,7 +13,8 @@
     "dev": "vite",
     "build": "vite build",
     "watch": "vite build -w",
-    "preview": "vite preview",
+    "xpreview": "vite preview",
+    "view": "cp -r dist view && serve view -p 3003",
     "clean": "rm -rf node_modules yarn.lock package-lock.json",
     "reset": "npm run clean && npm install",
     "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags",
@@ -21,15 +22,16 @@
     "repo-publish-quick": "npm run build && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
   },
   "devDependencies": {
-    "vite": "^4.3.3",
     "leaflet": "1.8.0",
-    "leaflet-rastercoords": "1.0.5",
-    "leaflet.markercluster": "1.5.3",
     "leaflet-editable": "1.2.0",
     "leaflet-path-drag": "^1.8.0-beta.3",
+    "leaflet-rastercoords": "1.0.5",
+    "leaflet.markercluster": "1.5.3",
     "seneca-browser": "4.0.1",
     "seneca-entity": "21.1.0",
-    "seneca-mem-store": "8.0.1"
+    "seneca-mem-store": "8.0.1",
+    "serve": "^14.2.0",
+    "vite": "^4.3.3"
   },
   "files": [
     "LICENSE",
