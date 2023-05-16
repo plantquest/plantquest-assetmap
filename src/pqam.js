@@ -1704,27 +1704,26 @@ import './rastercoords.js'
         assetCurrent.indicator = asset
           .buildIndicator({ color })
           .on('click', ()=>{
-          if(self.current.assetInfoShown[assetProps.id]) {
-            self.closeAssetInfo()
-          }
-          else {
-            self.send({
-              srv:'plantquest',
-              part:'assetmap',
-              show:'asset',
-              infobox: true,
-              asset: assetProps.id,
-              // focus: true,
-            })
-  
-            // self.openAssetInfo({
-            //   asset: assetProps,
-            //   assetMarker,
-            //   xco: assetProps.xco,
-            //   yco: assetProps.yco
-            // })
-          }
-          
+            if(self.current.assetInfoShown[assetProps.id]) {
+              self.closeAssetInfo()
+            }
+            else {
+              self.send({
+                srv:'plantquest',
+                part:'assetmap',
+                show:'asset',
+                infobox: true,
+                asset: assetProps.id,
+                // focus: true,
+              })
+            
+              // self.openAssetInfo({
+              //   asset: assetProps,
+              //   assetMarker,
+              //   xco: assetProps.xco,
+              //   yco: assetProps.yco
+              // })
+            }          
           self.emit({
             srv: 'plantquest',
             part: 'assetmap',
