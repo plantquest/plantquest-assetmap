@@ -163,6 +163,10 @@ import './rastercoords.js'
         map: {}
       },
 
+      asset: {
+        map: {}
+      },
+
       geofence: {
         map: {}
       },
@@ -369,6 +373,10 @@ import './rastercoords.js'
 
         self.data.buildings.forEach(ent=>{
           self.building.map[ent.id] = new Building(ent, ctx)
+        })
+
+        self.data.assets.forEach(ent=>{
+          self.asset.map[ent.id] = new Asset(ent, ctx)
         })
         
         self.data.deps = {}
@@ -1619,7 +1627,9 @@ import './rastercoords.js'
         stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
 
       let stateDef = self.config.states[stateName]
-      let assetProps = self.data.assetMap[assetID]
+
+      let asset = self.asset.map[assetID]
+      let assetProps = asset.ent
 
       try {
         self.closeAssetInfo()
@@ -1691,17 +1701,10 @@ import './rastercoords.js'
       // else {
 
       if(null == assetCurrent.indicator) {
-        let assetMarker = assetCurrent.indicator =
-          L.circle(
-            c_asset_coords({x: ax, y: ay}), {
-              radius: 0.2,
-              color: color,
-              weight: 2,
-              pane: 'indicator'
-            })
+        assetCurrent.indicator = asset
+          .buildIndicator({ color })
           .on('click', ()=>{
-            if(self.current.assetInfoShown[assetProps.id]) 
-            {
+            if(self.current.assetInfoShown[assetProps.id]) {
               self.closeAssetInfo()
             }
             else {
@@ -1713,23 +1716,22 @@ import './rastercoords.js'
                 asset: assetProps.id,
                 // focus: true,
               })
-
+            
               // self.openAssetInfo({
               //   asset: assetProps,
               //   assetMarker,
               //   xco: assetProps.xco,
               //   yco: assetProps.yco
               // })
-            }
-            
-            self.emit({
-              srv: 'plantquest',
-              part: 'assetmap',
-              event: 'click',
-              on: 'asset',
-              asset: assetProps,
-            })
+            }          
+          self.emit({
+            srv: 'plantquest',
+            part: 'assetmap',
+            event: 'click',
+            on: 'asset',
+            asset: assetProps,
           })
+        })
       }
     // }
 
@@ -2214,7 +2216,8 @@ import './rastercoords.js'
 
             out.multiple = true
             for(let assetID of (msg.only?allAssetIDs:assetIDList)) {
-              let assetData = self.data.assetMap[assetID]
+              let assetData = self.asset.map[assetID].ent
+
               
               if(assetData) {
                 let shown = showAll || -1!=assetIDList.indexOf(assetID)
@@ -2262,7 +2265,7 @@ import './rastercoords.js'
             // console.log('SHOW ASSET SINGLE', msg.asset)
             
             let assetRoom = self.data.deps.cp.asset[msg.asset]
-            let assetData = self.data.assetMap[msg.asset]
+            let assetData = self.asset.map[assetID].ent
             let zoom = msg.zoom || self.config.mapMaxZoom
             
             if(assetRoom) {
@@ -2378,6 +2381,29 @@ import './rastercoords.js'
     constructor(ent,ctx) {
       this.ent = ent
       this.ctx = ctx
+    }
+  }
+
+
+  class Asset {
+    ent = null
+    ctx = null
+    
+    constructor(ent,ctx) {
+      this.ent = ent
+      this.ctx = ctx
+    }
+
+    buildIndicator(args) {
+      const {
+        color
+      } = args
+      return L.circle(
+        c_asset_coords({x: this.ent.xco, y: this.ent.yco}), {
+          radius: 0.2,
+          color,
+          weight: 2,
+        })
     }
   }
 
