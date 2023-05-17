@@ -13335,7 +13335,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "3.7.0";
+const version = "3.7.1";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -31956,6 +31956,9 @@ L.RasterCoords.prototype = {
       room: {
         map: {}
       },
+      asset: {
+        map: {}
+      },
       geofence: {
         map: {}
       },
@@ -32058,8 +32061,8 @@ L.RasterCoords.prototype = {
           let assetProps = self2.data.assets[0];
           for (let rowI = 1; rowI < self2.data.assets.length; rowI++) {
             let row = self2.data.assets[rowI];
-            let assetID = row[0];
-            assetMap[assetID] = assetProps.reduce((a, p, i) => (a[p] = row[i], a), {});
+            let assetID2 = row[0];
+            assetMap[assetID2] = assetProps.reduce((a, p, i) => (a[p] = row[i], a), {});
           }
           self2.data.assetMap = assetMap;
           let roomMap = self2.data.rooms.reduce((a, r) => (a[r.room] = r, a[r.id] = r, a), {});
@@ -32115,6 +32118,9 @@ L.RasterCoords.prototype = {
           });
           self2.data.buildings.forEach((ent) => {
             self2.building.map[ent.id] = new Building(ent, ctx);
+          });
+          self2.data.assets.forEach((ent) => {
+            self2.asset.map[ent.id] = new Asset(ent, ctx);
           });
           self2.data.deps = {};
           let {
@@ -32745,8 +32751,8 @@ L.RasterCoords.prototype = {
       let actualStateDef = newStateDef;
       let newPriority = Object.keys(self2.config.states).indexOf(newStateDef.stateName);
       let assets = (self2.data.deps.pc.room[roomID] ? self2.data.deps.pc.room[roomID].asset : []) || [];
-      for (let assetID of assets) {
-        let assetState = self2.current.asset[assetID];
+      for (let assetID2 of assets) {
+        let assetState = self2.current.asset[assetID2];
         if (assetState && assetState.stateName) {
           let stateDef = self2.config.states[assetState.stateName];
           if ("alert" === stateDef.marker) {
@@ -32859,11 +32865,12 @@ L.RasterCoords.prototype = {
         geofence.hide();
       }
     };
-    self2.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox, history) {
-      let assetCurrent2 = self2.current.asset[assetID] || (self2.current.asset[assetID] = {});
+    self2.showAsset = function(assetID2, stateName, hide, blink, showRoom, infobox, history) {
+      let assetCurrent2 = self2.current.asset[assetID2] || (self2.current.asset[assetID2] = {});
       stateName = stateName || assetCurrent2.stateName || Object.keys(self2.config.states)[0];
       let stateDef = self2.config.states[stateName];
-      let assetProps = self2.data.assetMap[assetID];
+      let asset = self2.asset.map[assetID2];
+      let assetProps = asset.ent;
       try {
         self2.closeAssetInfo();
         self2.closeClusterInfo();
@@ -32871,7 +32878,7 @@ L.RasterCoords.prototype = {
           return;
         }
         assetCurrent2.infobox = infobox == null ? true : !!infobox;
-        assetCurrent2.assetID = assetID;
+        assetCurrent2.assetID = assetID2;
         assetCurrent2.xco = assetProps.xco;
         assetCurrent2.yco = assetProps.yco;
         if (hide) {
@@ -32882,10 +32889,10 @@ L.RasterCoords.prototype = {
           if (assetCurrent2.indicator) {
             assetCurrent2.indicator.remove();
           }
-          delete self2.current.assetInfoShown[assetID];
+          delete self2.current.assetInfoShown[assetID2];
           return;
         } else if (infobox) {
-          self2.current.assetInfoShown[assetID] = assetCurrent2;
+          self2.current.assetInfoShown[assetID2] = assetCurrent2;
         }
         assetCurrent2.show = true;
         let assetPoint = [
@@ -32897,15 +32904,7 @@ L.RasterCoords.prototype = {
         assetCurrent2.stateName = stateName;
         let color = stateDef.color;
         if (null == assetCurrent2.indicator) {
-          let assetMarker = assetCurrent2.indicator = L$1.circle(
-            c_asset_coords({ x: ax, y: ay }),
-            {
-              radius: 0.2,
-              color,
-              weight: 2,
-              pane: "indicator"
-            }
-          ).on("click", () => {
+          assetCurrent2.indicator = asset.buildIndicator({ color }).on("click", () => {
             if (self2.current.assetInfoShown[assetProps.id]) {
               self2.closeAssetInfo();
             } else {
@@ -32938,7 +32937,7 @@ L.RasterCoords.prototype = {
               html: `<div>${assetProps.tag.replace(/\s+/g, "&nbsp;")}</div>`
             }) }
           );
-          assetCurrent2.label.assetID = assetID;
+          assetCurrent2.label.assetID = assetID2;
         }
         assetCurrent2.label.addTo(self2.layer.asset);
         if (!self2.config.asset.cluster) {
@@ -32995,16 +32994,16 @@ L.RasterCoords.prototype = {
           "1050",
           e.message,
           e,
-          assetID,
+          assetID2,
           assetProps,
           assetCurrent2
         );
       }
     };
     self2.clearRoomAssets = function(roomID) {
-      for (let assetID in self2.current.asset) {
-        let assetCurrent2 = self2.current.asset[assetID];
-        if (self2.data.deps.cp.asset[assetID].room !== roomID) {
+      for (let assetID2 in self2.current.asset) {
+        let assetCurrent2 = self2.current.asset[assetID2];
+        if (self2.data.deps.cp.asset[assetID2].room !== roomID) {
           if (assetCurrent2.indicator) {
             assetCurrent2.indicator.remove(self2.layer.asset);
           }
@@ -33016,10 +33015,10 @@ L.RasterCoords.prototype = {
     };
     self2.showRoomAssets = function(roomID) {
       let assets = (self2.data.deps.pc.room[roomID] ? self2.data.deps.pc.room[roomID].asset : []) || [];
-      for (let assetID of assets) {
-        let assetCurrent2 = self2.current.asset[assetID];
+      for (let assetID2 of assets) {
+        let assetCurrent2 = self2.current.asset[assetID2];
         if (assetCurrent2 && assetCurrent2.alarm) {
-          self2.showAsset(assetID, assetCurrent2.alarm);
+          self2.showAsset(assetID2, assetCurrent2.alarm);
         }
       }
     };
@@ -33298,10 +33297,10 @@ L.RasterCoords.prototype = {
                 let showAll = null === msg2.asset;
                 let stateName = msg2.state;
                 out.multiple = true;
-                for (let assetID of msg2.only ? allAssetIDs : assetIDList) {
-                  let assetData = self2.data.assetMap[assetID];
+                for (let assetID2 of msg2.only ? allAssetIDs : assetIDList) {
+                  let assetData = self2.asset.map[assetID2].ent;
                   if (assetData) {
-                    let shown = showAll || -1 != assetIDList.indexOf(assetID);
+                    let shown = showAll || -1 != assetIDList.indexOf(assetID2);
                     shown = "hide" === msg2.asset ? !shown : shown;
                     shown = assetData.map - 1 == self2.loc.map ? shown : false;
                     setTimeout(() => {
@@ -33319,7 +33318,7 @@ L.RasterCoords.prototype = {
               }
               if ("string" === typeof msg2.asset) {
                 let assetRoom = self2.data.deps.cp.asset[msg2.asset];
-                let assetData = self2.data.assetMap[msg2.asset];
+                let assetData = self2.asset.map[assetID].ent;
                 let zoom = msg2.zoom || self2.config.mapMaxZoom;
                 if (assetRoom) {
                   self2.emit({
@@ -33409,6 +33408,27 @@ L.RasterCoords.prototype = {
       __publicField(this, "ctx", null);
       this.ent = ent;
       this.ctx = ctx;
+    }
+  }
+  class Asset {
+    constructor(ent, ctx) {
+      __publicField(this, "ent", null);
+      __publicField(this, "ctx", null);
+      this.ent = ent;
+      this.ctx = ctx;
+    }
+    buildIndicator(args) {
+      const {
+        color
+      } = args;
+      return L$1.circle(
+        c_asset_coords({ x: this.ent.xco, y: this.ent.yco }),
+        {
+          radius: 0.2,
+          color,
+          weight: 2
+        }
+      );
     }
   }
   class Room {
@@ -33953,7 +33973,10 @@ div.plantquest-assetmap-asset-state-alarm {
     opacity: 0.9;
 }
 
-
+.leaflet-pane svg {
+    width: unset !important;
+    height: unset !important;
+}
 
 
 `;

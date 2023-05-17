@@ -3087,7 +3087,10 @@ div.plantquest-assetmap-asset-state-alarm {
     opacity: 0.9;
 }
 
-
+.leaflet-pane svg {
+    width: unset !important;
+    height: unset !important;
+}
 
 
 `
