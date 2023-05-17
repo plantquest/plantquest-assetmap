@@ -2388,6 +2388,12 @@ import './rastercoords.js'
     show = null
     label=null
     indicator=null
+    stateName=null
+    infobox=null
+    blink=null
+    blinkState=null
+    xco=null
+    yco=null
     
     
     constructor(ent,ctx) {
