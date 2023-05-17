@@ -820,7 +820,7 @@ import './rastercoords.js'
           
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
-	    let asset = self.asset.map[layer.assetID]
+	    let asset = self.current.asset[layer.assetID]
             if(null == asset) return;
 
 	    if(asset) {
