@@ -2540,10 +2540,10 @@ import './rastercoords.js'
 
   
   function buildContainer() {
-    let html = [
-      '<div id="plantquest-assetmap-map" class="plantquest-assetmap-vis"></div>',
-    ]      
-    return html.join('')
+    let html = `
+  <div id="plantquest-assetmap-map" class="plantquest-assetmap-vis"></div>
+`     
+    return html
   }
   
   function fixid(idstr) {
