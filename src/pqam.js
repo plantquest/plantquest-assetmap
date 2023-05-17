@@ -464,7 +464,7 @@ import './rastercoords.js'
                 if(-1 < index) {
                   self.data.assets[index] = asset
                 }
-                let asset = self.asset.map[asset.id]
+                let asset = self.current.asset[asset.id]
                 if(asset.show) {
                   self.layer.asset.removeLayer(asset.label)
                   asset.label = null
