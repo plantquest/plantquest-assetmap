@@ -466,7 +466,7 @@ import './rastercoords.js'
                 }
                 let assetCurrent = self.current.asset[asset.id]
                 let asset = self.asset.map[asset.id]
-                if(assetCurrent.show) {
+                if(asset.show) {
                   self.layer.asset.removeLayer(assetCurrent.label)
                   assetCurrent.label = null
                   assetCurrent.indicator.remove()
@@ -1661,7 +1661,7 @@ import './rastercoords.js'
       // }
       
         if(hide) {
-          assetCurrent.show = false
+          asset.show = false
           if(assetCurrent.label) {
             self.layer.asset.removeLayer(assetCurrent.label)
           }
@@ -1675,7 +1675,7 @@ import './rastercoords.js'
           self.current.assetInfoShown[assetID] = assetCurrent
         }
 
-        assetCurrent.show = true
+        asset.show = true
         
         let assetPoint = [
           assetProps.yco,
@@ -2390,6 +2390,7 @@ import './rastercoords.js'
     ent = null
     ctx = null
     infobox = null
+    show = null
     
     constructor(ent,ctx) {
       this.ent = ent
