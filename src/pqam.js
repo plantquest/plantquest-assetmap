@@ -479,9 +479,10 @@ import './rastercoords.js'
                   self.data.assets[index] = asset
                 }
                 let assetCurrent = self.current.asset[asset.id]
-                if(assetCurrent.show) {
-                  self.layer.asset.removeLayer(assetCurrent.label)
-                  assetCurrent.label = null
+                let asset = self.asset.map[asset.id]
+                if(asset.show) {
+                  self.layer.asset.removeLayer(asset.label)
+                  asset.label = null
                   assetCurrent.indicator.remove()
                   assetCurrent.indicator = null
                   self.showAsset(
@@ -490,7 +491,7 @@ import './rastercoords.js'
                     false,
                     false,
                     false,
-                    assetCurrent.infobox
+                    asset.infobox
                   )
                 }
                 else {
@@ -1590,7 +1591,7 @@ import './rastercoords.js'
           return
         }
       
-        assetCurrent.infobox = infobox == null ? true : !!infobox
+        asset.infobox = infobox == null ? true : !!infobox
 
         assetCurrent.assetID = assetID
         assetCurrent.xco = assetProps.xco
@@ -1609,9 +1610,9 @@ import './rastercoords.js'
       // }
       
         if(hide) {
-          assetCurrent.show = false
-          if(assetCurrent.label) {
-            self.layer.asset.removeLayer(assetCurrent.label)
+          asset.show = false
+          if(asset.label) {
+            self.layer.asset.removeLayer(asset.label)
           }
           if(assetCurrent.indicator) {
             assetCurrent.indicator.remove()
@@ -1623,7 +1624,7 @@ import './rastercoords.js'
           self.current.assetInfoShown[assetID] = assetCurrent
         }
 
-        assetCurrent.show = true
+        asset.show = true
         
         let assetPoint = [
           assetProps.yco,
@@ -1665,10 +1666,10 @@ import './rastercoords.js'
       assetCurrent.blink = null == blink ? false : blink
 
       // setTimeout(()=>{
-      if(null == assetCurrent.label) {
+      if(null == asset.label) {
 
           // NOTE: this marker gets clustered!
-          assetCurrent.label = L.marker(
+          asset.label = L.marker(
             // c_asset_coords({x: ax+(100*(self.map.getZoom()/Math.pow(self.config.mapMaxZoom,0.9))), y: ay-2 }),
             // c_asset_coords({x: ax+(100*self.map.getZoom()/self.config.mapMaxZoom), y: ay }),
             c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
@@ -1680,12 +1681,12 @@ import './rastercoords.js'
             }) }
           )
           
-        assetCurrent.label.assetID = assetID
+        asset.label.assetID = assetID
       }
 
       // console.log('ASSET SHOW LABEL', assetCurrent)
 
-      assetCurrent.label.addTo(self.layer.asset)
+      asset.label.addTo(self.layer.asset)
 
       if( !self.config.asset.cluster) {
         assetCurrent.indicator.addTo(self.layer.indicator)
@@ -1758,12 +1759,13 @@ import './rastercoords.js'
     self.clearRoomAssets = function(roomID) {
       for(let assetID in self.current.asset) {
         let assetCurrent = self.current.asset[assetID]
+        let asset = self.asset.map[assetID]
         if(self.data.deps.cp.asset[assetID].room !== roomID) {
           if(assetCurrent.indicator) {
             assetCurrent.indicator.remove(self.layer.asset)
           }
-          if(assetCurrent.label) {
-            assetCurrent.label.remove(self.layer.asset)
+          if(asset.label) {
+            asset.label.remove(self.layer.asset)
           }
         }
       }
@@ -2330,6 +2332,9 @@ import './rastercoords.js'
   class Asset {
     ent = null
     ctx = null
+    infobox = null
+    show = null
+    label = null
     
     constructor(ent,ctx) {
       this.ent = ent
