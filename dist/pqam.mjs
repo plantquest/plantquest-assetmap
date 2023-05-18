@@ -13335,7 +13335,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "3.7.3";
+const version = "3.8.0";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -32204,14 +32204,15 @@ L.RasterCoords.prototype = {
                     asset2.label = null;
                     assetCurrent2.indicator.remove();
                     assetCurrent2.indicator = null;
-                    self2.showAsset(
-                      asset2.id,
-                      assetCurrent2.stateName,
-                      false,
-                      false,
-                      false,
-                      asset2.infobox
-                    );
+                    self2.showAsset({
+                      assetID: asset2.id,
+                      stateName: assetCurrent2.stateName,
+                      hide: false,
+                      blink: false,
+                      showRoom: false,
+                      infobox: asset2.infobox,
+                      whence: "updatedAssets"
+                    });
                   } else {
                     delete self2.current.asset[asset2.id];
                   }
@@ -32240,7 +32241,7 @@ L.RasterCoords.prototype = {
         self2.vis.map.elem = $("#plantquest-assetmap-map");
         self2.build();
         self2.current.rendered = true;
-        self2.showMap(0);
+        self2.showMap(0, { whence: "render" });
         done2();
       }, self2.domInterval);
     };
@@ -32559,7 +32560,7 @@ L.RasterCoords.prototype = {
               }
             },
             addHooks: function() {
-              self2.showMap(index2);
+              self2.showMap(index2, { whence: "toolbarlevel" });
             }
           })
         );
@@ -32619,7 +32620,7 @@ L.RasterCoords.prototype = {
         let alreadyShown = room === self2.loc.room || room === self2.loc.chosen.room;
         let drawRoom = inside && !alreadyShown && "red" !== alarmState;
         if (!drawRoom && !inside && self2.loc.room === room) {
-          if (false) {
+          if (self2.loc.poly) {
             self2.loc.poly.remove(self2.layer.room);
             self2.loc.room = null;
           }
@@ -32680,7 +32681,6 @@ L.RasterCoords.prototype = {
         self2.loc.chosen.poly = L$1.polygon(
           room_poly,
           {
-            // color: self.resolveRoomColor(roomState.alarm,'hi')
             color: self2.config.room.color
           }
         );
@@ -32887,7 +32887,17 @@ L.RasterCoords.prototype = {
         geofence.hide();
       }
     };
-    self2.showAsset = function(assetID, stateName, hide, blink, showRoom, infobox, history) {
+    self2.showAsset = function(spec) {
+      let {
+        assetID,
+        stateName,
+        hide,
+        blink,
+        showRoom,
+        infobox,
+        history,
+        whence
+      } = spec;
       let assetCurrent2 = self2.current.asset[assetID] || (self2.current.asset[assetID] = {});
       stateName = stateName || assetCurrent2.stateName || Object.keys(self2.config.states)[0];
       let stateDef = self2.config.states[stateName];
@@ -32950,8 +32960,6 @@ L.RasterCoords.prototype = {
         assetCurrent2.blink = null == blink ? false : blink;
         if (null == asset.label) {
           asset.label = L$1.marker(
-            // c_asset_coords({x: ax+(100*(self.map.getZoom()/Math.pow(self.config.mapMaxZoom,0.9))), y: ay-2 }),
-            // c_asset_coords({x: ax+(100*self.map.getZoom()/self.config.mapMaxZoom), y: ay }),
             c_asset_coords({ x: ax + 12, y: ay - 5 + 10 * Math.random() }),
             { icon: L$1.divIcon({
               className: "plantquest-assetmap-asset-marker",
@@ -32964,13 +32972,15 @@ L.RasterCoords.prototype = {
         if (!self2.config.asset.cluster) {
           assetCurrent2.indicator.addTo(self2.layer.indicator);
         }
-        if (infobox) {
-          self2.openAssetInfo({
-            asset: assetProps,
-            assetMarker: assetCurrent2.indicator,
-            xco: assetProps.xco,
-            yco: assetProps.yco
-          });
+        if (asset.infobox) {
+          setTimeout(() => {
+            self2.openAssetInfo({
+              asset: assetProps,
+              assetMarker: assetCurrent2.indicator,
+              xco: assetProps.xco,
+              yco: assetProps.yco
+            });
+          }, 1);
         }
         self2.zoomEndRender();
         if (history) {
@@ -33040,7 +33050,11 @@ L.RasterCoords.prototype = {
       for (let assetID of assets) {
         let assetCurrent2 = self2.current.asset[assetID];
         if (assetCurrent2 && assetCurrent2.alarm) {
-          self2.showAsset(assetID, assetCurrent2.alarm);
+          self2.showAsset({
+            assetID,
+            stateName: assetCurrent2.alarm,
+            whence: "showRoomAssets"
+          });
         }
       }
     };
@@ -33048,8 +33062,6 @@ L.RasterCoords.prototype = {
       return self2.config.tilesEndPoint + "/" + mapIndex + "/{z}/{x}/{y}.png";
     }, self2.createTile = function(mapIndex) {
       let tileLyr = L$1.tileLayer(self2.getUrl(mapIndex), {
-        // noWrap: true,
-        // maxNativeZoom: rc.zoomLevel(),
         bounds: self2.rc.getMaxBounds(),
         minZoom: self2.config.mapMinZoom,
         maxZoom: self2.config.mapMaxZoom
@@ -33057,7 +33069,6 @@ L.RasterCoords.prototype = {
       return tileLyr;
     }, self2.showMap = function(mapIndex, flags) {
       self2.log("showMap", mapIndex, flags, self2.loc);
-      console.log("showMap", mapIndex, flags, self2.loc);
       flags = flags || {};
       let startZoom = false === flags.startZoom ? false : true;
       let showAllAssets = false === flags.showAllAssets ? false : true;
@@ -33266,7 +33277,7 @@ L.RasterCoords.prototype = {
         }
         amseneca.message("show:map", function(msg2) {
           return __async(this, null, function* () {
-            self2.showMap(msg2.map);
+            self2.showMap(msg2.map, { whence: "message" });
           });
         }).message("show:room", function(msg2) {
           return __async(this, null, function* () {
@@ -33275,7 +33286,11 @@ L.RasterCoords.prototype = {
               if (msg2.assets) {
                 if (msg2.assets) {
                   for (let asset of msg2.assets) {
-                    self2.showAsset(asset.asset, asset.state);
+                    self2.showAsset({
+                      assetID: asset.asset,
+                      stateName: asset.state,
+                      whence: "show-room"
+                    });
                   }
                 }
               }
@@ -33288,11 +33303,11 @@ L.RasterCoords.prototype = {
           });
         }).message("show:plant", function(msg2) {
           return __async(this, null, function* () {
-            self2.showMap(msg2.plant);
+            self2.showMap(msg2.plant, { whence: "plant" });
           });
         }).message("show:floor", function(msg2) {
           return __async(this, null, function* () {
-            self2.showMap(msg2.map);
+            self2.showMap(msg2.map, { whence: "floor" });
             self2.clearRoomAssets();
             self2.unselectRoom();
             self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
@@ -33313,6 +33328,7 @@ L.RasterCoords.prototype = {
         yield seneca.ready();
         function showAssetMsg(msg2) {
           return __async(this, null, function* () {
+            let mark = Math.random();
             let out = { multiple: false };
             try {
               if (msg2.reset) {
@@ -33328,21 +33344,27 @@ L.RasterCoords.prototype = {
                 let stateName = msg2.state;
                 out.multiple = true;
                 for (let assetID of msg2.only ? allAssetIDs : assetIDList) {
-                  let assetData = self2.asset.map[assetID].ent;
+                  let assetInst = self2.asset.map[assetID];
+                  let assetData = assetInst.ent;
                   if (assetData) {
+                    if (msg2.asset === assetData.id) {
+                      continue;
+                    }
                     let shown = showAll || -1 != assetIDList.indexOf(assetID);
                     shown = "hide" === msg2.asset ? !shown : shown;
                     shown = assetData.map - 1 == self2.loc.map ? shown : false;
                     setTimeout(() => {
-                      self2.showAsset(
-                        assetData.id,
+                      self2.showAsset({
+                        assetID: assetData.id,
                         stateName,
-                        !shown,
-                        !!msg2.blink,
-                        false,
-                        false
-                      );
-                    }, 11);
+                        hide: !shown,
+                        blink: !!msg2.blink,
+                        showRoom: false,
+                        infobox: false,
+                        // infobox: assetInst.infobox,
+                        whence: "multiple~" + mark
+                      });
+                    }, 1);
                   }
                 }
               }
@@ -33373,19 +33395,23 @@ L.RasterCoords.prototype = {
                     if (mapIndex !== self2.loc.map) {
                       self2.showMap(mapIndex, {
                         startZoom: false,
-                        showAllAssets: false
+                        // showAllAssets: false,
+                        whence: "showAssetMsg"
                       });
                     }
                   }
-                  self2.showAsset(
-                    msg2.asset,
-                    msg2.state,
-                    "asset" === msg2.hide,
-                    !!msg2.blink,
-                    false,
-                    showInfoBox,
-                    msg2.history
-                  );
+                  setTimeout(() => {
+                    self2.showAsset({
+                      assetID: msg2.asset,
+                      stateName: msg2.state,
+                      hide: "asset" === msg2.hide,
+                      blink: !!msg2.blink,
+                      showRoom: false,
+                      infobox: showInfoBox,
+                      history: msg2.history,
+                      whence: "single~" + mark
+                    });
+                  }, 11);
                   out.asset = assetData;
                 } else {
                   self2.log("ERROR", "send", "asset", "unknown-asset", msg2);
@@ -33567,7 +33593,6 @@ L.RasterCoords.prototype = {
       this.poly && this.poly.remove();
     }
     onClick(event) {
-      console.log("GEOFENCE CLICK", this);
     }
   }
   function buildContainer() {

@@ -485,14 +485,23 @@ import './rastercoords.js'
                   asset.label = null
                   assetCurrent.indicator.remove()
                   assetCurrent.indicator = null
-                  self.showAsset(
-                    asset.id,
-                    assetCurrent.stateName,
-                    false,
-                    false,
-                    false,
-                    asset.infobox
-                  )
+                  self.showAsset({
+                    assetID: asset.id,
+                    stateName: assetCurrent.stateName,
+                    hide: false,
+                    blink: false ,
+                    showRoom: false,
+                    infobox: asset.infobox,
+                    whence: 'updatedAssets',
+                  })
+                  
+                    // asset.id,
+                    // assetCurrent.stateName,
+                    // false,
+                    // false,
+                    // false,
+                    // asset.infobox
+
                 }
                 else {
                   delete self.current.asset[asset.id]
@@ -530,7 +539,7 @@ import './rastercoords.js'
         self.build()
         // }
         self.current.rendered = true
-        self.showMap(0)
+        self.showMap(0, {whence:'render'})
         done()
       }, self.domInterval)
     }
@@ -672,22 +681,6 @@ import './rastercoords.js'
           }
           
           self.map.scrollWheelZoom._onWheelScroll(event)
-        
-
-
-        //   let classes = ''+(event.target && event.target.className || '')
-
-        //   // console.log('ZOOM', event, '['+classes+']')
-        //   let leafletElement =
-        //       (null != event.target._leaflet_id) ||
-        //       (null != event.target.parentElement._leaflet_id)
-        
-        //   if(
-        //     leafletElement ||
-        //       -1 != classes.indexOf('plantquest-assetmap-vis')
-        //   ) {
-        //     self.map.scrollWheelZoom._onWheelScroll(event)
-        //   }
         }
         catch(e) {
           console.log('ZOOM EVENT ERROR', e, event)
@@ -977,18 +970,7 @@ import './rastercoords.js'
 	  
 	})
       }
-      
-      /*
-      if(self.config.showAllAssets) {
-        self.send({
-          srv:'plantquest',
-          part:'assetmap',
-          show: 'asset',
-          asset: null,
-        })
-      }
-      */
-      
+            
       self.map.on('mousemove', (mev)=>{
         let {xco, yco} = convert_latlng(mev.latlng)
         self.loc.x = xco
@@ -1017,7 +999,7 @@ import './rastercoords.js'
             },
             
             addHooks: function () {
-              self.showMap(index)
+              self.showMap(index,{whence:'toolbarlevel'})
             }
           })
         )
@@ -1076,53 +1058,6 @@ import './rastercoords.js'
       // TODO: need to define a zoom event schema
       Object.values(self.room.map).map(room=>
         room.onZoom(zoom, self.loc.map, self.layer.roomLabel))
-
-      // Object.values(self.current.asset).map(ac=>{
-      //   if(ac.label) {
-      //     ac.label.setLatLng(c_asset_coords({
-      //       x: ac.xco+(100*self.map.getZoom()/self.config.mapMaxZoom),
-      //       y: ac.yco
-      //     }))
-      //   }
-      // })
-      
-     //  let pos = (1+self.loc.map)
-      
-     //  let labels = Object.values(self.ux.room.label[pos] || {}) || []
-     //  self.prev_labels = self.prev_labels || []
-      
-      
-     //  let labelZoomLevel =
-     //      null == self.config.label.zoom ? self.config.mapMaxZoom : 
-     //      self.config.label.zoom
-      
-     //  // if (zoom >= 6) {
-     //  if (zoom >= labelZoomLevel) {
-     //    for(let label of self.prev_labels) {
-     //      label.remove()
-     //    }
-        
-        
-     //    for(let label of labels) {
-     //      label.remove()
-     //      label.addTo(self.layer.label)
-     //    }
-          
-     //    self.setLabel = true
-     //    self.prev_labels = labels
-
-     //  } 
-     //  else {
-     //    for(let label of self.prev_labels) {
-     //      label.remove()
-     //    }
-        
-     //    for (let label of labels) {
-     //      label.remove()
-     //    }
-
-     //    self.setLabel = false
-     // }
     }
     
     
@@ -1148,7 +1083,7 @@ import './rastercoords.js'
         
         
         if(!drawRoom && !inside && self.loc.room === room) {
-          if(false && self.loc.poly) {
+          if(self.loc.poly) {
             self.loc.poly.remove(self.layer.room)
             self.loc.room = null
           }
@@ -1207,8 +1142,6 @@ import './rastercoords.js'
 
         self.log('selectRoom', roomId, room)
 
-        // self.showMap(parseInt(room.map)-1)
-        
         let roomState = self.current.room[room.room] ||
             (self.current.room[room.room]={alarm:'neutral'})
 
@@ -1223,16 +1156,8 @@ import './rastercoords.js'
           let prevRoomState = self.current.room[prevRoom.room] ||
               (self.current.room[prevRoom.room]={alarm:'neutral'})
 
-          // if('red'===prevRoomState.alarm) {
-          //   self.loc.chosen.poly.setStyle({
-          //     color: self.resolveRoomColor(prevRoomState.alarm,'lo')
-          //   })
-          //   self.loc.stateShown[prevRoom.room].poly = self.loc.chosen.poly
-          // }
-          // else {
-            self.loc.chosen.poly.remove(self.layer.room)
-            self.loc.chosen.poly = null
-        // }
+          self.loc.chosen.poly.remove(self.layer.room)
+          self.loc.chosen.poly = null
         }
 
         if(self.loc.popup) {
@@ -1243,28 +1168,15 @@ import './rastercoords.js'
         self.loc.chosen.room = room
 
 
-        // if('red' === roomState.alarm) {
-        //   let stateShown = self.loc.stateShown[room.room] ||
-        //       (self.loc.stateShown[room.room]= {})
-        //   if(stateShown.poly) {
-        //     stateShown.poly.setStyle({
-        //       color: self.resolveRoomColor(roomState.alarm,'hi')
-        //     })
-        //     self.loc.chosen.poly = stateShown.poly
-        //   }
-        // }
-        // else {
-          let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
-          
-          self.loc.chosen.poly = L.polygon(
-            room_poly, {
-              // color: self.resolveRoomColor(roomState.alarm,'hi')
-              color: self.config.room.color
+        let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
+        
+        self.loc.chosen.poly = L.polygon(
+          room_poly, {
+            color: self.config.room.color
           })
-          self.loc.chosen.poly.on('click', ()=>self.selectRoom(room.room))
-          
-          self.loc.chosen.poly.addTo(self.layer.room)
-      // }
+        self.loc.chosen.poly.on('click', ()=>self.selectRoom(room.room))
+        
+        self.loc.chosen.poly.addTo(self.layer.room)
 
         let roomlatlng = self.focusRoom(room)
         
@@ -1388,15 +1300,6 @@ import './rastercoords.js'
             stateShown.poly.remove(self.layer.room)
             stateShown.poly = null
           }
-            
-          // if('red' === alarm) {
-          //   stateShown.poly = L.polygon(
-          //     room.poly, {
-          //       color: self.resolveRoomColor(roomCurrent.stateDef,'lo')
-          //     })
-          //   stateShown.poly.addTo(self.layer.room)
-          //   stateShown.poly.on('click', ()=>self.selectRoom(room.room))
-          // }
         }
         
       }
@@ -1548,8 +1451,6 @@ import './rastercoords.js'
 
       show = !!show
 
-      // console.log('showGeofence show=',show)
-      
       if(true === show) {
         geofence.show(self.layer.geofence)
       }
@@ -1560,15 +1461,22 @@ import './rastercoords.js'
 
 
     self.showAsset = function(
-      assetID,
-      stateName,
-      hide,
-      blink,
-      showRoom,
-      infobox,
-      history
+      spec
     ) {
-      // console.log('showAsset', assetID, history)
+      let {
+        assetID,
+        stateName,
+        hide,
+        blink,
+        showRoom,
+        infobox,
+        history,
+        whence,
+      } = spec
+
+      // if(assetID == '1E82DD49-2F3F-5DA3-4EA9-AA3C61B56628') {
+      //   console.log('showAsset', spec)
+      // }
       
       let assetCurrent =
           self.current.asset[assetID] || (self.current.asset[assetID]={})
@@ -1597,18 +1505,6 @@ import './rastercoords.js'
         assetCurrent.xco = assetProps.xco
         assetCurrent.yco = assetProps.yco
         
-      // if(showRoom) {
-      //   self.showRoom(assetProps.room, stateName)
-      
-      //   // Only draw polys if room is chosen or not hiding
-      //   if(hide ||
-      //     (null == self.loc.chosen.room ||
-      //       assetProps.room !== self.loc.chosen.room.room))
-      //     {
-      //       return
-      //     }
-      // }
-      
         if(hide) {
           asset.show = false
           if(asset.label) {
@@ -1633,45 +1529,43 @@ import './rastercoords.js'
         let ax = assetPoint[1]
         let ay = assetPoint[0]
         
-      assetCurrent.stateName = stateName
-      let color = stateDef.color
+        assetCurrent.stateName = stateName
+        let color = stateDef.color
       
-      if(null == assetCurrent.indicator) {
-        assetCurrent.indicator = asset
-          .buildIndicator({ color })
-          .on('click', ()=>{
-            if(self.current.assetInfoShown[assetProps.id]) {
-              self.closeAssetInfo()
-            }
-            else {
-              self.send({
-                srv:'plantquest',
-                part:'assetmap',
-                show:'asset',
-                infobox: true,
-                asset: assetProps.id,
+        if(null == assetCurrent.indicator) {
+          assetCurrent.indicator = asset
+            .buildIndicator({ color })
+            .on('click', ()=>{
+              if(self.current.assetInfoShown[assetProps.id]) {
+                self.closeAssetInfo()
+              }
+              else {
+                self.send({
+                  srv:'plantquest',
+                  part:'assetmap',
+                  show:'asset',
+                  infobox: true,
+                  asset: assetProps.id,
+                })
+              }          
+              self.emit({
+                srv: 'plantquest',
+                part: 'assetmap',
+                event: 'click',
+                on: 'asset',
+                asset: assetProps,
               })
-            }          
-            self.emit({
-              srv: 'plantquest',
-              part: 'assetmap',
-              event: 'click',
-              on: 'asset',
-              asset: assetProps,
             })
-          })
-      }
+        }
 
       
-      assetCurrent.blink = null == blink ? false : blink
+        assetCurrent.blink = null == blink ? false : blink
 
-      // setTimeout(()=>{
-      if(null == asset.label) {
-
+        // setTimeout(()=>{
+        if(null == asset.label) {
+          
           // NOTE: this marker gets clustered!
           asset.label = L.marker(
-            // c_asset_coords({x: ax+(100*(self.map.getZoom()/Math.pow(self.config.mapMaxZoom,0.9))), y: ay-2 }),
-            // c_asset_coords({x: ax+(100*self.map.getZoom()/self.config.mapMaxZoom), y: ay }),
             c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
             { icon: L.divIcon({
               className: 'plantquest-assetmap-asset-marker',
@@ -1685,27 +1579,35 @@ import './rastercoords.js'
       }
 
       // console.log('ASSET SHOW LABEL', assetCurrent)
+        
+        asset.label.addTo(self.layer.asset)
 
-      asset.label.addTo(self.layer.asset)
+        if( !self.config.asset.cluster) {
+          assetCurrent.indicator.addTo(self.layer.indicator)
+        }
+        
+        
+        // if(infobox) {
 
-      if( !self.config.asset.cluster) {
-        assetCurrent.indicator.addTo(self.layer.indicator)
-      }
-
-
-        if(infobox) {
-          self.openAssetInfo({
-            asset: assetProps,
-          assetMarker: assetCurrent.indicator,
-          xco: assetProps.xco,
-          yco: assetProps.yco
-        })
-      }
+        // if(assetID == '1E82DD49-2F3F-5DA3-4EA9-AA3C61B56628') {
+        //   console.log('QQQ A', assetProps, asset)
+        // }
+        
+        if(asset.infobox) {
+          setTimeout(()=>{
+            self.openAssetInfo({
+              asset: assetProps,
+              assetMarker: assetCurrent.indicator,
+              xco: assetProps.xco,
+              yco: assetProps.yco
+            })
+          },1)
+        }
       
       // window.assetCurrent = assetCurrent
       
         self.zoomEndRender()
-
+        
         if(history) {
           
           self.seneca.act('aim:web,on:assetmap,load:asset',{
@@ -1779,7 +1681,12 @@ import './rastercoords.js'
       for(let assetID of assets) {
         let assetCurrent = self.current.asset[assetID]
         if(assetCurrent && assetCurrent.alarm) {
-          self.showAsset(assetID, assetCurrent.alarm)
+          self.showAsset({
+            assetID,
+            stateName: assetCurrent.alarm,
+            whence: 'showRoomAssets',
+          })
+          // assetID, assetCurrent.alarm)
         }
       }
     }
@@ -1791,8 +1698,6 @@ import './rastercoords.js'
     self.createTile = function(mapIndex) {
       let tileLyr = 
         L.tileLayer(self.getUrl(mapIndex), {
-          // noWrap: true,
-          // maxNativeZoom: rc.zoomLevel(),
           bounds: self.rc.getMaxBounds(),
           minZoom: self.config.mapMinZoom,
           maxZoom: self.config.mapMaxZoom,
@@ -1802,7 +1707,7 @@ import './rastercoords.js'
     
     self.showMap = function(mapIndex, flags) {
       self.log('showMap', mapIndex, flags, self.loc)
-      console.log('showMap', mapIndex, flags, self.loc)
+      // console.log('showMap', mapIndex, flags, self.loc)
 
       flags = flags || {}
       let startZoom = false === flags.startZoom ? false : true
@@ -1815,7 +1720,6 @@ import './rastercoords.js'
 
         setTimeout(()=>{
           let levelTools = $All('.leaflet-control-toolbar > li')
-          // console.log('LT', levelTools)
 
           levelTools.forEach(lt=>lt.classList.remove('plantquest-level-current'))
           
@@ -1829,10 +1733,7 @@ import './rastercoords.js'
         if(self.leaflet.maptile) {
           self.leaflet.maptile.remove(self.map)
         }
-        // let mapurl = self.config.map[mapIndex]
-        // let bounds = [[0, 0], [...self.config.mapBounds]]
         self.leaflet.maptile = self.createTile(mapIndex+1)
-        // self.leaflet.mapimg = L.imageOverlay(mapurl, bounds)
         self.leaflet.maptile.addTo(self.map)
 
         self.loc.map = mapIndex
@@ -2075,8 +1976,7 @@ import './rastercoords.js'
 
       amseneca
         .message('show:map', async function(msg) {
-          // console.error("cmd map msgg: ", msg)
-          self.showMap(msg.map)
+          self.showMap(msg.map, {whence:'message'})
         })
       
         .message('show:room', async function(msg) {
@@ -2086,7 +1986,12 @@ import './rastercoords.js'
             if(msg.assets) {
               if(msg.assets) {
                 for(let asset of msg.assets) {
-                  self.showAsset(asset.asset, asset.state)
+                  self.showAsset({
+                    assetID: asset.asset,
+                    stateName: asset.state,
+                    whence: 'show-room',
+                  })
+                  // asset.asset, asset.state)
                 }
               }
             }
@@ -2102,11 +2007,11 @@ import './rastercoords.js'
         })
       
         .message('show:plant', async function(msg) {
-          self.showMap(msg.plant)
+          self.showMap(msg.plant, {whence:'plant'})
         })
       
         .message('show:floor', async function(msg) {
-          self.showMap(msg.map)
+          self.showMap(msg.map, {whence:'floor'})
           self.clearRoomAssets()
           self.unselectRoom()
           self.map.setView(self.config.mapStart, self.config.mapStartZoom)
@@ -2135,7 +2040,8 @@ import './rastercoords.js'
 
 
       async function showAssetMsg(msg) {
-        // console.log('showAssetMsg START', msg)
+        let mark = Math.random()
+        // console.log('showAssetMsg START', mark, msg)
 
         let out = { multiple: false }
         
@@ -2159,10 +2065,16 @@ import './rastercoords.js'
 
             out.multiple = true
             for(let assetID of (msg.only?allAssetIDs:assetIDList)) {
-              let assetData = self.asset.map[assetID].ent
-
+              let assetInst = self.asset.map[assetID]
+              let assetData = assetInst.ent
               
               if(assetData) {
+
+                // Avoid double showAsset for single
+                if(msg.asset === assetData.id) {
+                  continue
+                }
+                
                 let shown = showAll || -1!=assetIDList.indexOf(assetID)
                 // console.log('showAssetMsg assetID', assetID, !!assetData, assetIDList.indexOf(assetID), shown)
                 
@@ -2171,36 +2083,25 @@ import './rastercoords.js'
                 shown = assetData.map-1 == self.loc.map ? shown : false
 
                 setTimeout(()=>{
-                  self.showAsset(assetData.id, stateName,
-                                 !shown, !!msg.blink, false, false)
-                },11)
+                  self.showAsset({
+                    assetID: assetData.id,
+                    stateName,
+                    hide: !shown,
+                    blink: !!msg.blink,
+                    showRoom: false,
+                    infobox: false,
+                    // infobox: assetInst.infobox,
+                    whence: 'multiple~'+mark,
+                  })
+                    
+                    // stateName,
+                    // !shown,
+                    // !!msg.blink,
+                    // false,
+                    // false
+                },1)
 
               }
-
-              
-              // if(assetData == null) {
-              //   self.log('ERROR', 'send', 'asset', 'unknown-asset', assetID)
-              //   continue
-              // }
-              
-              // if(assetData.xco == null || assetData.yco == null) {
-              //   self.log('ERROR', 'send', 'asset', 'invalid-asset', assetData)
-              //   continue
-              // }
-              
-              // self.emit({
-              //   srv:'plantquest',
-              //   part:'assetmap',
-              //   show:'asset',
-              //   before:true,
-              //   asset: assetData,
-              // })
-
-              // let showInfoBox =
-              //     null == msg.infobox ? self.config.infobox.show : msg.infobox 
-              
-              // self.showAsset(assetData.id, stateName,
-              //                'asset' === msg.hide, !!msg.blink, false, showInfoBox)
             }
           }
 
@@ -2238,22 +2139,37 @@ import './rastercoords.js'
               if(null != assetMapIndex) {
                 let mapIndex = (+assetMapIndex)-1
                 if(mapIndex !== self.loc.map) {
+                  // console.log('QQQ B', assetMapIndex, mapIndex, self.loc.map, assetData)
+
                   self.showMap(mapIndex, {
                     startZoom: false,
-                    showAllAssets: false,
+                    // showAllAssets: false,
+                    whence: 'showAssetMsg'
                   })
                 }
               }
-              
-              self.showAsset(
-                msg.asset,
-                msg.state,
-                'asset' === msg.hide,
-                !!msg.blink,
-                false,
-                showInfoBox,
-                msg.history,
-              )
+
+              // TODO: fix - this Timeout is needed if map changes, and showMap
+              // resets all the assets, unsetting infobox etc
+              setTimeout(()=>{
+                self.showAsset({
+                  assetID: msg.asset,
+                  stateName: msg.state,
+                  hide: 'asset' === msg.hide,
+                  blink: !!msg.blink,
+                  showRoom: false,
+                  infobox: showInfoBox,
+                  history: msg.history,
+                whence: 'single~'+mark,
+                })
+              },11)
+                // msg.asset,
+                // msg.state,
+                // 'asset' === msg.hide,
+                // !!msg.blink,
+                // false,
+                // showInfoBox,
+                // msg.history,
 
               out.asset = assetData
             }
@@ -2369,10 +2285,6 @@ import './rastercoords.js'
     }
 
     show(layer, room_poly) {
-      // if(!this.cfgroom.outline.active) {
-      //   return
-      // }
-
       if(null == this.poly) {
         this.poly = L.polygon(
           room_poly, {
@@ -2435,9 +2347,6 @@ import './rastercoords.js'
           
           // let _c = poly.getBounds().getCenter()
 
-          // tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`)
-
-          // console.log('ROOM LABEL: ', this.ent)
         }
 
         if(layer) {
@@ -2494,7 +2403,6 @@ import './rastercoords.js'
         this.poly.bindTooltip(tooltip)
 
         tooltip
-        // .setContent(`<div class="leaflet-zoom-animted"> ${this.ent.title} ${this.ent.id}</div>`)
           .setContent('<div class="'+
                       'leaflet-zoom-animated '+
                       'plantquest-geofence-label '+
@@ -2510,7 +2418,7 @@ import './rastercoords.js'
     
     onClick(event) {
       // TODO: emit
-      console.log('GEOFENCE CLICK', this)
+      // console.log('GEOFENCE CLICK', this)
     }
   }
 
@@ -2780,18 +2688,6 @@ import './rastercoords.js'
 
   }
 
-  
-  // function depsUnitTest(deps) {
-  //   const { deepEqual, deepStrictEqual } = require('assert')
-    
-  //   // let copy = JSON.parse(JSON.stringify(require('./test_data.json').deps))
-    
-  //   // console.log( deps, copy )
-    
-  //   // deepStrictEqual(deps, copy, 'deepEqual Relations test')
-  // }
-  
-  
     
   W.PlantQuestAssetMap = new PlantQuestAssetMap()
 
