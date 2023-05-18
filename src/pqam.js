@@ -465,6 +465,7 @@ import './rastercoords.js'
                   self.data.assets[index] = asset
                 }
                 let assetCurrent = self.current.asset[asset.id]
+                let asset = self.asset.map[asset.id]
                 if(assetCurrent.show) {
                   self.layer.asset.removeLayer(assetCurrent.label)
                   assetCurrent.label = null
@@ -476,7 +477,7 @@ import './rastercoords.js'
                     false,
                     false,
                     false,
-                    assetCurrent.infobox
+                    asset.infobox
                   )
                 }
                 else {
@@ -1641,7 +1642,7 @@ import './rastercoords.js'
           return
         }
       
-        assetCurrent.infobox = infobox == null ? true : !!infobox
+        asset.infobox = infobox == null ? true : !!infobox
 
         assetCurrent.assetID = assetID
         assetCurrent.xco = assetProps.xco
@@ -2388,6 +2389,7 @@ import './rastercoords.js'
   class Asset {
     ent = null
     ctx = null
+    infobox = null
     
     constructor(ent,ctx) {
       this.ent = ent
