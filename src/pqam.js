@@ -125,8 +125,22 @@ import './rastercoords.js'
           zoom: null // null => appear at mapMaxZoom
         },
 
-        plants: [],
+        plants: [
+          {
+            "id": "0C0BD957-C0BD-4993-9EED-0D58E1740CBA",
+            "name": "Building 112-AP1",
+            "center": [4780, 904]
+          },
+          {
+            "name": "Building 118-AP1",
+            "center": [2316,3402]
+          }
 
+        ],
+
+
+
+        
         asset: {
           cluster: true
         },
@@ -691,15 +705,6 @@ import './rastercoords.js'
       // prevents lost click events.
 
 
-      self.map.createPane('room')
-      let roomPane = self.map.getPane('room')
-      roomPane.style.zIndex = 220
-      roomPane.style.pointerEvents = 'none'
-
-      self.map.createPane('roomLabel')
-      let roomLabelPane = self.map.getPane('roomLabel')
-      roomLabelPane.style.zIndex = 210
-      roomLabelPane.style.pointerEvents = 'none'
       
       self.map.createPane('geofence')
       let geofencePane = self.map.getPane('geofence')
@@ -710,6 +715,17 @@ import './rastercoords.js'
       let geofenceLabelPane = self.map.getPane('geofenceLabel')
       geofenceLabelPane.style.zIndex = 235
       geofenceLabelPane.style.pointerEvents = 'none'
+
+
+      self.map.createPane('room')
+      let roomPane = self.map.getPane('room')
+      roomPane.style.zIndex = 240
+      roomPane.style.pointerEvents = 'none'
+
+      self.map.createPane('roomLabel')
+      let roomLabelPane = self.map.getPane('roomLabel')
+      roomLabelPane.style.zIndex = 245
+      roomLabelPane.style.pointerEvents = 'none'
 
       
       self.map.createPane('indicator')
@@ -824,28 +840,8 @@ import './rastercoords.js'
             if(null == assetCurrent) return;
 
 	    if(assetCurrent) {
-                assetCurrent.indicator.addTo(self.layer.indicator)
-                
-                
-                // state: asset blink
-                // assetCurrent.blinkId = setInterval(function blink() {
-                //   if(assetCurrent.indicator) {
-                //     if(assetCurrent.blink) {
-                //       if(true === assetCurrent.blinkState) {
-                //         assetCurrent.indicator.addTo(self.layer.indicator)
-                //         assetCurrent.blinkState = false
-                //       }
-                //       else {
-                //         assetCurrent.indicator.remove(self.layer.indicator)
-                //         assetCurrent.blinkState = true
-                //       }
-                //     }
-                //   }
-                // }, self.config.mapInterval)
-                
-	      //}, 11)
-	      
-	    }
+              assetCurrent.indicator.addTo(self.layer.indicator)
+            }
 	  }
           
         })
@@ -873,49 +869,6 @@ import './rastercoords.js'
       else {
         self.layer.asset = L.layerGroup().addTo(self.map)
       }
-      
-
-      /*
-      // TODO: move to generate
-      function generate_labels() {
-        for (let room of self.data.rooms) {
-          let poly_labels = self.ux.room.label[room.map] = self.ux.room.label[room.map] || {}
-
-          if (
-            self.data.roomMap[room.room] &&
-              room.area === '1' &&
-              room.poly
-          ) {
-            let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
-
-            let poly = L.polygon(
-              room_poly, {
-                color: 'transparent',
-                pane: 'label',
-              })
-
-            poly.name$ = 'ROOM:'+room.room
-
-            // Create the tooltip with the initial content
-            var tooltip = L.tooltip({
-              permanent: true,
-              direction: 'center',
-              opacity: 1,
-              className: 'polygon-labels',
-            })
-
-            // Bind the tooltip to the polygon
-            poly.bindTooltip(tooltip);
-            let _c = poly.getBounds().getCenter()
-
-            tooltip.setContent(`<div class="leaflet-zoom-animted"> ${room.room} </div>`);
-            poly_labels[poly.name$] = poly
-            // poly_labels.push(poly)
-          }
-        }
-      }
-      generate_labels()
-      */
       
       
       // Define a custom control
@@ -1069,26 +1022,43 @@ import './rastercoords.js'
         )
       })
 
+      let plantActions = []
+      
       self.config.plants.forEach((plant,index)=>{
-        levelActions.push(
+        plantActions.push(
           L.Toolbar2.Action.extend({
             options: {
               toolbarIcon: {
-                html: plant.name,
+                html: plant.name.replace('Building ',''),
               }
             },
             
             addHooks: function () {
-              self.showMap(index)
+              let coords = c_asset_coords({
+                x: plant.center[0],
+                y: plant.center[1]
+              })
+              // self.map.setView(coords, self.map.getZoom())
+              self.map.setView(coords,self.config.mapMinZoom)
+              // self.showMap(index)
             }
           })
         )
       })
+      
 
-      self.map.addLayer(new L.Toolbar2.Control({
+      let plantToolbar = new L.Toolbar2.Control({
+        actions: plantActions,
+        position: 'topright',
+      })
+
+      let levelToolbar = new L.Toolbar2.Control({
         actions: levelActions,
         position: 'topright',
-      }))
+        subToolbar: plantToolbar,
+      })
+
+      self.map.addLayer(levelToolbar)
     }
 
 
@@ -1177,7 +1147,7 @@ import './rastercoords.js'
         
         
         if(!drawRoom && !inside && self.loc.room === room) {
-          if(self.loc.poly) {
+          if(false && self.loc.poly) {
             self.loc.poly.remove(self.layer.room)
             self.loc.room = null
           }
@@ -1196,11 +1166,7 @@ import './rastercoords.js'
             self.loc.room = room
             self.loc.alarmState = alarmState
 
-            // if(roomInst.ctx?.cfg?.room?.outline?.active) {
             self.loc.poly = roomInst.show(self.layer.room, room_poly)
-            // }
-
-
 
             let tooltip = L.tooltip({
               permanent: true,
@@ -1209,30 +1175,13 @@ import './rastercoords.js'
               className: 'polygon-labels',
               // offset: L.point({x: 100*Math.random(), y: 100*Math.random()})
             })
-            
-            tooltip
-              .setContent(`<div class="leaflet-zoom-animted `+
-                          `plantquest-room-hi-label"> ${room.name} </div>`)
-          
+
+            tooltip.setContent('<div class="'+
+                               'plantquest-room-label '+
+                               'plantquest-room-over-label '+
+                               '">'+`${room.name}</div>`)
+
             self.loc.poly.bindTooltip(tooltip)
-
-            
-            // roomInst.buildPoly(self.loc, room_poly, self.layer.room)
-            
-            // self.loc.poly = L.polygon(
-            //   room_poly, {
-            //     color: self.config.room.color
-            //   })
-
-            // // self.loc.poly.on('click', ()=>{
-            // //   self.selectRoom(room.room)
-            // // })
-
-            // if(self.config.room.click.active) {
-            //   self.loc.poly.on('click', roomInst.onClick)
-            // }
-
-            // self.loc.poly.addTo(self.layer.room)
           }
           catch(e) {
             self.log('ERROR','map','1020', e.message, e)
@@ -1686,20 +1635,6 @@ import './rastercoords.js'
       assetCurrent.stateName = stateName
       let color = stateDef.color
       
-      // let ay_poly = convert_poly_y(self.config.mapImg, ay)
-      // let room_poly = convertRoomPoly(self.config.mapImg, [
-      //     [ay_poly+10,ax],
-      //     [ay_poly-10,ax+10],
-      //     [ay_poly-10,ax-10],
-      // ])
-      
-      // if('alert' === stateDef.marker) {
-      //   assetCurrent.indicator = L.polygon(room_poly, {
-      //     color: color,
-      //   })
-      // }
-      // else {
-
       if(null == assetCurrent.indicator) {
         assetCurrent.indicator = asset
           .buildIndicator({ color })
@@ -1714,26 +1649,17 @@ import './rastercoords.js'
                 show:'asset',
                 infobox: true,
                 asset: assetProps.id,
-                // focus: true,
               })
-            
-              // self.openAssetInfo({
-              //   asset: assetProps,
-              //   assetMarker,
-              //   xco: assetProps.xco,
-              //   yco: assetProps.yco
-              // })
             }          
-          self.emit({
-            srv: 'plantquest',
-            part: 'assetmap',
-            event: 'click',
-            on: 'asset',
-            asset: assetProps,
+            self.emit({
+              srv: 'plantquest',
+              part: 'assetmap',
+              event: 'click',
+              on: 'asset',
+              asset: assetProps,
+            })
           })
-        })
       }
-    // }
 
       
       assetCurrent.blink = null == blink ? false : blink
@@ -1745,10 +1671,12 @@ import './rastercoords.js'
           assetCurrent.label = L.marker(
             // c_asset_coords({x: ax+(100*(self.map.getZoom()/Math.pow(self.config.mapMaxZoom,0.9))), y: ay-2 }),
             // c_asset_coords({x: ax+(100*self.map.getZoom()/self.config.mapMaxZoom), y: ay }),
-            c_asset_coords({x: ax+10, y: ay-5+(10*Math.random()) }),
+            c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
             { icon: L.divIcon({
               className: 'plantquest-assetmap-asset-marker',
-              html: `<div>${assetProps.tag.replace(/\s+/g,'&nbsp;')}</div>`
+              html: '<span class="'+
+                'plantquest-font-asset-label '+
+              `">${assetProps.tag.replace(/\s+/g,'&nbsp;')}</span>`
             }) }
           )
           
@@ -1806,7 +1734,9 @@ import './rastercoords.js'
                 
                 let t_c = new Date(hist.t_c)
                 let when = t_c.toISOString()
-                tooltip.setContent(`<span style="color:#CCC;font-size:6pt;">${when}<span>`)
+                tooltip.setContent('<span class="'+
+                                   'plantquest-asset-history-label '+
+                                   `">${when}<span>`)
                 
                 histdot.bindTooltip(tooltip)
                 
@@ -1880,6 +1810,20 @@ import './rastercoords.js'
       self.closeClusterInfo()
       
       if(mapIndex !== self.loc.map) {
+
+        setTimeout(()=>{
+          let levelTools = $All('.leaflet-control-toolbar > li')
+          // console.log('LT', levelTools)
+
+          levelTools.forEach(lt=>lt.classList.remove('plantquest-level-current'))
+          
+          let lt = levelTools[self.loc.map]
+          if(lt) {
+            lt.classList.add('plantquest-level-current')
+          }
+        },1)
+
+        
         if(self.leaflet.maptile) {
           self.leaflet.maptile.remove(self.map)
         }
@@ -1948,7 +1892,7 @@ import './rastercoords.js'
       let html = []
 
       html.push(
-        '<h2>',
+        '<h2 class="plantquest-room-popup">',
         room.room,
         '</h2>'
       )
@@ -2156,13 +2100,10 @@ import './rastercoords.js'
         })
       
         .message('show:plant', async function(msg) {
-          // console.error("cmd plant msgg: ", msg)
           self.showMap(msg.plant)
         })
       
         .message('show:floor', async function(msg) {
-          // console.error("cmd floor msgg: ", msg)
-          
           self.showMap(msg.map)
           self.clearRoomAssets()
           self.unselectRoom()
@@ -2265,7 +2206,8 @@ import './rastercoords.js'
             // console.log('SHOW ASSET SINGLE', msg.asset)
             
             let assetRoom = self.data.deps.cp.asset[msg.asset]
-            let assetData = self.asset.map[assetID].ent
+            // let assetData = self.asset.map[assetID].ent
+            let assetData = self.asset.map[msg.asset].ent
             let zoom = msg.zoom || self.config.mapMaxZoom
             
             if(assetRoom) {
@@ -2479,7 +2421,10 @@ import './rastercoords.js'
           })
 
           tooltip
-            .setContent(`<div class="leaflet-zoom-animted"> ${this.ent.name} </div>`)
+            .setContent('<div class="'+
+                        'xleaflet-zoom-animated '+
+                        'plantquest-room-label '+
+                        `">${this.ent.name}</div>`)
           
           this.label.bindTooltip(tooltip)
           
@@ -2545,7 +2490,10 @@ import './rastercoords.js'
 
         tooltip
         // .setContent(`<div class="leaflet-zoom-animted"> ${this.ent.title} ${this.ent.id}</div>`)
-        .setContent(`<div class="leaflet-zoom-animted">${this.ent.title}</div>`)
+          .setContent('<div class="'+
+                      'leaflet-zoom-animated '+
+                      'plantquest-geofence-label '+
+                      `">${this.ent.title}</div>`)
       }
       
       this.poly.addTo(layer)
@@ -2874,13 +2822,6 @@ img.plantquest-assetmap-logo {
 }
 
 
-div.plantquest-assetmap-asset-label {
-    xwidth: 96px;
-    xheight: 48px;
-    font-size: 16px;
-    xoverflow: hidden;
-    z-index: 1000;
-}
 
 div.plantquest-assetmap-asset-cluster {
     xwidth: 96px;
@@ -2890,22 +2831,6 @@ div.plantquest-assetmap-asset-cluster {
     z-index: 1000;
 }
 
-
-div.plantquest-assetmap-asset-label-green {
-    xcolor: #696;
-    color: white;
-    border: 2px solid #696;
-    border-radius: 4px;
-    background-color: rgba(102,153,102,0.8);
-}
-
-div.plantquest-assetmap-asset-label-red {
-    xcolor: #f66;
-    color: white;
-    border: 2px solid #f66;
-    border-radius: 4px;
-    background-color: rgba(255,102,102,0.8);
-}
 
 #plantquest-assetmap-assetinfo {
     display: none;
@@ -3046,12 +2971,15 @@ ul.leaflet-control-toolbar > li {
   font-size: 1em;
 }
 
-div.plantquest-assetmap-asset-label {
-    width: 200px;
+
+.plantquest-asset-history-label {
+  color: #CCC;
+  font-size: 4pt;
+  width: min-content;
 }
 
 div.plantquest-assetmap-asset-marker {
-
+   width: min-content;
 }
 
 
@@ -3087,11 +3015,69 @@ div.plantquest-assetmap-asset-state-alarm {
     opacity: 0.9;
 }
 
+li.plantquest-level-current a.leaflet-toolbar-icon {
+  background-color: #ccc;
+}
+
 .leaflet-pane svg {
     width: unset !important;
     height: unset !important;
+    min-width: unset !important;
+    min-height: unset !important;
+    max-width: unset !important;
+    max-height: unset !important;
 }
 
+.plantquest-room-over-label {}
+
+.plantquest-room-popup {
+}
+
+
+.plantquest-font-normal {
+  font-weight: normal;
+  font-size: 12pt;
+  color: black;
+}
+
+.plantquest-font-asset-label {
+  font-weight: normal;
+  font-size: 8pt;
+  color: #666;
+}
+
+.plantquest-room-label {
+  font-weight: normal;
+  font-size: 12pt;
+  color: #333;
+}
+
+.plantquest-geofence-label {
+  font-weight: normal;
+  font-size: 12pt;
+  font-style: italic;
+  color: #333;
+}
+
+
+.plantquest-font-s0 {
+  font-size: 4pt;
+}
+.plantquest-font-s1 {
+  font-size: 8pt;
+}
+.plantquest-font-s2 {
+  font-size: 12pt;
+}
+.plantquest-font-s3 {
+  font-size: 16pt;
+}
+.plantquest-font-s4 {
+  font-size: 20pt;
+}
+.plantquest-font-s5 {
+  font-size: 24pt;
+}
 
 `
     head.appendChild(style)
