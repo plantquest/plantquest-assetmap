@@ -2392,6 +2392,7 @@ import './rastercoords.js'
     ctx = null
     infobox = null
     show = null
+    label = null
     
     constructor(ent,ctx) {
       this.ent = ent
