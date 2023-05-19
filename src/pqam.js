@@ -467,7 +467,6 @@ import './rastercoords.js'
 
         if(res.ok) {
           let updatedAssets = res.list
-          // console.log('updatedAssets', updatedAssets)
 
           for(let asset of updatedAssets) {
             try {
@@ -1056,8 +1055,13 @@ import './rastercoords.js'
       if (null == zoom) return;
 
       // TODO: need to define a zoom event schema
-      Object.values(self.room.map).map(room=>
+      let shown = Object.values(self.room.map).map(room=>
         room.onZoom(zoom, self.loc.map, self.layer.roomLabel))
+
+      console.log('zoomEndRender', self.loc.map, zoom,
+                  shown.filter(r=>r).length,
+                  shown.filter(r=>!r).length,
+                 )
     }
     
     
@@ -1201,7 +1205,7 @@ import './rastercoords.js'
         // self.showRoomAssets(room.room)
         // self.clearRoomAssets(room.room)
 
-        self.zoomEndRender()
+        // self.zoomEndRender()
         
         if(!opts.mute) {
           self.click({select:'room', room:self.loc.chosen.room.room})
@@ -1260,7 +1264,7 @@ import './rastercoords.js'
       self.map.setView(roompos,
                         self.config.mapRoomFocusZoom)
                         
-      self.zoomEndRender()
+      // self.zoomEndRender()
       
       return roomlatlng
     }
@@ -1578,8 +1582,6 @@ import './rastercoords.js'
         asset.label.assetID = assetID
       }
 
-      // console.log('ASSET SHOW LABEL', assetCurrent)
-        
         asset.label.addTo(self.layer.asset)
 
         if( !self.config.asset.cluster) {
@@ -1606,7 +1608,7 @@ import './rastercoords.js'
       
       // window.assetCurrent = assetCurrent
       
-        self.zoomEndRender()
+        // self.zoomEndRender()
         
         if(history) {
           
@@ -1614,7 +1616,6 @@ import './rastercoords.js'
             query: { id:assetProps.id }, history: true
           }, (err, res) => {
             if(err) return;
-            // console.log('ASSET HIST', asset)
             
             if(res.ok) {
               self.current.assetHistory.map(hist=>hist.remove())
@@ -1707,7 +1708,6 @@ import './rastercoords.js'
     
     self.showMap = function(mapIndex, flags) {
       self.log('showMap', mapIndex, flags, self.loc)
-      // console.log('showMap', mapIndex, flags, self.loc)
 
       flags = flags || {}
       let startZoom = false === flags.startZoom ? false : true
@@ -1845,7 +1845,6 @@ import './rastercoords.js'
         .use(SenecaEntity)
         .ready(async function() {
           const seneca = this
-          // console.log('seneca ready')
         })
             
       // await seneca.ready()
@@ -2041,8 +2040,6 @@ import './rastercoords.js'
 
       async function showAssetMsg(msg) {
         let mark = Math.random()
-        // console.log('showAssetMsg START', mark, msg)
-
         let out = { multiple: false }
         
         try {
@@ -2059,8 +2056,6 @@ import './rastercoords.js'
             let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
             let showAll = null === msg.asset
 
-            // console.log('showAssetMsg', allAssetIDs.length, assetIDList && assetIDList.length, showAll)
-            
             let stateName = msg.state
 
             out.multiple = true
@@ -2076,7 +2071,6 @@ import './rastercoords.js'
                 }
                 
                 let shown = showAll || -1!=assetIDList.indexOf(assetID)
-                // console.log('showAssetMsg assetID', assetID, !!assetData, assetIDList.indexOf(assetID), shown)
                 
                 shown = 'hide'===msg.asset ? !shown : shown
 
@@ -2106,8 +2100,6 @@ import './rastercoords.js'
           }
 
           if('string' === typeof msg.asset) {
-            // console.log('SHOW ASSET SINGLE', msg.asset)
-            
             let assetRoom = self.data.deps.cp.asset[msg.asset]
             // let assetData = self.asset.map[assetID].ent
             let assetData = self.asset.map[msg.asset].ent
@@ -2139,8 +2131,6 @@ import './rastercoords.js'
               if(null != assetMapIndex) {
                 let mapIndex = (+assetMapIndex)-1
                 if(mapIndex !== self.loc.map) {
-                  // console.log('QQQ B', assetMapIndex, mapIndex, self.loc.map, assetData)
-
                   self.showMap(mapIndex, {
                     startZoom: false,
                     // showAllAssets: false,
@@ -2203,9 +2193,6 @@ import './rastercoords.js'
             geofenceIDList = [msg.geofence]
           }
 
-          // console.log('geofenceIDList', geofenceIDList, 'hide'===msg.geofence)
-          
-          // for(let geofenceID of geofenceIDList) {
           for(let geofenceID of Object.keys(self.geofence.map)) {
             let geofence = self.geofence.map[geofenceID]
               
@@ -2305,17 +2292,20 @@ import './rastercoords.js'
 
     // TODO: need a mapState object
     onZoom(zoom, mapID, layer) {
-      let mapMatch = 1+mapID == this.ent.map
+      let mapMatch = (1+parseInt(mapID)) == parseInt(this.ent.map)
+      let showRoomLabel = 1 === parseInt(this.ent.showlabel)
       
       let showNameZoom =
           null == this.cfgroom.label.zoom ? this.ctx.cfg.mapMaxZoom :
           this.cfgroom.label.zoom
 
-      let showLabel = showNameZoom <= zoom && mapMatch
+      let showLabel = (showNameZoom <= zoom) && mapMatch && showRoomLabel
 
       // if('1203 Vestibule' === this.ent.name) {
       //   console.log('RZ', showLabel, mapMatch, showNameZoom, zoom, mapID, this.ent.name, this.ent.map)
       // }
+
+      let shown = false
       
       if(showLabel) {
         if(null == this.label && this.ent.poly) {
@@ -2346,11 +2336,11 @@ import './rastercoords.js'
           this.label.bindTooltip(tooltip)
           
           // let _c = poly.getBounds().getCenter()
-
         }
 
         if(layer) {
           this.label.addTo(layer)
+          shown = true
         }
       }
       else {
@@ -2358,6 +2348,7 @@ import './rastercoords.js'
           this.label.remove()
         }
       }
+      return shown
     }
     
     onClick(event) {
@@ -2380,8 +2371,6 @@ import './rastercoords.js'
       if(null == this.poly) {
         let polyCoords = convertPoly(this.ctx.cfg.mapImg, this.ent.polygon)
 
-        // console.log('GF', this.ent.polygon, polyCoords)
-      
         this.poly = L.polygon(
           polyCoords, {
             pane: 'geofence',
@@ -2418,7 +2407,6 @@ import './rastercoords.js'
     
     onClick(event) {
       // TODO: emit
-      // console.log('GEOFENCE CLICK', this)
     }
   }
 
@@ -2652,9 +2640,6 @@ import './rastercoords.js'
           // Build a Parent-to-Child
           if (r.pc && (!r.exclude || !r.exclude(asset)) && (!r.include || r.include(asset))) {
             let pk = make_parent_key(r, asset)
-
-            // console.error('r.pc: ', r.p, pk, asset)
-            // console.log('PK',pk)
 
             deps.pc[r.p] = (deps.pc[r.p] || {})
             deps.pc[r.p][pk] = (deps.pc[r.p][pk] || {})

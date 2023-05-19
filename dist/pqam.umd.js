@@ -13339,7 +13339,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "3.8.0";
+  const version = "3.9.0";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -32608,7 +32608,14 @@ var __async = (__this, __arguments, generator) => {
         let zoom = self2.map.getZoom();
         if (null == zoom)
           return;
-        Object.values(self2.room.map).map((room) => room.onZoom(zoom, self2.loc.map, self2.layer.roomLabel));
+        let shown = Object.values(self2.room.map).map((room) => room.onZoom(zoom, self2.loc.map, self2.layer.roomLabel));
+        console.log(
+          "zoomEndRender",
+          self2.loc.map,
+          zoom,
+          shown.filter((r) => r).length,
+          shown.filter((r) => !r).length
+        );
       };
       self2.checkRooms = function() {
         let xco = self2.loc.x;
@@ -32698,7 +32705,6 @@ var __async = (__this, __arguments, generator) => {
             autoClose: false,
             closeOnClick: false
           }).setLatLng(roompos).setContent(self2.roomPopup(self2.loc.chosen.room)).openOn(self2.map);
-          self2.zoomEndRender();
           if (!opts.mute) {
             self2.click({ select: "room", room: self2.loc.chosen.room.room });
           }
@@ -32743,7 +32749,6 @@ var __async = (__this, __arguments, generator) => {
           roompos,
           self2.config.mapRoomFocusZoom
         );
-        self2.zoomEndRender();
         return roomlatlng;
       };
       self2.showRoom = function(room, stateName) {
@@ -32986,7 +32991,6 @@ var __async = (__this, __arguments, generator) => {
               });
             }, 1);
           }
-          self2.zoomEndRender();
           if (history) {
             self2.seneca.act("aim:web,on:assetmap,load:asset", {
               query: { id: assetProps.id },
@@ -33523,9 +33527,11 @@ var __async = (__this, __arguments, generator) => {
       }
       // TODO: need a mapState object
       onZoom(zoom, mapID, layer) {
-        let mapMatch = 1 + mapID == this.ent.map;
+        let mapMatch = 1 + parseInt(mapID) == parseInt(this.ent.map);
+        let showRoomLabel = 1 === parseInt(this.ent.showlabel);
         let showNameZoom = null == this.cfgroom.label.zoom ? this.ctx.cfg.mapMaxZoom : this.cfgroom.label.zoom;
-        let showLabel = showNameZoom <= zoom && mapMatch;
+        let showLabel = showNameZoom <= zoom && mapMatch && showRoomLabel;
+        let shown = false;
         if (showLabel) {
           if (null == this.label && this.ent.poly) {
             this.label = L$1.polygon(
@@ -33549,12 +33555,14 @@ var __async = (__this, __arguments, generator) => {
           }
           if (layer) {
             this.label.addTo(layer);
+            shown = true;
           }
         } else {
           if (null != this.label) {
             this.label.remove();
           }
         }
+        return shown;
       }
       onClick(event) {
         this.ctx.pqam.selectRoom(this.ent.id);
