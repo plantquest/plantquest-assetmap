@@ -1548,36 +1548,16 @@ import './rastercoords.js'
           })
         }
 
-        asset.showAsset({
+        asset.showAsset(self.layer, {
           color,
           onIndicatorClick
         })
       
         asset.blink = null == blink ? false : blink
 
-        // setTimeout(()=>{
-        if(null == asset.label) {
-          
-          // NOTE: this marker gets clustered!
-          asset.label = L.marker(
-            c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
-            { icon: L.divIcon({
-              className: 'plantquest-assetmap-asset-marker',
-              html: '<span class="'+
-                'plantquest-font-asset-label '+
-              `">${assetProps.tag.replace(/\s+/g,'&nbsp;')}</span>`
-            }) }
-          )
-          
-        asset.label.assetID = assetID
-      }
-
-        asset.label.addTo(self.layer.asset)
-
         if( !self.config.asset.cluster) {
           asset.indicator.addTo(self.layer.indicator)
         }
-        
         
         // if(infobox) {
 
@@ -2225,6 +2205,7 @@ import './rastercoords.js'
   class Asset {
     ent = null
     ctx = null
+    assetID = null
     xco = null
     yco = null
     infobox = null
@@ -2238,6 +2219,7 @@ import './rastercoords.js'
       this.ctx = ctx
       this.xco = this.ent.xco
       this.yco = this.ent.yco
+      this.assetID = ent.id
     }
 
     hasInvalidCoords() {
@@ -2259,7 +2241,25 @@ import './rastercoords.js'
         })
     }
 
-    showAsset(args) {
+    buildAssetMarker() {
+      let ax = this.xco
+      let ay = this.yco
+
+      // NOTE: this marker gets clustered!
+      this.label = L.marker(
+        c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
+        { icon: L.divIcon({
+          className: 'plantquest-assetmap-asset-marker',
+          html: '<span class="'+
+            'plantquest-font-asset-label '+
+          `">${this.ent.tag.replace(/\s+/g,'&nbsp;')}</span>`
+        }) }
+      )
+
+      this.label.assetID = this.assetID
+    }
+
+    showAsset(layer, args) {
       const {
         color,
         onIndicatorClick,
@@ -2275,6 +2275,12 @@ import './rastercoords.js'
         }
       }
 
+      // setTimeout(()=>{
+      if(null == this.label) {
+        this.buildAssetMarker()
+      }
+
+      this.label.addTo(layer.asset)      
     }
   }
 
