@@ -1489,8 +1489,6 @@ import './rastercoords.js'
       asset.stateName =
         stateName || asset.stateName || (Object.keys(self.config.states)[0])
 
-      let stateDef = self.config.states[asset.stateName]
-
       let assetProps = asset.ent
 
       try {
@@ -1533,6 +1531,7 @@ import './rastercoords.js'
         let ax = assetPoint[1]
         let ay = assetPoint[0]
         
+        let stateDef = self.config.states[asset.stateName]
         let color = stateDef.color
       
         if(null == assetCurrent.indicator) {
