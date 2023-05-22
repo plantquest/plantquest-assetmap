@@ -1497,10 +1497,10 @@ import './rastercoords.js'
 
 
         // Ignore assets with invalid coords
-        if(null == assetProps || null == assetProps.xco || null == assetProps.yco) {
+        if(asset.hasInvalidCoords()) {
           return
         }
-      
+
         asset.infobox = infobox == null ? true : !!infobox
 
         assetCurrent.assetID = assetID
@@ -2233,6 +2233,8 @@ import './rastercoords.js'
   class Asset {
     ent = null
     ctx = null
+    xco = null
+    yco = null
     infobox = null
     show = null
     label = null
@@ -2241,6 +2243,15 @@ import './rastercoords.js'
     constructor(ent,ctx) {
       this.ent = ent
       this.ctx = ctx
+      this.xco = this.ent.xco
+      this.yco = this.ent.yco
+    }
+
+    hasInvalidCoords() {
+      if(null == this.xco || null == this.yco) {
+        return true
+      }
+      return false
     }
 
     buildIndicator(args) {
