@@ -1526,33 +1526,32 @@ import './rastercoords.js'
         let stateDef = self.config.states[asset.stateName]
         let color = stateDef.color
 
-        asset.showAsset(color)
-      
-        if(null == asset.indicator) {
-          asset.indicator
-            .on('click', ()=>{
-              if(self.current.assetInfoShown[assetProps.id]) {
-                self.closeAssetInfo()
-              }
-              else {
-                self.send({
-                  srv:'plantquest',
-                  part:'assetmap',
-                  show:'asset',
-                  infobox: true,
-                  asset: assetProps.id,
-                })
-              }          
-              self.emit({
-                srv: 'plantquest',
-                part: 'assetmap',
-                event: 'click',
-                on: 'asset',
-                asset: assetProps,
-              })
+        let onIndicatorClick = ()=>{
+          if(self.current.assetInfoShown[assetProps.id]) {
+            self.closeAssetInfo()
+          }
+          else {
+            self.send({
+              srv:'plantquest',
+              part:'assetmap',
+              show:'asset',
+              infobox: true,
+              asset: assetProps.id,
             })
+          }          
+          self.emit({
+            srv: 'plantquest',
+            part: 'assetmap',
+            event: 'click',
+            on: 'asset',
+            asset: assetProps,
+          })
         }
 
+        asset.showAsset({
+          color,
+          onIndicatorClick
+        })
       
         asset.blink = null == blink ? false : blink
 
@@ -2260,11 +2259,20 @@ import './rastercoords.js'
         })
     }
 
-    showAsset(color) {
+    showAsset(args) {
+      const {
+        color,
+        onIndicatorClick,
+      } = args
+
       this.show = true       
             
       if(null == this.indicator) {
         this.buildIndicator({ color })
+
+        if(onIndicatorClick) {
+          this.indicator.on('click', onIndicatorClick)
+        }
       }
 
     }
