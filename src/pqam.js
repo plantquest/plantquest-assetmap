@@ -477,7 +477,7 @@ import './rastercoords.js'
                 if(-1 < index) {
                   self.data.assets[index] = asset
                 }
-                let assetCurrent = self.current.asset[asset.id]
+                let assetCurrent = self.asset.map[asset.id]
                 let asset = self.asset.map[asset.id]
                 if(asset.show) {
                   self.layer.asset.removeLayer(asset.label)
@@ -503,7 +503,7 @@ import './rastercoords.js'
 
                 }
                 else {
-                  delete self.current.asset[asset.id]
+                  delete self.asset.map[asset.id]
                 }
               }
             }
@@ -829,7 +829,7 @@ import './rastercoords.js'
           
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
-	    let assetCurrent = self.current.asset[layer.assetID]
+	    let assetCurrent = self.asset.map[layer.assetID]
             if(null == assetCurrent) return;
 
 	    if(assetCurrent) {
@@ -846,7 +846,7 @@ import './rastercoords.js'
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	    
-	    let assetCurrent = self.current.asset[layer.assetID]
+	    let assetCurrent = self.asset.map[layer.assetID]
 	    
 	    if(assetCurrent) {
 	      if(assetCurrent.indicator) {
@@ -1321,7 +1321,7 @@ import './rastercoords.js'
       let assets = (self.data.deps.pc.room[roomID] ?
                     self.data.deps.pc.room[roomID].asset : []) || []
       for(let assetID of assets) {
-        let assetState = self.current.asset[assetID]
+        let assetState = self.asset.map[assetID]
         if(assetState && assetState.stateName) {
           let stateDef = self.config.states[assetState.stateName]
           if('alert' === stateDef.marker) {
@@ -1481,10 +1481,7 @@ import './rastercoords.js'
       // if(assetID == '1E82DD49-2F3F-5DA3-4EA9-AA3C61B56628') {
       //   console.log('showAsset', spec)
       // }
-      let asset = self.asset.map[assetID]
-      
-      let assetCurrent =
-          self.current.asset[assetID] || (self.current.asset[assetID]={})
+      let asset = self.asset.map[assetID]|| (self.asset.map[assetID]={})
 
       asset.stateName =
         stateName || asset.stateName || (Object.keys(self.config.states)[0])
@@ -1502,24 +1499,20 @@ import './rastercoords.js'
         }
 
         asset.infobox = infobox == null ? true : !!infobox
-
-        assetCurrent.assetID = assetID
-        assetCurrent.xco = assetProps.xco
-        assetCurrent.yco = assetProps.yco
         
         if(hide) {
           asset.show = false
           if(asset.label) {
             self.layer.asset.removeLayer(asset.label)
           }
-          if(assetCurrent.indicator) {
-            assetCurrent.indicator.remove()
+          if(asset.indicator) {
+            asset.indicator.remove()
           }
           delete self.current.assetInfoShown[assetID]
           return
         }
         else if(infobox) {
-          self.current.assetInfoShown[assetID] = assetCurrent
+          self.current.assetInfoShown[assetID] = asset
         }
 
         asset.show = true
@@ -1534,8 +1527,8 @@ import './rastercoords.js'
         let stateDef = self.config.states[asset.stateName]
         let color = stateDef.color
       
-        if(null == assetCurrent.indicator) {
-          assetCurrent.indicator = asset
+        if(null == asset.indicator) {
+          asset
             .buildIndicator({ color })
             .on('click', ()=>{
               if(self.current.assetInfoShown[assetProps.id]) {
@@ -1561,7 +1554,7 @@ import './rastercoords.js'
         }
 
       
-        assetCurrent.blink = null == blink ? false : blink
+        asset.blink = null == blink ? false : blink
 
         // setTimeout(()=>{
         if(null == asset.label) {
@@ -1583,7 +1576,7 @@ import './rastercoords.js'
         asset.label.addTo(self.layer.asset)
 
         if( !self.config.asset.cluster) {
-          assetCurrent.indicator.addTo(self.layer.indicator)
+          asset.indicator.addTo(self.layer.indicator)
         }
         
         
@@ -1597,7 +1590,7 @@ import './rastercoords.js'
           setTimeout(()=>{
             self.openAssetInfo({
               asset: assetProps,
-              assetMarker: assetCurrent.indicator,
+              assetMarker: asset.indicator,
               xco: assetProps.xco,
               yco: assetProps.yco
             })
@@ -1651,15 +1644,15 @@ import './rastercoords.js'
       }
       catch(e) {
         self.log('ERROR','showAsset','1050',
-                 e.message, e, assetID, assetProps, assetCurrent)
+                 e.message, e, assetID, assetProps, asset)
       }
     }
 
 
     
     self.clearRoomAssets = function(roomID) {
-      for(let assetID in self.current.asset) {
-        let assetCurrent = self.current.asset[assetID]
+      for(let assetID in self.asset.map) {
+        let assetCurrent = self.asset.map[assetID]
         let asset = self.asset.map[assetID]
         if(self.data.deps.cp.asset[assetID].room !== roomID) {
           if(assetCurrent.indicator) {
@@ -1678,7 +1671,7 @@ import './rastercoords.js'
                     self.data.deps.pc.room[roomID].asset : []) || []
 
       for(let assetID of assets) {
-        let assetCurrent = self.current.asset[assetID]
+        let assetCurrent = self.asset.map[assetID]
         if(assetCurrent && assetCurrent.alarm) {
           self.showAsset({
             assetID,
@@ -2239,6 +2232,7 @@ import './rastercoords.js'
     show = null
     label = null
     stateName = null
+    indicator = null
     
     constructor(ent,ctx) {
       this.ent = ent
@@ -2258,7 +2252,7 @@ import './rastercoords.js'
       const {
         color
       } = args
-      return L.circle(
+      return this.indicator =  L.circle(
         c_asset_coords({x: this.ent.xco, y: this.ent.yco}), {
           radius: 0.2,
           color,
