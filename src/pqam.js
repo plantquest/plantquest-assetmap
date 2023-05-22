@@ -1515,7 +1515,6 @@ import './rastercoords.js'
           self.current.assetInfoShown[assetID] = asset
         }
 
-        asset.show = true
         
         let assetPoint = [
           assetProps.yco,
@@ -1526,10 +1525,11 @@ import './rastercoords.js'
         
         let stateDef = self.config.states[asset.stateName]
         let color = stateDef.color
+
+        asset.showAsset(color)
       
         if(null == asset.indicator) {
-          asset
-            .buildIndicator({ color })
+          asset.indicator
             .on('click', ()=>{
               if(self.current.assetInfoShown[assetProps.id]) {
                 self.closeAssetInfo()
@@ -2252,12 +2252,21 @@ import './rastercoords.js'
       const {
         color
       } = args
-      return this.indicator =  L.circle(
+      this.indicator =  L.circle(
         c_asset_coords({x: this.ent.xco, y: this.ent.yco}), {
           radius: 0.2,
           color,
           weight: 2,
         })
+    }
+
+    showAsset(color) {
+      this.show = true       
+            
+      if(null == this.indicator) {
+        this.buildIndicator({ color })
+      }
+
     }
   }
 
