@@ -1481,6 +1481,7 @@ import './rastercoords.js'
       // if(assetID == '1E82DD49-2F3F-5DA3-4EA9-AA3C61B56628') {
       //   console.log('showAsset', spec)
       // }
+      let asset = self.asset.map[assetID]
       
       let assetCurrent =
           self.current.asset[assetID] || (self.current.asset[assetID]={})
@@ -1490,7 +1491,6 @@ import './rastercoords.js'
 
       let stateDef = self.config.states[stateName]
 
-      let asset = self.asset.map[assetID]
       let assetProps = asset.ent
 
       try {
