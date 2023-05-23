@@ -2142,14 +2142,10 @@ import './rastercoords.js'
         assetCurrent.yco = assetProps.yco
         
         if(hide) {
-          asset.shown = false
-          if(asset.label) {
-            pqam.layer.asset.removeLayer(asset.label)
-          }
-          if(assetCurrent.indicator) {
-            assetCurrent.indicator.remove()
-          }
-          delete pqam.current.assetInfoShown[assetID]
+          asset.hide({
+            pqam,
+            assetCurrent
+          })
           return
         }
         else if(infobox) {
@@ -2306,7 +2302,24 @@ import './rastercoords.js'
       }
     }
 
-    hide() {}
+    hide(args) {
+      const {
+        pqam,
+        assetCurrent,
+      } = args
+
+      let asset = this
+      let assetID = asset.ent.id
+
+      asset.shown = false
+      if(asset.label) {
+        pqam.layer.asset.removeLayer(asset.label)
+      }
+      if(assetCurrent.indicator) {
+        assetCurrent.indicator.remove()
+      }
+      delete pqam.current.assetInfoShown[assetID] 
+    }
   }
 
 
