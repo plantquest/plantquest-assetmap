@@ -32202,12 +32202,13 @@ var __async = (__this, __arguments, generator) => {
                     }
                     let assetCurrent2 = self2.current.asset[asset2.id];
                     let asset2 = self2.asset.map[asset2.id];
-                    if (asset2.show) {
+                    if (asset2.shown) {
                       self2.layer.asset.removeLayer(asset2.label);
                       asset2.label = null;
                       assetCurrent2.indicator.remove();
                       assetCurrent2.indicator = null;
-                      self2.showAsset({
+                      asset2.show({
+                        pqam: self2,
                         assetID: asset2.id,
                         stateName: assetCurrent2.stateName,
                         hide: false,
@@ -32896,158 +32897,6 @@ var __async = (__this, __arguments, generator) => {
           geofence.hide();
         }
       };
-      self2.showAsset = function(spec) {
-        let {
-          assetID,
-          stateName,
-          hide,
-          blink,
-          showRoom,
-          infobox,
-          history,
-          whence
-        } = spec;
-        let assetCurrent2 = self2.current.asset[assetID] || (self2.current.asset[assetID] = {});
-        stateName = stateName || assetCurrent2.stateName || Object.keys(self2.config.states)[0];
-        let stateDef = self2.config.states[stateName];
-        let asset = self2.asset.map[assetID];
-        let assetProps = asset.ent;
-        try {
-          self2.closeAssetInfo();
-          self2.closeClusterInfo();
-          if (null == assetProps || null == assetProps.xco || null == assetProps.yco) {
-            return;
-          }
-          asset.infobox = infobox == null ? true : !!infobox;
-          assetCurrent2.assetID = assetID;
-          assetCurrent2.xco = assetProps.xco;
-          assetCurrent2.yco = assetProps.yco;
-          if (hide) {
-            asset.show = false;
-            if (asset.label) {
-              self2.layer.asset.removeLayer(asset.label);
-            }
-            if (assetCurrent2.indicator) {
-              assetCurrent2.indicator.remove();
-            }
-            delete self2.current.assetInfoShown[assetID];
-            return;
-          } else if (infobox) {
-            self2.current.assetInfoShown[assetID] = assetCurrent2;
-          }
-          asset.show = true;
-          let assetPoint = [
-            assetProps.yco,
-            assetProps.xco
-          ];
-          let ax = assetPoint[1];
-          let ay = assetPoint[0];
-          if (null == assetCurrent2.indicator || null != stateName && stateName !== assetCurrent2.stateName) {
-            assetCurrent2.stateName = stateName;
-            let color = stateDef.color;
-            console.log("AS", stateName, color);
-            if (assetCurrent2.indicator) {
-              assetCurrent2.indicator.remove();
-              delete assetCurrent2.indicator;
-            }
-            if (asset.label) {
-              self2.layer.asset.removeLayer(asset.label);
-              delete asset.label;
-            }
-            assetCurrent2.indicator = asset.buildIndicator({ color }).on("click", () => {
-              if (self2.current.assetInfoShown[assetProps.id]) {
-                self2.closeAssetInfo();
-              } else {
-                self2.send({
-                  srv: "plantquest",
-                  part: "assetmap",
-                  show: "asset",
-                  infobox: true,
-                  asset: assetProps.id
-                });
-              }
-              self2.emit({
-                srv: "plantquest",
-                part: "assetmap",
-                event: "click",
-                on: "asset",
-                asset: assetProps
-              });
-            });
-          }
-          assetCurrent2.blink = null == blink ? false : blink;
-          if (null == asset.label) {
-            asset.label = L$1.marker(
-              c_asset_coords({ x: ax + 12, y: ay - 5 + 10 * Math.random() }),
-              { icon: L$1.divIcon({
-                className: "plantquest-assetmap-asset-marker",
-                html: `<span class="plantquest-font-asset-label ">${assetProps.tag.replace(/\s+/g, "&nbsp;")}</span>`
-              }) }
-            );
-            asset.label.assetID = assetID;
-          }
-          asset.label.addTo(self2.layer.asset);
-          if (!self2.config.asset.cluster) {
-            assetCurrent2.indicator.addTo(self2.layer.indicator);
-          }
-          if (asset.infobox) {
-            setTimeout(() => {
-              self2.openAssetInfo({
-                asset: assetProps,
-                assetMarker: assetCurrent2.indicator,
-                xco: assetProps.xco,
-                yco: assetProps.yco
-              });
-            }, 1);
-          }
-          if (history) {
-            self2.seneca.act("aim:web,on:assetmap,load:asset", {
-              query: { id: assetProps.id },
-              history: true
-            }, (err, res) => {
-              if (err)
-                return;
-              if (res.ok) {
-                self2.current.assetHistory.map((hist) => hist.remove());
-                self2.current.assetHistory.length = 0;
-                for (let hist of res.item.history) {
-                  let histdot = L$1.circle(
-                    c_asset_coords({ x: hist.xco, y: hist.yco }),
-                    {
-                      radius: 0.1,
-                      color: "black",
-                      weight: 4
-                    }
-                  );
-                  let tooltip = L$1.tooltip({
-                    permanent: true,
-                    direction: "bottom",
-                    opacity: 1,
-                    className: "polygon-labels"
-                  });
-                  let t_c = new Date(hist.t_c);
-                  let when = t_c.toISOString();
-                  tooltip.setContent(`<span class="plantquest-asset-history-label ">${when}<span>`);
-                  histdot.bindTooltip(tooltip);
-                  histdot.addTo(self2.layer.indicator);
-                  self2.current.assetHistory.push(histdot);
-                }
-              }
-            });
-          }
-        } catch (e) {
-          self2.log(
-            "ERROR",
-            "showAsset",
-            "1050",
-            e.message,
-            e,
-            assetID,
-            assetProps,
-            assetCurrent2
-          );
-        }
-      };
       self2.clearRoomAssets = function(roomID) {
         for (let assetID in self2.current.asset) {
           let assetCurrent2 = self2.current.asset[assetID];
@@ -33305,12 +33154,15 @@ var __async = (__this, __arguments, generator) => {
               if (room) {
                 if (msg2.assets) {
                   if (msg2.assets) {
-                    for (let asset of msg2.assets) {
-                      self2.showAsset({
-                        assetID: asset.asset,
-                        stateName: asset.state,
-                        whence: "show-room"
-                      });
+                    for (let assetID of msg2.assets) {
+                      let asset = self2.asset.map[assetID];
+                      if (asset) {
+                        asset.show({
+                          pqam: self2,
+                          stateName: asset.state,
+                          whence: "show-room"
+                        });
+                      }
                     }
                   }
                 }
@@ -33374,14 +33226,13 @@ var __async = (__this, __arguments, generator) => {
                       shown = "hide" === msg2.asset ? !shown : shown;
                       shown = assetData.map - 1 == self2.loc.map ? shown : false;
                       setTimeout(() => {
-                        self2.showAsset({
-                          assetID: assetData.id,
+                        assetInst.show({
+                          pqam: self2,
                           stateName,
                           hide: !shown,
                           blink: !!msg2.blink,
                           showRoom: false,
                           infobox: false,
-                          // infobox: assetInst.infobox,
                           whence: "multiple~" + mark
                         });
                       }, 1);
@@ -33390,7 +33241,8 @@ var __async = (__this, __arguments, generator) => {
                 }
                 if ("string" === typeof msg2.asset) {
                   let assetRoom = self2.data.deps.cp.asset[msg2.asset];
-                  let assetData = self2.asset.map[msg2.asset].ent;
+                  let assetInst = self2.asset.map[msg2.asset];
+                  let assetData = assetInst.ent;
                   let zoom = msg2.zoom || self2.config.mapMaxZoom;
                   if (assetRoom) {
                     self2.emit({
@@ -33421,8 +33273,8 @@ var __async = (__this, __arguments, generator) => {
                       }
                     }
                     setTimeout(() => {
-                      self2.showAsset({
-                        assetID: msg2.asset,
+                      assetInst.show({
+                        pqam: self2,
                         stateName: msg2.state,
                         hide: "asset" === msg2.hide,
                         blink: !!msg2.blink,
@@ -33491,7 +33343,7 @@ var __async = (__this, __arguments, generator) => {
         __publicField(this, "ent", null);
         __publicField(this, "ctx", null);
         __publicField(this, "infobox", null);
-        __publicField(this, "show", null);
+        __publicField(this, "shown", null);
         __publicField(this, "label", null);
         this.ent = ent;
         this.ctx = ctx;
@@ -33508,6 +33360,162 @@ var __async = (__this, __arguments, generator) => {
             weight: 2
           }
         );
+      }
+      show(spec) {
+        let {
+          pqam,
+          stateName,
+          hide,
+          blink,
+          showRoom,
+          infobox,
+          history,
+          whence
+        } = spec;
+        let asset = this;
+        let assetID = asset.ent.id;
+        let assetCurrent2 = pqam.current.asset[assetID] || (pqam.current.asset[assetID] = {});
+        assetCurrent2.assetID = assetID;
+        stateName = stateName || assetCurrent2.stateName || Object.keys(pqam.config.states)[0];
+        let stateDef = pqam.config.states[stateName];
+        let assetProps = asset.ent;
+        try {
+          pqam.closeAssetInfo();
+          pqam.closeClusterInfo();
+          if (null == assetProps || null == assetProps.xco || null == assetProps.yco) {
+            return;
+          }
+          asset.infobox = infobox == null ? true : !!infobox;
+          assetCurrent2.assetID = assetID;
+          assetCurrent2.xco = assetProps.xco;
+          assetCurrent2.yco = assetProps.yco;
+          if (hide) {
+            asset.shown = false;
+            if (asset.label) {
+              pqam.layer.asset.removeLayer(asset.label);
+            }
+            if (assetCurrent2.indicator) {
+              assetCurrent2.indicator.remove();
+            }
+            delete pqam.current.assetInfoShown[assetID];
+            return;
+          } else if (infobox) {
+            pqam.current.assetInfoShown[assetID] = assetCurrent2;
+          }
+          asset.shown = true;
+          let assetPoint = [
+            assetProps.yco,
+            assetProps.xco
+          ];
+          let ax = assetPoint[1];
+          let ay = assetPoint[0];
+          if (null == assetCurrent2.indicator || null != stateName && stateName !== assetCurrent2.stateName) {
+            assetCurrent2.stateName = stateName;
+            let color = stateDef.color;
+            if (assetCurrent2.indicator) {
+              assetCurrent2.indicator.remove();
+              delete assetCurrent2.indicator;
+            }
+            if (asset.label) {
+              pqam.layer.asset.removeLayer(asset.label);
+              delete asset.label;
+            }
+            assetCurrent2.indicator = asset.buildIndicator({ color }).on("click", () => {
+              if (pqam.current.assetInfoShown[assetProps.id]) {
+                pqam.closeAssetInfo();
+              } else {
+                pqam.send({
+                  srv: "plantquest",
+                  part: "assetmap",
+                  show: "asset",
+                  infobox: true,
+                  asset: assetProps.id
+                });
+              }
+              pqam.emit({
+                srv: "plantquest",
+                part: "assetmap",
+                event: "click",
+                on: "asset",
+                asset: assetProps
+              });
+            });
+          }
+          assetCurrent2.blink = null == blink ? false : blink;
+          if (null == asset.label) {
+            asset.label = L$1.marker(
+              c_asset_coords({ x: ax + 12, y: ay - 5 + 10 * Math.random() }),
+              { icon: L$1.divIcon({
+                className: "plantquest-assetmap-asset-marker",
+                html: `<span class="plantquest-font-asset-label ">${assetProps.tag.replace(/\s+/g, "&nbsp;")}</span>`
+              }) }
+            );
+            asset.label.assetID = assetID;
+          }
+          asset.label.addTo(pqam.layer.asset);
+          if (!pqam.config.asset.cluster) {
+            console.log("QQQ", assetCurrent2);
+            assetCurrent2.indicator.addTo(pqam.layer.indicator);
+          }
+          if (asset.infobox) {
+            setTimeout(() => {
+              pqam.openAssetInfo({
+                asset: assetProps,
+                assetMarker: assetCurrent2.indicator,
+                xco: assetProps.xco,
+                yco: assetProps.yco
+              });
+            }, 1);
+          }
+          if (history) {
+            pqam.seneca.act("aim:web,on:assetmap,load:asset", {
+              query: { id: assetProps.id },
+              history: true
+            }, (err, res) => {
+              if (err)
+                return;
+              if (res.ok) {
+                pqam.current.assetHistory.map((hist) => hist.remove());
+                pqam.current.assetHistory.length = 0;
+                for (let hist of res.item.history) {
+                  let histdot = L$1.circle(
+                    c_asset_coords({ x: hist.xco, y: hist.yco }),
+                    {
+                      radius: 0.1,
+                      color: "black",
+                      weight: 4
+                    }
+                  );
+                  let tooltip = L$1.tooltip({
+                    permanent: true,
+                    direction: "bottom",
+                    opacity: 1,
+                    className: "polygon-labels"
+                  });
+                  let t_c = new Date(hist.t_c);
+                  let when = t_c.toISOString();
+                  tooltip.setContent(`<span class="plantquest-asset-history-label ">${when}<span>`);
+                  histdot.bindTooltip(tooltip);
+                  histdot.addTo(pqam.layer.indicator);
+                  pqam.current.assetHistory.push(histdot);
+                }
+              }
+            });
+          }
+        } catch (e) {
+          pqam.log(
+            "ERROR",
+            "showAsset",
+            "1050",
+            e.message,
+            e,
+            assetID,
+            assetProps,
+            assetCurrent2
+          );
+        }
+      }
+      hide() {
       }
     }
     class Room {
