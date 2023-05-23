@@ -31929,7 +31929,6 @@ L.RasterCoords.prototype = {
         },
         plants: [
           {
-            "id": "0C0BD957-C0BD-4993-9EED-0D58E1740CBA",
             "name": "Building 112-AP1",
             "center": [4780, 904]
           },
@@ -32560,40 +32559,48 @@ L.RasterCoords.prototype = {
               }
             },
             addHooks: function() {
-              self2.showMap(index2, { whence: "toolbarlevel" });
+              self2.showMap(index2, { centerView: false, startZoom: false, whence: "toolbarlevel" });
             }
           })
         );
       });
-      let plantActions = [];
-      self2.config.plants.forEach((plant, index2) => {
-        plantActions.push(
-          L$1.Toolbar2.Action.extend({
-            options: {
-              toolbarIcon: {
-                html: plant.name.replace("Building ", "")
-              }
-            },
-            addHooks: function() {
+      let levelToolbar = new L$1.Toolbar2.Control({
+        actions: levelActions,
+        position: "topright"
+        // subToolbar: plantToolbar,
+      });
+      self2.map.addLayer(levelToolbar);
+      let BuildingControl = L$1.Control.extend({
+        onAdd: function(map) {
+          let div = L$1.DomUtil.create("div");
+          div.classList.add("leaflet-control");
+          let ul = L$1.DomUtil.create("ul");
+          ul.classList.add("leaflet-control-toolbar");
+          ul.classList.add("leaflet-toolbar-0");
+          self2.config.plants.forEach((plant, index2) => {
+            let li = L$1.DomUtil.create("li");
+            let a = L$1.DomUtil.create("a");
+            a.classList.add("leaflet-toolbar-icon");
+            a.setAttribute("href", "#");
+            a.innerText = plant.name.replace("Building ", "");
+            li.appendChild(a);
+            ul.appendChild(li);
+            li.addEventListener("click", () => {
               let coords = c_asset_coords({
                 x: plant.center[0],
                 y: plant.center[1]
               });
-              self2.map.setView(coords, self2.config.mapMinZoom);
-            }
-          })
-        );
+              self2.map.setView(coords, self2.config.mapMinZoom + 1);
+            });
+          });
+          div.appendChild(ul);
+          return div;
+        },
+        onRemove: function(map) {
+        }
       });
-      let plantToolbar = new L$1.Toolbar2.Control({
-        actions: plantActions,
-        position: "topright"
-      });
-      let levelToolbar = new L$1.Toolbar2.Control({
-        actions: levelActions,
-        position: "topright",
-        subToolbar: plantToolbar
-      });
-      self2.map.addLayer(levelToolbar);
+      let bc = new BuildingControl({ position: "topright" });
+      bc.addTo(self2.map);
     };
     self2.zoomStartRender = function() {
       let zoom = self2.map.getZoom();
@@ -32605,13 +32612,6 @@ L.RasterCoords.prototype = {
       if (null == zoom)
         return;
       let shown = Object.values(self2.room.map).map((room) => room.onZoom(zoom, self2.loc.map, self2.layer.roomLabel));
-      console.log(
-        "zoomEndRender",
-        self2.loc.map,
-        zoom,
-        shown.filter((r) => r).length,
-        shown.filter((r) => !r).length
-      );
     };
     self2.checkRooms = function() {
       let xco = self2.loc.x;
@@ -33074,6 +33074,7 @@ L.RasterCoords.prototype = {
     }, self2.showMap = function(mapIndex, flags) {
       self2.log("showMap", mapIndex, flags, self2.loc);
       flags = flags || {};
+      let centerView = false === flags.centerView ? false : true;
       let startZoom = false === flags.startZoom ? false : true;
       let showAllAssets = false === flags.showAllAssets ? false : true;
       self2.closeAssetInfo();
@@ -33082,7 +33083,7 @@ L.RasterCoords.prototype = {
         setTimeout(() => {
           let levelTools = $All(".leaflet-control-toolbar > li");
           levelTools.forEach((lt2) => lt2.classList.remove("plantquest-level-current"));
-          let lt = levelTools[self2.loc.map];
+          let lt = levelTools[self2.loc.map + 2];
           if (lt) {
             lt.classList.add("plantquest-level-current");
           }
@@ -33099,10 +33100,12 @@ L.RasterCoords.prototype = {
           self2.loc.poly.remove(self2.layer.room);
           self2.loc.room = null;
         }
-        self2.map.setView(
-          self2.config.mapStart,
-          startZoom ? self2.config.mapStartZoom : self2.map.getZoom()
-        );
+        if (centerView) {
+          self2.map.setView(
+            self2.config.mapStart,
+            startZoom ? self2.config.mapStartZoom : self2.map.getZoom()
+          );
+        }
         if (self2.config.geofence.show.all) {
           self2.send({
             srv: "plantquest",

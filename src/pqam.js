@@ -127,7 +127,6 @@ import './rastercoords.js'
 
         plants: [
           {
-            "id": "0C0BD957-C0BD-4993-9EED-0D58E1740CBA",
             "name": "Building 112-AP1",
             "center": [4780, 904]
           },
@@ -135,11 +134,7 @@ import './rastercoords.js'
             "name": "Building 118-AP1",
             "center": [2316,3402]
           }
-
         ],
-
-
-
         
         asset: {
           cluster: true
@@ -998,49 +993,95 @@ import './rastercoords.js'
             },
             
             addHooks: function () {
-              self.showMap(index,{whence:'toolbarlevel'})
+              self.showMap(index,{centerView:false,startZoom:false,whence:'toolbarlevel'})
             }
           })
         )
       })
 
-      let plantActions = []
+      // let plantActions = []
       
-      self.config.plants.forEach((plant,index)=>{
-        plantActions.push(
-          L.Toolbar2.Action.extend({
-            options: {
-              toolbarIcon: {
-                html: plant.name.replace('Building ',''),
-              }
-            },
+      // self.config.plants.forEach((plant,index)=>{
+      //   plantActions.push(
+      //     L.Toolbar2.Action.extend({
+      //       options: {
+      //         toolbarIcon: {
+      //           html: plant.name.replace('Building ',''),
+      //         }
+      //       },
             
-            addHooks: function () {
-              let coords = c_asset_coords({
-                x: plant.center[0],
-                y: plant.center[1]
-              })
-              // self.map.setView(coords, self.map.getZoom())
-              self.map.setView(coords,self.config.mapMinZoom)
-              // self.showMap(index)
-            }
-          })
-        )
-      })
+      //       addHooks: function () {
+      //         let coords = c_asset_coords({
+      //           x: plant.center[0],
+      //           y: plant.center[1]
+      //         })
+      //         // self.map.setView(coords, self.map.getZoom())
+      //         self.map.setView(coords,self.config.mapMinZoom)
+      //         // self.showMap(index)
+      //       }
+      //     })
+      //   )
+      // })
       
 
-      let plantToolbar = new L.Toolbar2.Control({
-        actions: plantActions,
-        position: 'topright',
-      })
+      // let plantToolbar = new L.Toolbar2.Control({
+      //   actions: plantActions,
+      //   position: 'topright',
+      // })
 
       let levelToolbar = new L.Toolbar2.Control({
         actions: levelActions,
         position: 'topright',
-        subToolbar: plantToolbar,
+        // subToolbar: plantToolbar,
       })
 
       self.map.addLayer(levelToolbar)
+
+
+      let BuildingControl = L.Control.extend({
+        onAdd: function(map) {
+          let div = L.DomUtil.create('div')
+          div.classList.add('leaflet-control')
+          
+          let ul = L.DomUtil.create('ul')
+          ul.classList.add('leaflet-control-toolbar')
+          ul.classList.add('leaflet-toolbar-0')
+
+          self.config.plants.forEach((plant,index)=>{
+            let li = L.DomUtil.create('li')
+            let a = L.DomUtil.create('a')
+            a.classList.add('leaflet-toolbar-icon')
+            a.setAttribute('href','#')
+            a.innerText = plant.name.replace('Building ','')
+            li.appendChild(a)
+            ul.appendChild(li)
+
+            li.addEventListener('click', ()=>{
+              let coords = c_asset_coords({
+                x: plant.center[0],
+                y: plant.center[1]
+              })
+              self.map.setView(coords,self.config.mapMinZoom+1)
+              // console.log('B', plant.name)
+            })
+          })
+
+          div.appendChild(ul)
+          
+          // <ul class="leaflet-control-toolbar leaflet-toolbar-0 "><li class="plantquest-level-current"><a class="leaflet-toolbar-icon" href="#" title="">First Floor</a></li><li class=""><a class="leaflet-toolbar-icon" href="#" title="">Second Floor</a></li></ul>
+          
+          
+          return div
+        },
+
+        onRemove: function(map) {
+          // Nothing to do here
+        }
+      })
+
+      let bc = new BuildingControl({ position: 'topright' })
+      bc.addTo(self.map)
+      
     }
 
 
@@ -1058,10 +1099,10 @@ import './rastercoords.js'
       let shown = Object.values(self.room.map).map(room=>
         room.onZoom(zoom, self.loc.map, self.layer.roomLabel))
 
-      console.log('zoomEndRender', self.loc.map, zoom,
-                  shown.filter(r=>r).length,
-                  shown.filter(r=>!r).length,
-                 )
+      // console.log('zoomEndRender', self.loc.map, zoom,
+      //             shown.filter(r=>r).length,
+      //             shown.filter(r=>!r).length,
+      //            )
     }
     
     
@@ -1710,6 +1751,7 @@ import './rastercoords.js'
       self.log('showMap', mapIndex, flags, self.loc)
 
       flags = flags || {}
+      let centerView = false === flags.centerView ? false : true
       let startZoom = false === flags.startZoom ? false : true
       let showAllAssets = false === flags.showAllAssets ? false : true
       
@@ -1723,7 +1765,7 @@ import './rastercoords.js'
 
           levelTools.forEach(lt=>lt.classList.remove('plantquest-level-current'))
           
-          let lt = levelTools[self.loc.map]
+          let lt = levelTools[self.loc.map+2]
           if(lt) {
             lt.classList.add('plantquest-level-current')
           }
@@ -1748,10 +1790,12 @@ import './rastercoords.js'
           self.loc.room = null
         }
 
-        self.map.setView(
-          self.config.mapStart,
-          startZoom ? self.config.mapStartZoom : self.map.getZoom()
-        )
+        if(centerView) {
+          self.map.setView(
+            self.config.mapStart,
+            startZoom ? self.config.mapStartZoom : self.map.getZoom()
+          )
+        }
         
         if(self.config.geofence.show.all) {
           self.send({
