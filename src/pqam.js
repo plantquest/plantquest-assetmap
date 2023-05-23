@@ -474,12 +474,14 @@ import './rastercoords.js'
                 }
                 let assetCurrent = self.current.asset[asset.id]
                 let asset = self.asset.map[asset.id]
-                if(asset.show) {
+                if(asset.shown) {
                   self.layer.asset.removeLayer(asset.label)
                   asset.label = null
                   assetCurrent.indicator.remove()
                   assetCurrent.indicator = null
-                  self.showAsset({
+
+                  asset.show({
+                    pqam: self,
                     assetID: asset.id,
                     stateName: assetCurrent.stateName,
                     hide: false,
@@ -488,14 +490,6 @@ import './rastercoords.js'
                     infobox: asset.infobox,
                     whence: 'updatedAssets',
                   })
-                  
-                    // asset.id,
-                    // assetCurrent.stateName,
-                    // false,
-                    // false,
-                    // false,
-                    // asset.infobox
-
                 }
                 else {
                   delete self.current.asset[asset.id]
@@ -1504,216 +1498,6 @@ import './rastercoords.js'
       }
     }
 
-
-    self.showAsset = function(
-      spec
-    ) {
-      let {
-        assetID,
-        stateName,
-        hide,
-        blink,
-        showRoom,
-        infobox,
-        history,
-        whence,
-      } = spec
-
-      // if(assetID == '1E82DD49-2F3F-5DA3-4EA9-AA3C61B56628') {
-      //   console.log('showAsset', spec)
-      // }
-      
-      let assetCurrent =
-          self.current.asset[assetID] || (self.current.asset[assetID]={})
-
-      stateName =
-        stateName || assetCurrent.stateName || (Object.keys(self.config.states)[0])
-
-      let stateDef = self.config.states[stateName]
-
-      let asset = self.asset.map[assetID]
-      let assetProps = asset.ent
-
-      try {
-        self.closeAssetInfo()
-        self.closeClusterInfo()
-
-
-        // Ignore assets with invalid coords
-        if(null == assetProps || null == assetProps.xco || null == assetProps.yco) {
-          return
-        }
-      
-        asset.infobox = infobox == null ? true : !!infobox
-
-        assetCurrent.assetID = assetID
-        assetCurrent.xco = assetProps.xco
-        assetCurrent.yco = assetProps.yco
-        
-        if(hide) {
-          asset.show = false
-          if(asset.label) {
-            self.layer.asset.removeLayer(asset.label)
-          }
-          if(assetCurrent.indicator) {
-            assetCurrent.indicator.remove()
-          }
-          delete self.current.assetInfoShown[assetID]
-          return
-        }
-        else if(infobox) {
-          self.current.assetInfoShown[assetID] = assetCurrent
-        }
-
-        asset.show = true
-        
-        let assetPoint = [
-          assetProps.yco,
-          assetProps.xco,
-        ]
-        let ax = assetPoint[1]
-        let ay = assetPoint[0]
-        
-        
-        if(null == assetCurrent.indicator || (
-          null != stateName && stateName !== assetCurrent.stateName)) {
-
-          assetCurrent.stateName = stateName
-          let color = stateDef.color
-
-          console.log('AS', stateName, color)
-
-          if(assetCurrent.indicator) {
-            assetCurrent.indicator.remove()
-            delete assetCurrent.indicator
-          }
-
-          if(asset.label) {
-            self.layer.asset.removeLayer(asset.label)
-            delete asset.label
-          }
-          
-          assetCurrent.indicator = asset
-            .buildIndicator({ color })
-            .on('click', ()=>{
-              if(self.current.assetInfoShown[assetProps.id]) {
-                self.closeAssetInfo()
-              }
-              else {
-                self.send({
-                  srv:'plantquest',
-                  part:'assetmap',
-                  show:'asset',
-                  infobox: true,
-                  asset: assetProps.id,
-                })
-              }          
-              self.emit({
-                srv: 'plantquest',
-                part: 'assetmap',
-                event: 'click',
-                on: 'asset',
-                asset: assetProps,
-              })
-            })
-        }
-
-      
-        assetCurrent.blink = null == blink ? false : blink
-
-        // setTimeout(()=>{
-        if(null == asset.label) {
-          
-          // NOTE: this marker gets clustered!
-          asset.label = L.marker(
-            c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
-            { icon: L.divIcon({
-              className: 'plantquest-assetmap-asset-marker',
-              html: '<span class="'+
-                'plantquest-font-asset-label '+
-              `">${assetProps.tag.replace(/\s+/g,'&nbsp;')}</span>`
-            }) }
-          )
-          
-        asset.label.assetID = assetID
-      }
-
-        asset.label.addTo(self.layer.asset)
-
-        if( !self.config.asset.cluster) {
-          assetCurrent.indicator.addTo(self.layer.indicator)
-        }
-        
-        
-        // if(infobox) {
-
-        // if(assetID == '1E82DD49-2F3F-5DA3-4EA9-AA3C61B56628') {
-        //   console.log('QQQ A', assetProps, asset)
-        // }
-        
-        if(asset.infobox) {
-          setTimeout(()=>{
-            self.openAssetInfo({
-              asset: assetProps,
-              assetMarker: assetCurrent.indicator,
-              xco: assetProps.xco,
-              yco: assetProps.yco
-            })
-          },1)
-        }
-      
-      // window.assetCurrent = assetCurrent
-      
-        // self.zoomEndRender()
-        
-        if(history) {
-          
-          self.seneca.act('aim:web,on:assetmap,load:asset',{
-            query: { id:assetProps.id }, history: true
-          }, (err, res) => {
-            if(err) return;
-            
-            if(res.ok) {
-              self.current.assetHistory.map(hist=>hist.remove())
-              self.current.assetHistory.length = 0
-              
-              for(let hist of res.item.history) {
-                let histdot = L.circle(
-                  c_asset_coords({x: hist.xco, y: hist.yco}), {
-                    radius: 0.1,
-                    color: 'black',
-                    weight: 4,
-                  })
-                
-                let tooltip = L.tooltip({
-                  permanent: true,
-                  direction: 'bottom',
-                  opacity: 1,
-                  className: 'polygon-labels',
-                })
-                
-                let t_c = new Date(hist.t_c)
-                let when = t_c.toISOString()
-                tooltip.setContent('<span class="'+
-                                   'plantquest-asset-history-label '+
-                                   `">${when}<span>`)
-                
-                histdot.bindTooltip(tooltip)
-                
-                histdot.addTo(self.layer.indicator)
-                self.current.assetHistory.push(histdot)
-              }
-            }
-          })
-        }
-      }
-      catch(e) {
-        self.log('ERROR','showAsset','1050',
-                 e.message, e, assetID, assetProps, assetCurrent)
-      }
-    }
-
-
     
     self.clearRoomAssets = function(roomID) {
       for(let assetID in self.current.asset) {
@@ -2043,12 +1827,22 @@ import './rastercoords.js'
           if(room) {
             if(msg.assets) {
               if(msg.assets) {
-                for(let asset of msg.assets) {
-                  self.showAsset({
-                    assetID: asset.asset,
-                    stateName: asset.state,
-                    whence: 'show-room',
-                  })
+                for(let assetID of msg.assets) {
+                  let asset = self.asset.map[assetID]
+                  if(asset) {
+                    asset.show({
+                      pqam: self,
+                      stateName: asset.state,
+                      whence: 'show-room',
+                    })
+                  }
+
+                  // self.showAsset({
+                  //   assetID: asset.asset,
+                  //   stateName: asset.state,
+                  //   whence: 'show-room',
+                  // })
+                  
                   // asset.asset, asset.state)
                 }
               }
@@ -2136,24 +1930,16 @@ import './rastercoords.js'
                 shown = assetData.map-1 == self.loc.map ? shown : false
 
                 setTimeout(()=>{
-                  self.showAsset({
-                    assetID: assetData.id,
+                  assetInst.show({
+                    pqam: self,
                     stateName,
                     hide: !shown,
                     blink: !!msg.blink,
                     showRoom: false,
                     infobox: false,
-                    // infobox: assetInst.infobox,
                     whence: 'multiple~'+mark,
                   })
-                    
-                    // stateName,
-                    // !shown,
-                    // !!msg.blink,
-                    // false,
-                    // false
                 },1)
-
               }
             }
           }
@@ -2161,7 +1947,8 @@ import './rastercoords.js'
           if('string' === typeof msg.asset) {
             let assetRoom = self.data.deps.cp.asset[msg.asset]
             // let assetData = self.asset.map[assetID].ent
-            let assetData = self.asset.map[msg.asset].ent
+            let assetInst = self.asset.map[msg.asset]
+            let assetData = assetInst.ent
             let zoom = msg.zoom || self.config.mapMaxZoom
             
             if(assetRoom) {
@@ -2201,24 +1988,18 @@ import './rastercoords.js'
               // TODO: fix - this Timeout is needed if map changes, and showMap
               // resets all the assets, unsetting infobox etc
               setTimeout(()=>{
-                self.showAsset({
-                  assetID: msg.asset,
+
+                assetInst.show({
+                  pqam: self,
                   stateName: msg.state,
                   hide: 'asset' === msg.hide,
                   blink: !!msg.blink,
                   showRoom: false,
                   infobox: showInfoBox,
                   history: msg.history,
-                whence: 'single~'+mark,
+                  whence: 'single~'+mark,
                 })
               },11)
-                // msg.asset,
-                // msg.state,
-                // 'asset' === msg.hide,
-                // !!msg.blink,
-                // false,
-                // showInfoBox,
-                // msg.history,
 
               out.asset = assetData
             }
@@ -2295,7 +2076,7 @@ import './rastercoords.js'
     ent = null
     ctx = null
     infobox = null
-    show = null
+    shown = null
     label = null
     
     constructor(ent,ctx) {
@@ -2314,6 +2095,218 @@ import './rastercoords.js'
           weight: 2,
         })
     }
+
+
+    show(spec) {
+      let {
+        pqam,
+        stateName,
+        hide,
+        blink,
+        showRoom,
+        infobox,
+        history,
+        whence,
+      } = spec
+
+      let asset = this
+      let assetID = asset.ent.id
+      
+      let assetCurrent =
+          pqam.current.asset[assetID] || (pqam.current.asset[assetID]={})
+      assetCurrent.assetID = assetID
+      
+      stateName =
+        stateName || assetCurrent.stateName || (Object.keys(pqam.config.states)[0])
+
+      let stateDef = pqam.config.states[stateName]
+
+      // let asset = pqam.asset.map[assetID]
+
+      let assetProps = asset.ent
+
+      try {
+        pqam.closeAssetInfo()
+        pqam.closeClusterInfo()
+
+
+        // Ignore assets with invalid coords
+        if(null == assetProps || null == assetProps.xco || null == assetProps.yco) {
+          return
+        }
+      
+        asset.infobox = infobox == null ? true : !!infobox
+
+        assetCurrent.assetID = assetID
+        assetCurrent.xco = assetProps.xco
+        assetCurrent.yco = assetProps.yco
+        
+        if(hide) {
+          asset.shown = false
+          if(asset.label) {
+            pqam.layer.asset.removeLayer(asset.label)
+          }
+          if(assetCurrent.indicator) {
+            assetCurrent.indicator.remove()
+          }
+          delete pqam.current.assetInfoShown[assetID]
+          return
+        }
+        else if(infobox) {
+          pqam.current.assetInfoShown[assetID] = assetCurrent
+        }
+
+        asset.shown = true
+        
+        let assetPoint = [
+          assetProps.yco,
+          assetProps.xco,
+        ]
+        let ax = assetPoint[1]
+        let ay = assetPoint[0]
+        
+        
+        if(null == assetCurrent.indicator || (
+          null != stateName && stateName !== assetCurrent.stateName)) {
+
+          assetCurrent.stateName = stateName
+          let color = stateDef.color
+
+          // console.log('AS', stateName, color)
+
+          if(assetCurrent.indicator) {
+            assetCurrent.indicator.remove()
+            delete assetCurrent.indicator
+          }
+
+          if(asset.label) {
+            pqam.layer.asset.removeLayer(asset.label)
+            delete asset.label
+          }
+          
+          assetCurrent.indicator = asset
+            .buildIndicator({ color })
+            .on('click', ()=>{
+              if(pqam.current.assetInfoShown[assetProps.id]) {
+                pqam.closeAssetInfo()
+              }
+              else {
+                pqam.send({
+                  srv:'plantquest',
+                  part:'assetmap',
+                  show:'asset',
+                  infobox: true,
+                  asset: assetProps.id,
+                })
+              }          
+              pqam.emit({
+                srv: 'plantquest',
+                part: 'assetmap',
+                event: 'click',
+                on: 'asset',
+                asset: assetProps,
+              })
+            })
+        }
+
+      
+        assetCurrent.blink = null == blink ? false : blink
+
+        // setTimeout(()=>{
+        if(null == asset.label) {
+          
+          // NOTE: this marker gets clustered!
+          asset.label = L.marker(
+            c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
+            { icon: L.divIcon({
+              className: 'plantquest-assetmap-asset-marker',
+              html: '<span class="'+
+                'plantquest-font-asset-label '+
+              `">${assetProps.tag.replace(/\s+/g,'&nbsp;')}</span>`
+            }) }
+          )
+          
+          asset.label.assetID = assetID
+        }
+
+        asset.label.addTo(pqam.layer.asset)
+
+        if( !pqam.config.asset.cluster) {
+          console.log('QQQ', assetCurrent)
+
+          assetCurrent.indicator.addTo(pqam.layer.indicator)
+        }
+        
+        
+        // if(infobox) {
+
+        // if(assetID == '1E82DD49-2F3F-5DA3-4EA9-AA3C61B56628') {
+        //   console.log('QQQ A', assetProps, asset)
+        // }
+        
+        if(asset.infobox) {
+          setTimeout(()=>{
+            pqam.openAssetInfo({
+              asset: assetProps,
+              assetMarker: assetCurrent.indicator,
+              xco: assetProps.xco,
+              yco: assetProps.yco
+            })
+          },1)
+        }
+      
+      // window.assetCurrent = assetCurrent
+      
+        // pqam.zoomEndRender()
+        
+        if(history) {
+          
+          pqam.seneca.act('aim:web,on:assetmap,load:asset',{
+            query: { id:assetProps.id }, history: true
+          }, (err, res) => {
+            if(err) return;
+            
+            if(res.ok) {
+              pqam.current.assetHistory.map(hist=>hist.remove())
+              pqam.current.assetHistory.length = 0
+              
+              for(let hist of res.item.history) {
+                let histdot = L.circle(
+                  c_asset_coords({x: hist.xco, y: hist.yco}), {
+                    radius: 0.1,
+                    color: 'black',
+                    weight: 4,
+                  })
+                
+                let tooltip = L.tooltip({
+                  permanent: true,
+                  direction: 'bottom',
+                  opacity: 1,
+                  className: 'polygon-labels',
+                })
+                
+                let t_c = new Date(hist.t_c)
+                let when = t_c.toISOString()
+                tooltip.setContent('<span class="'+
+                                   'plantquest-asset-history-label '+
+                                   `">${when}<span>`)
+                
+                histdot.bindTooltip(tooltip)
+                
+                histdot.addTo(pqam.layer.indicator)
+                pqam.current.assetHistory.push(histdot)
+              }
+            }
+          })
+        }
+      }
+      catch(e) {
+        pqam.log('ERROR','showAsset','1050',
+                 e.message, e, assetID, assetProps, assetCurrent)
+      }
+    }
+
+    hide() {}
   }
 
 
