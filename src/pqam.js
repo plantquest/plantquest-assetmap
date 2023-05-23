@@ -2314,6 +2314,11 @@ import './rastercoords.js'
           weight: 2,
         })
     }
+
+
+    show() {}
+
+    hide() {}
   }
 
 
