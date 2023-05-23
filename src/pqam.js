@@ -1148,13 +1148,14 @@ import './rastercoords.js'
               direction: 'center',
               opacity: 1,
               className: 'polygon-labels',
-              // offset: L.point({x: 100*Math.random(), y: 100*Math.random()})
             })
 
-            tooltip.setContent('<div class="'+
-                               'plantquest-room-label '+
-                               'plantquest-room-over-label '+
-                               '">'+`${room.name}</div>`)
+            tooltip.setContent(
+              '<div class="'+
+                'plantquest-room-label '+
+                'plantquest-room-over-label '+
+                '">'+`${room.name}</div>`
+            )
 
             self.loc.poly.bindTooltip(tooltip)
           }
@@ -1163,8 +1164,6 @@ import './rastercoords.js'
           }
         }
       }
-
-
     }        
 
 
@@ -1211,6 +1210,7 @@ import './rastercoords.js'
         
         self.loc.chosen.poly = L.polygon(
           room_poly, {
+            pane: 'room',
             color: self.config.room.color
           })
         self.loc.chosen.poly.on('click', ()=>self.selectRoom(room.room))
@@ -2112,6 +2112,10 @@ import './rastercoords.js'
       let asset = this
       let assetID = asset.ent.id
       
+      if('3DD6F013-2986-63BC-4C19-962966A8C83E' === assetID) {
+        console.log('SHOW ASSET', spec)
+      }
+      
       let assetCurrent =
           pqam.current.asset[assetID] || (pqam.current.asset[assetID]={})
       assetCurrent.assetID = assetID
@@ -2187,6 +2191,8 @@ import './rastercoords.js'
           assetCurrent.indicator = asset
             .buildIndicator({ color })
             .on('click', ()=>{
+              console.log('ASSET CLICK', asset)
+              
               if(pqam.current.assetInfoShown[assetProps.id]) {
                 pqam.closeAssetInfo()
               }
@@ -2232,17 +2238,9 @@ import './rastercoords.js'
         asset.label.addTo(pqam.layer.asset)
 
         if( !pqam.config.asset.cluster) {
-          console.log('QQQ', assetCurrent)
-
           assetCurrent.indicator.addTo(pqam.layer.indicator)
         }
         
-        
-        // if(infobox) {
-
-        // if(assetID == '1E82DD49-2F3F-5DA3-4EA9-AA3C61B56628') {
-        //   console.log('QQQ A', assetProps, asset)
-        // }
         
         if(asset.infobox) {
           setTimeout(()=>{
