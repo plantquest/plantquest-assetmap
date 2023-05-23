@@ -13339,7 +13339,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "3.9.0";
+  const version = "3.10.0";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -32942,9 +32942,18 @@ var __async = (__this, __arguments, generator) => {
           ];
           let ax = assetPoint[1];
           let ay = assetPoint[0];
-          assetCurrent2.stateName = stateName;
-          let color = stateDef.color;
-          if (null == assetCurrent2.indicator) {
+          if (null == assetCurrent2.indicator || null != stateName && stateName !== assetCurrent2.stateName) {
+            assetCurrent2.stateName = stateName;
+            let color = stateDef.color;
+            console.log("AS", stateName, color);
+            if (assetCurrent2.indicator) {
+              assetCurrent2.indicator.remove();
+              delete assetCurrent2.indicator;
+            }
+            if (asset.label) {
+              self2.layer.asset.removeLayer(asset.label);
+              delete asset.label;
+            }
             assetCurrent2.indicator = asset.buildIndicator({ color }).on("click", () => {
               if (self2.current.assetInfoShown[assetProps.id]) {
                 self2.closeAssetInfo();

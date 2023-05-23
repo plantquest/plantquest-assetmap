@@ -1574,10 +1574,25 @@ import './rastercoords.js'
         let ax = assetPoint[1]
         let ay = assetPoint[0]
         
-        assetCurrent.stateName = stateName
-        let color = stateDef.color
-      
-        if(null == assetCurrent.indicator) {
+        
+        if(null == assetCurrent.indicator || (
+          null != stateName && stateName !== assetCurrent.stateName)) {
+
+          assetCurrent.stateName = stateName
+          let color = stateDef.color
+
+          console.log('AS', stateName, color)
+
+          if(assetCurrent.indicator) {
+            assetCurrent.indicator.remove()
+            delete assetCurrent.indicator
+          }
+
+          if(asset.label) {
+            self.layer.asset.removeLayer(asset.label)
+            delete asset.label
+          }
+          
           assetCurrent.indicator = asset
             .buildIndicator({ color })
             .on('click', ()=>{
