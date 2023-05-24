@@ -559,7 +559,9 @@ import './rastercoords.js'
       }, self.domInterval)
     }
 
-    self.send = async function(msg) {
+    self.send = async function(...msgs) {
+      let msg = msgs.reduce((acc, msg) => Seneca.util.deepextend(acc, Seneca.util.Jsonic(msg)), {})
+      
       self.log('send', 'in', msg)
       
       let result = await self.seneca.post(msg)
@@ -1733,11 +1735,11 @@ import './rastercoords.js'
 
           .message('save:'+entname, async function saveItem(msg) {
             let item = msg[entname] || msg.item
-            item = { ...item, ...{
+            item = { ...{
               project_id: self.config.project_id,
               plant_id: self.config.plant_id,
               stage: self.config.stage,
-            } }
+            }, ...item }
             
             let res = await this.post('aim:web,on:assetmap', { save:entname, item } )
 
@@ -1772,13 +1774,14 @@ import './rastercoords.js'
           })
         
           .message('list:'+entname, async function listItem(msg) {
-            let { query } = msg
-            query = query || {
+            let query = msg.query || {}
+            query = {
               project_id: self.config.project_id,
               plant_id: self.config.plant_id,
               stage: self.config.stage,
+              ...query
             }
-
+            
             let res = await this.post('aim:web,on:assetmap', { list:entname, query, } )
 
             if(res.ok) {
