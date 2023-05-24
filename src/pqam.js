@@ -215,6 +215,8 @@ import './rastercoords.js'
     
     
     self.start = function(config, ready) {
+      // console.log('START ready=',ready)
+      
       if(self.current.started) {
         self.clearRoomAssets()
         self.unselectRoom()
@@ -268,7 +270,7 @@ import './rastercoords.js'
               
               if(ready) {
                 try {
-                  ready(self)
+                  ready(null, self)
                 }
                 catch(e) {
                   self.log('ERROR', 'ready', e)
@@ -1011,46 +1013,16 @@ import './rastercoords.js'
             },
             
             addHooks: function () {
-              self.showMap(index,{centerView:false,startZoom:false,whence:'toolbarlevel'})
+              self.showMap(index,{
+                centerView:false,startZoom:false,whence:'toolbarlevel'})
             }
           })
         )
       })
 
-      // let plantActions = []
-      
-      // self.config.plants.forEach((plant,index)=>{
-      //   plantActions.push(
-      //     L.Toolbar2.Action.extend({
-      //       options: {
-      //         toolbarIcon: {
-      //           html: plant.name.replace('Building ',''),
-      //         }
-      //       },
-            
-      //       addHooks: function () {
-      //         let coords = c_asset_coords({
-      //           x: plant.center[0],
-      //           y: plant.center[1]
-      //         })
-      //         // self.map.setView(coords, self.map.getZoom())
-      //         self.map.setView(coords,self.config.mapMinZoom)
-      //         // self.showMap(index)
-      //       }
-      //     })
-      //   )
-      // })
-      
-
-      // let plantToolbar = new L.Toolbar2.Control({
-      //   actions: plantActions,
-      //   position: 'topright',
-      // })
-
       let levelToolbar = new L.Toolbar2.Control({
         actions: levelActions,
         position: 'topright',
-        // subToolbar: plantToolbar,
       })
 
       self.map.addLayer(levelToolbar)
@@ -1189,13 +1161,6 @@ import './rastercoords.js'
       opts = opts || {}
       try {
         let room = self.data.roomMap[roomId]
-        // QQQ
-        self.focusRoom(room)
-        return;
-
-
-
-        
         let isChosen = self.loc.chosen.room && roomId === self.loc.chosen.room.room
         
         if(null == self.data.roomMap[roomId] || isChosen) {
@@ -1937,6 +1902,7 @@ import './rastercoords.js'
             let stateName = msg.state
 
             out.multiple = true
+            let showargs = []
             for(let assetID of (msg.only?allAssetIDs:assetIDList)) {
               let assetInst = self.asset.map[assetID]
               let assetData = assetInst.ent
@@ -1954,20 +1920,33 @@ import './rastercoords.js'
 
                 shown = assetData.map-1 == self.loc.map ? shown : false
 
-                setTimeout(()=>{
-                  assetInst.show({
-                    pqam: self,
-                    state: stateName,
-                    hide: !shown,
-                    blink: !!msg.blink,
-                    showRoom: false,
-                    infobox: false,
-                    whence: 'multiple~'+mark,
-                  })
-                },1)
+                // setTimeout(()=>{
+                //assetInst.show({
+                showargs.push([assetInst,{
+                  pqam: self,
+                  state: stateName,
+                  hide: !shown,
+                  blink: !!msg.blink,
+                  showRoom: false,
+                  infobox: false,
+                  whence: 'multiple~'+mark,
+                }])
+                //},1)
               }
             }
+
+            
+            function showBatch(n,m) {
+              for(let i = n; i < m; i++) {
+                showargs[i] && showargs[i][0].show(showargs[i][1])
+              }
+            }
+            let size = 222
+            for(let j = 0; j < showargs.length; j+=size) {
+              ((jj)=>setTimeout(()=>showBatch(jj,jj+size),2*((j+1)/size)))(j)
+            }
           }
+
 
           if('string' === typeof msg.asset) {
             let assetRoom = self.data.deps.cp.asset[msg.asset]
@@ -2250,6 +2229,7 @@ import './rastercoords.js'
             c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
             { icon: L.divIcon({
               className: 'plantquest-assetmap-asset-marker',
+              // iconSize: [38, 95]
               html: '<span class="'+
                 'plantquest-font-asset-label '+
               `">${assetProps.tag.replace(/\s+/g,'&nbsp;')}</span>`
@@ -2930,10 +2910,12 @@ div.plantquest-assetmap-asset-cluster {
   color: #CCC;
   font-size: 4pt;
   width: min-content;
+  overflow: visible;
 }
 
 div.plantquest-assetmap-asset-marker {
    width: min-content;
+   overflow: visible;
 }
 
 
