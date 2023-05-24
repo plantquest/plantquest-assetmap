@@ -215,8 +215,6 @@ import './rastercoords.js'
     
     
     self.start = function(config, ready) {
-      // console.log('START ready=',ready)
-      
       if(self.current.started) {
         self.clearRoomAssets()
         self.unselectRoom()
@@ -1891,6 +1889,9 @@ import './rastercoords.js'
             out.reset = true
           }
 
+          self.closeAssetInfo()
+          self.closeClusterInfo()
+          
           self.current.assetHistory.map(hist=>hist.remove())
           self.current.assetHistory.length = 0
           
@@ -1930,6 +1931,7 @@ import './rastercoords.js'
                   showRoom: false,
                   infobox: false,
                   whence: 'multiple~'+mark,
+                  closeinfo: false,
                 }])
                 //},1)
               }
@@ -1941,7 +1943,7 @@ import './rastercoords.js'
                 showargs[i] && showargs[i][0].show(showargs[i][1])
               }
             }
-            let size = 222
+            let size = 444
             for(let j = 0; j < showargs.length; j+=size) {
               ((jj)=>setTimeout(()=>showBatch(jj,jj+size),2*((j+1)/size)))(j)
             }
@@ -1966,6 +1968,7 @@ import './rastercoords.js'
                 focus: !!msg.focus,
                 zoom: zoom,
                 asset: assetData,
+                closeinfo: false,
               })
               let coords = c_asset_coords({x: assetData.xco, y: assetData.yco})
               
@@ -2115,6 +2118,7 @@ import './rastercoords.js'
         infobox,
         history,
         whence,
+        closeinfo,
       } = spec
 
       let asset = this
@@ -2134,9 +2138,10 @@ import './rastercoords.js'
       let assetProps = asset.ent
 
       try {
-        pqam.closeAssetInfo()
-        pqam.closeClusterInfo()
-
+        if(false !== closeinfo) {
+          pqam.closeAssetInfo()
+          pqam.closeClusterInfo()
+        }
 
         // Ignore assets with invalid coords
         if(null == assetProps || null == assetProps.xco || null == assetProps.yco) {
