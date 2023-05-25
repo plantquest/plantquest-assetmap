@@ -2363,6 +2363,93 @@ import './rastercoords.js'
       return this.poly
     }
 
+    select(roomId, opts) {
+      opts = opts || {}
+
+      let pqam = this.ctx.pqam
+
+      try {
+        let room = pqam.data.roomMap[roomId]
+        let isChosen = pqam.loc.chosen.room && roomId === pqam.loc.chosen.room.room
+        
+        if(null == pqam.data.roomMap[roomId] || isChosen) {
+          pqam.focusRoom(pqam.loc.chosen.room)
+          return
+        }
+
+        pqam.log('selectRoom', roomId, room)
+        
+        let roomState = pqam.current.room[room.room] ||
+            (pqam.current.room[room.room]={alarm:'neutral'})
+
+        if(pqam.loc.poly) {
+          pqam.loc.poly.remove(pqam.layer.room)
+          pqam.loc.poly = null
+        }
+        pqam.loc.room = null
+
+        if(pqam.loc.chosen.poly && room !== pqam.loc.chosen.room) {
+          let prevRoom = pqam.loc.chosen.room
+          let prevRoomState = pqam.current.room[prevRoom.room] ||
+              (pqam.current.room[prevRoom.room]={alarm:'neutral'})
+
+          pqam.loc.chosen.poly.remove(pqam.layer.room)
+          pqam.loc.chosen.poly = null
+        }
+
+        if(pqam.loc.popup) {
+          pqam.loc.popup.remove(pqam.map)
+          pqam.loc.popop = null
+        }
+
+        pqam.loc.chosen.room = room
+
+
+        let room_poly = convertRoomPoly(pqam.config.mapImg, room.poly)
+        
+        pqam.loc.chosen.poly = L.polygon(
+          room_poly, {
+            pane: 'room',
+            color: pqam.config.room.color
+          })
+        pqam.loc.chosen.poly.on('click', ()=>this.select(room.room))
+        
+        pqam.loc.chosen.poly.addTo(pqam.layer.room)
+
+        let roomlatlng = pqam.focusRoom(room)
+        
+        // convert for popup
+        let roompos_y = convert_poly_y(pqam.config.mapImg, roomlatlng[0])
+        let roompos_x = roomlatlng[1]
+        let roompos = c_asset_coords({y: roompos_y-4, x: roompos_x+5 } )
+               
+        // map focus on room selection
+        pqam.loc.popup = L.popup({
+          autoClose: false,
+          closeOnClick: false,
+        })
+          .setLatLng(roompos)
+          .setContent(pqam.roomPopup(pqam.loc.chosen.room))
+          .openOn(pqam.map)
+        
+        // pqam.map.setView(roompos,
+                         // pqam.map.getZoom())
+                         
+
+        // pqam.showRoomAssets(room.room)
+        // pqam.clearRoomAssets(room.room)
+
+        // pqam.zoomEndRender()
+        
+        if(!opts.mute) {
+          pqam.click({select:'room', room:pqam.loc.chosen.room.room})
+        }
+      }
+      catch(e) {
+        pqam.log('ERROR','selectRoom','1010', roomId, e.message, e)
+      }
+    }
+
 
     // TODO: need a mapState object
     onZoom(zoom, mapID, layer) {
