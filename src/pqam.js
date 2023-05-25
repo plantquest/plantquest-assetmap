@@ -1817,6 +1817,7 @@ import './rastercoords.js'
       
         .message('show:room', async function(msg) {
           let room = self.data.roomMap[msg.room]
+          let roomInst = self.room.map[room.id]
           
           if(room) {
             if(msg.assets) {
@@ -1835,7 +1836,7 @@ import './rastercoords.js'
             }
 
             if(msg.focus) {
-              self.selectRoom(room.room, { mute:true })
+              roomInst.select(room.id, { mute: true })
             }
           }
           else {
@@ -2508,7 +2509,7 @@ import './rastercoords.js'
     }
     
     onClick(event) {
-      this.ctx.pqam.selectRoom(this.ent.id)
+      this.select(this.ent.id)
     }
   }
 
