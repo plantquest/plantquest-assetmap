@@ -13339,7 +13339,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "3.12.0";
+  const version = "3.12.0m";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -31852,8 +31852,8 @@ var __async = (__this, __arguments, generator) => {
     const dlog = [];
     const scriptID = ("" + Math.random()).substring(2, 8);
     log("PQAM", "script-load", "start", "version=", Pkg.version, "scriptid=", scriptID);
-    if (W.PlantQuestAssetMap) {
-      log("PQAM", "script-load", "exists", scriptID, W.PlantQuestAssetMap.id);
+    if (W.PlantQuestAssetMini) {
+      log("PQAM", "script-load", "exists", scriptID, W.PlantQuestAssetMini.id);
       return;
     } else {
       log("PQAM", "script-load", "create", scriptID);
@@ -31862,7 +31862,7 @@ var __async = (__this, __arguments, generator) => {
     let $All = D.querySelectorAll.bind(D);
     let Element2 = D.createElement.bind(D);
     let rc;
-    function PlantQuestAssetMap() {
+    function PlantQuestAssetMini() {
       const self2 = {
         dlog,
         id: ("" + Math.random()).substring(2, 8),
@@ -33875,7 +33875,7 @@ var __async = (__this, __arguments, generator) => {
         roomMap
       };
     }
-    W.PlantQuestAssetMap = new PlantQuestAssetMap();
+    W.PlantQuestAssetMini = new PlantQuestAssetMini();
     function injectStyle() {
       const head = $("head");
       const style = document.createElement("style");

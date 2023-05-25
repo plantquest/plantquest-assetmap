@@ -35,8 +35,8 @@ import './rastercoords.js'
 
   log('PQAM','script-load', 'start', 'version=', Pkg.version, 'scriptid=', scriptID)
 
-  if(W.PlantQuestAssetMap) {
-    log('PQAM','script-load', 'exists', scriptID, W.PlantQuestAssetMap.id)
+  if(W.PlantQuestAssetMini) {
+    log('PQAM','script-load', 'exists', scriptID, W.PlantQuestAssetMini.id)
     return
   }
   else {
@@ -49,7 +49,7 @@ import './rastercoords.js'
   
   let rc
   
-  function PlantQuestAssetMap() {
+  function PlantQuestAssetMini() {
     const self = {
       dlog,
       
@@ -2740,7 +2740,7 @@ import './rastercoords.js'
   }
 
     
-  W.PlantQuestAssetMap = new PlantQuestAssetMap()
+  W.PlantQuestAssetMini = new PlantQuestAssetMini()
 
 
   function injectStyle() {

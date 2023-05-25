@@ -5,7 +5,7 @@ module.exports = {
     target: 'es6',
     lib: {
       entry: 'src/pqam.js',
-      name: 'PlantQuestAssetMap',
+      name: 'PlantQuestAssetMini',
       fileName: 'pqam',
     },
     emptyOutDir: false,
