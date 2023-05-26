@@ -2313,7 +2313,7 @@ import './rastercoords.js'
         let isChosen = pqam.loc.chosen.room && roomId === pqam.loc.chosen.room.room
         
         if(null == pqam.data.roomMap[roomId] || isChosen) {
-          pqam.focusRoom(pqam.loc.chosen.room)
+          this.focus(pqam.loc.chosen.room)
           return
         }
 
@@ -2356,7 +2356,7 @@ import './rastercoords.js'
         
         pqam.loc.chosen.poly.addTo(pqam.layer.room)
 
-        let roomlatlng = pqam.focusRoom(room)
+        let roomlatlng = this.focus(room)
         
         // convert for popup
         let roompos_y = convert_poly_y(pqam.config.mapImg, roomlatlng[0])
