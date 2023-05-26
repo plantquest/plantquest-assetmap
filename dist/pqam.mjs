@@ -31858,10 +31858,10 @@ L.RasterCoords.prototype = {
   let $All = D.querySelectorAll.bind(D);
   let Element2 = D.createElement.bind(D);
   let rc;
-  function PlantQuestAssetMap() {
+  function PlantQuestAssetMapInstance(id) {
     const self2 = {
       dlog,
-      id: ("" + Math.random()).substring(2, 8),
+      id,
       info: {
         name: "@plantquest/assetmap",
         version: Pkg.version
@@ -32008,16 +32008,8 @@ L.RasterCoords.prototype = {
         self2.config.base += "/";
       }
       function loading() {
-        self2.target = $("#plantquest-assetmap");
-        if (!self2.target) {
-          self2.log("ERROR", "element-id", "plantquest-assetmap", "missing");
-          clearInterval(loadingInterval);
-          return;
-        }
-        if (null != self2.target && false === self2.current.started) {
+        if (false === self2.current.started) {
           self2.current.started = true;
-          self2.target.style.width = self2.config.width;
-          self2.target.style.height = self2.config.height;
           clearInterval(loadingInterval);
           self2.log("start", "target-found", self2.target);
           self2.log(
@@ -32246,7 +32238,17 @@ L.RasterCoords.prototype = {
       }, self2.config.update.interval);
     };
     self2.render = function(done2) {
-      injectStyle();
+      if (!self2.current.styleInjected) {
+        injectStyle();
+        self2.current.styleInjected = true;
+      }
+      self2.target = $("#plantquest-assetmap");
+      if (!self2.target) {
+        self2.log("ERROR", "element-id", "plantquest-assetmap", "missing");
+        return;
+      }
+      self2.target.style.width = self2.config.width;
+      self2.target.style.height = self2.config.height;
       let root = Element2("div");
       root.style.boxSizing = "border-box";
       root.style.width = "100%";
@@ -32257,12 +32259,16 @@ L.RasterCoords.prototype = {
       root.style.position = "relative";
       root.innerHTML = buildContainer();
       self2.target.appendChild(root);
+      Object.values(self2.asset.map).forEach((asset) => {
+        delete asset.label;
+        delete asset.indicator;
+      });
       setTimeout(() => {
         self2.vis.map.elem = $("#plantquest-assetmap-map");
         self2.build();
         self2.current.rendered = true;
-        self2.showMap(0, { whence: "render" });
-        done2();
+        self2.showMap(self2.loc.map, { force: true, whence: "render" });
+        done2 && done2();
       }, self2.domInterval);
     };
     self2.send = function(msg2) {
@@ -32349,6 +32355,9 @@ L.RasterCoords.prototype = {
         editable: true
       });
       rc = self2.rc = new L$1.RasterCoords(self2.map, self2.config.mapImg);
+      new ResizeObserver(() => {
+        self2.map && self2.map.invalidateSize();
+      }).observe(self2.vis.map.elem);
       self2.map.getContainer().addEventListener("wheel", (event) => {
         try {
           let elem = event.target;
@@ -32571,12 +32580,12 @@ L.RasterCoords.prototype = {
         self2.checkRoomsInterval = setInterval(self2.checkRooms, self2.config.mapInterval);
       }
       let levelActions = [];
-      self2.data.levels.forEach((level, index2) => {
+      self2.config.levels.forEach((level, index2) => {
         levelActions.push(
           L$1.Toolbar2.Action.extend({
             options: {
               toolbarIcon: {
-                html: level
+                html: level.name
               }
             },
             addHooks: function() {
@@ -32956,13 +32965,14 @@ L.RasterCoords.prototype = {
       return tileLyr;
     }, self2.showMap = function(mapIndex, flags) {
       self2.log("showMap", mapIndex, flags, self2.loc);
+      mapIndex = mapIndex < 0 ? 0 : mapIndex;
       flags = flags || {};
       let centerView = false === flags.centerView ? false : true;
       let startZoom = false === flags.startZoom ? false : true;
       let showAllAssets = false === flags.showAllAssets ? false : true;
       self2.closeAssetInfo();
       self2.closeClusterInfo();
-      if (mapIndex !== self2.loc.map) {
+      if (flags.force || mapIndex !== self2.loc.map) {
         setTimeout(() => {
           let levelTools = $All(".leaflet-control-toolbar > li");
           levelTools.forEach((lt2) => lt2.classList.remove("plantquest-level-current"));
@@ -33118,8 +33128,8 @@ L.RasterCoords.prototype = {
             });
           }).message("load:" + entname, function loadItem(msg2) {
             return __async(this, null, function* () {
-              const { id } = msg2;
-              let res = yield this.post("aim:web,on:assetmap", { load: entname, id });
+              const { id: id2 } = msg2;
+              let res = yield this.post("aim:web,on:assetmap", { load: entname, id: id2 });
               if (res.ok) {
                 self2.emit({
                   srv: "plantquest",
@@ -33151,8 +33161,8 @@ L.RasterCoords.prototype = {
             });
           }).message("remove:" + entname, function removeItem(msg2) {
             return __async(this, null, function* () {
-              let { id } = msg2;
-              let res = yield this.post("aim:web,on:assetmap", { remove: entname, id });
+              let { id: id2 } = msg2;
+              let res = yield this.post("aim:web,on:assetmap", { remove: entname, id: id2 });
               if (res.ok) {
                 self2.emit({
                   srv: "plantquest",
@@ -33871,7 +33881,19 @@ L.RasterCoords.prototype = {
       roomMap
     };
   }
-  W.PlantQuestAssetMap = new PlantQuestAssetMap();
+  const top = {
+    make: (id) => {
+      id = id || ("" + Math.random()).substring(2, 8);
+      let pqam = top.instance[id];
+      if (null == pqam) {
+        pqam = new PlantQuestAssetMapInstance(id);
+        top.instance[pqam.id] = pqam;
+      }
+      return pqam;
+    },
+    instance: {}
+  };
+  W.PlantQuestAssetMap = top;
   function injectStyle() {
     const head = $("head");
     const style = document.createElement("style");

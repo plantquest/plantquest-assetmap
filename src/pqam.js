@@ -49,11 +49,11 @@ import './rastercoords.js'
   
   let rc
   
-  function PlantQuestAssetMap() {
+  function PlantQuestAssetMapInstance(id) {
     const self = {
       dlog,
       
-      id: (''+Math.random()).substring(2,8),
+      id,
       info: {
         name: '@plantquest/assetmap',
         version: Pkg.version,
@@ -97,6 +97,7 @@ import './rastercoords.js'
         },
         
         map: [],
+
         start: {
           map: 0,
           level: 0,
@@ -234,18 +235,21 @@ import './rastercoords.js'
       }
       
       function loading() {
+        /*
         self.target = $('#plantquest-assetmap')
         if(!self.target) {
           self.log('ERROR', 'element-id', 'plantquest-assetmap', 'missing')
           clearInterval(loadingInterval)
           return
         }
-                
         if (null != self.target && false === self.current.started) {
+        */      
+        if (false === self.current.started) {
+          
           self.current.started = true
 
-          self.target.style.width = self.config.width
-          self.target.style.height = self.config.height
+          // self.target.style.width = self.config.width
+          // self.target.style.height = self.config.height
 
           clearInterval(loadingInterval)
           self.log('start','target-found',self.target)
@@ -536,7 +540,31 @@ import './rastercoords.js'
 
     
     self.render = function(done) {      
-      injectStyle()
+      if(!self.current.styleInjected) {
+        injectStyle()
+        self.current.styleInjected = true
+      }
+
+      self.target = $('#plantquest-assetmap')
+      if(!self.target) {
+        self.log('ERROR', 'element-id', 'plantquest-assetmap', 'missing')
+        // clearInterval(loadingInterval)
+        return
+      }
+
+      // let elem = $('body > #plantquest-assetmap-assetinfo')
+      // if(elem) {
+      //   elem.remove()
+      // }
+
+      // elem = $('body > #plantquest-assetmap-assetcluster')
+      // if(elem) {
+      //   elem.remove()
+      // }
+      
+      self.target.style.width = self.config.width
+      self.target.style.height = self.config.height
+
       
       let root = Element('div')
       root.style.boxSizing = 'border-box'
@@ -548,14 +576,20 @@ import './rastercoords.js'
       root.style.position = 'relative'
       root.innerHTML = buildContainer()
       self.target.appendChild(root)
-      
 
+      
+      Object.values(self.asset.map).forEach(asset=>{
+        delete asset.label
+        delete asset.indicator
+      })
+
+      
       setTimeout(()=>{
         self.vis.map.elem = $('#plantquest-assetmap-map')
         self.build()
         self.current.rendered = true
-        self.showMap(0, {whence:'render'})
-        done()
+        self.showMap(self.loc.map, {force:true,whence:'render'})
+        done && done()
       }, self.domInterval)
     }
 
@@ -668,6 +702,9 @@ import './rastercoords.js'
       
       rc = self.rc = new L.RasterCoords(self.map, self.config.mapImg)
 
+      new ResizeObserver(() => {
+        self.map && self.map.invalidateSize()
+      }).observe(self.vis.map.elem)
 
       self.map.getContainer().addEventListener('wheel', (event) => {
 
@@ -1001,12 +1038,13 @@ import './rastercoords.js'
 
       let levelActions = []
       
-      self.data.levels.forEach((level,index)=>{
+      // self.data.levels.forEach((level,index)=>{
+      self.config.levels.forEach((level,index)=>{
         levelActions.push(
           L.Toolbar2.Action.extend({
             options: {
               toolbarIcon: {
-                html: level,
+                html: level.name,
               }
             },
             
@@ -1542,6 +1580,8 @@ import './rastercoords.js'
     self.showMap = function(mapIndex, flags) {
       self.log('showMap', mapIndex, flags, self.loc)
 
+      mapIndex = mapIndex < 0 ? 0 : mapIndex
+      
       flags = flags || {}
       let centerView = false === flags.centerView ? false : true
       let startZoom = false === flags.startZoom ? false : true
@@ -1550,7 +1590,7 @@ import './rastercoords.js'
       self.closeAssetInfo()
       self.closeClusterInfo()
       
-      if(mapIndex !== self.loc.map) {
+      if(flags.force || mapIndex !== self.loc.map) {
 
         setTimeout(()=>{
           let levelTools = $All('.leaflet-control-toolbar > li')
@@ -2739,8 +2779,24 @@ import './rastercoords.js'
 
   }
 
+  
+  const top = {
+    make: (id)=>{
+      id = id || (''+Math.random()).substring(2,8)
+      let pqam = top.instance[id]
+
+      if(null == pqam) {
+        pqam = new PlantQuestAssetMapInstance(id)
+        top.instance[pqam.id] = pqam
+      }
+
+      return pqam
+    },
+    instance: {}
+  }
+  
     
-  W.PlantQuestAssetMap = new PlantQuestAssetMap()
+  W.PlantQuestAssetMap = top
 
 
   function injectStyle() {
