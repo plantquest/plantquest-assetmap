@@ -1181,32 +1181,6 @@ import './rastercoords.js'
     }
 
     
-    self.focusRoom = function(room) {
-      if(null == room) return;
-      
-      let roomlatlng = [0,0]
-      for(let point of room.poly) {
-        if(point[0] > roomlatlng[0]) {
-          roomlatlng[0] = point[0]
-          roomlatlng[1] = point[1]
-        }
-      }
-
-      // let roompos = [roomlatlng[0],roomlatlng[1]-30]
-      
-      let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
-      let roompos_x = roomlatlng[1]
-      let roompos = c_asset_coords({y: roompos_y, x: roompos_x-30 } )
-      // self.map.setView(roompos, self.config.mapRoomFocusZoom)
-      self.map.setView(roompos,
-                        self.config.mapRoomFocusZoom)
-                        
-      // self.zoomEndRender()
-      
-      return roomlatlng
-    }
-
-    
     self.showRoom = function(room, stateName) {
       self.log('showRoom', room, stateName)
 
