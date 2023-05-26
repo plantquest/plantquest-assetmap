@@ -2276,6 +2276,33 @@ import './rastercoords.js'
       return this.poly
     }
 
+    focus(room) {
+      if(null == room) return;
+      
+      let pqam = this.ctx.pqam
+      
+      let roomlatlng = [0,0]
+      for(let point of room.poly) {
+        if(point[0] > roomlatlng[0]) {
+          roomlatlng[0] = point[0]
+          roomlatlng[1] = point[1]
+        }
+      }
+
+      // let roompos = [roomlatlng[0],roomlatlng[1]-30]
+      
+      let roompos_y = convert_poly_y(pqam.config.mapImg, roomlatlng[0])
+      let roompos_x = roomlatlng[1]
+      let roompos = c_asset_coords({y: roompos_y, x: roompos_x-30 } )
+      // pqam.map.setView(roompos, pqam.config.mapRoomFocusZoom)
+      pqam.map.setView(roompos,
+                        pqam.config.mapRoomFocusZoom)
+                        
+      // pqam.zoomEndRender()
+      
+      return roomlatlng
+    }
+
     select(roomId, opts) {
       opts = opts || {}
 
