@@ -1748,7 +1748,7 @@ import './rastercoords.js'
             }
 
             if(msg.focus) {
-              roomInst.select(room.id, { mute: true })
+              roomInst.select(room.room, { mute: true })
             }
           }
           else {
