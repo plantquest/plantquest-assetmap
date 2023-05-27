@@ -17,7 +17,6 @@ import SenecaEntity from 'seneca-entity'
 import './rastercoords.js'
 
 
-
 ;(function(W, D) {
 
   W.$L = L
@@ -166,7 +165,6 @@ import './rastercoords.js'
       
       data: {
         level: [],
-        // asset: [],
         room: [],
         // building: [],
         // geofence: [],
@@ -314,18 +312,6 @@ import './rastercoords.js'
       
       let seneca = await self.getSeneca()
                   
-      // let reset = ()=>{
-      //   // reset
-      //   self.data.deps = {}
-      //   self.data.roomMap = {}
-      //   self.data.assetMap = {}
-      //   self.data.asset = []
-      //   self.data.room = []
-      //   self.data.building = []
-      //   self.data.level = []
-      //   self.data.maps = []
-      // }
-
       
       let processData = async (json)=> {
       
@@ -385,6 +371,7 @@ import './rastercoords.js'
           'building',
           'geofence',
           'building',
+          'room',
           'asset',
           ]
         
@@ -1720,7 +1707,7 @@ import './rastercoords.js'
         part:'assetmap',
         show:'map',
         map: self.loc.map,
-        level: self.data.level[self.loc.map],
+        // level: self.data.level[self.loc.map],
       })
     }
 
@@ -1823,6 +1810,11 @@ import './rastercoords.js'
 
       amseneca
         .message('cmd:reset', async function resetMap(msg) {
+          self.clearRoomAssets()
+          self.unselectRoom()
+          self.closeAssetInfo()
+          self.closeClusterInfo()
+
           self.map.setView(self.config.mapStart, self.config.mapStartZoom)
         })
       
@@ -2275,7 +2267,33 @@ import './rastercoords.js'
         ]
         let ax = assetPoint[1]
         let ay = assetPoint[0]
-        
+
+
+        const onAssetClick = ()=>{
+          if(pqam.current.assetInfoShown[assetProps.id]) {
+            pqam.closeAssetInfo()
+          }
+          else {
+
+            // FIX: race condition
+            // first clock afte select room doubles asset!
+            pqam.send({
+              srv:'plantquest',
+              part:'assetmap',
+              show:'asset',
+              infobox: true,
+              asset: assetProps.id,
+            })
+          }          
+          pqam.emit({
+            srv: 'plantquest',
+            part: 'assetmap',
+            event: 'click',
+            on: 'asset',
+            asset: assetProps,
+          })
+        }
+
 
         if(null == assetCurrent.indicator || (
           null != state && state !== this.state)) {
@@ -2293,34 +2311,10 @@ import './rastercoords.js'
             pqam.layer.asset.removeLayer(asset.label)
             delete asset.label
           }
-          
 
           assetCurrent.indicator = asset
             .buildIndicator({ color })
-            .on('click', ()=>{
-              if(pqam.current.assetInfoShown[assetProps.id]) {
-                pqam.closeAssetInfo()
-              }
-              else {
-
-                // FIX: race condition
-                // first clock afte select room doubles asset!
-                pqam.send({
-                  srv:'plantquest',
-                  part:'assetmap',
-                  show:'asset',
-                  infobox: true,
-                  asset: assetProps.id,
-                })
-              }          
-              pqam.emit({
-                srv: 'plantquest',
-                part: 'assetmap',
-                event: 'click',
-                on: 'asset',
-                asset: assetProps,
-              })
-            })
+            .on('click', onAssetClick)
         }
 
       
@@ -2339,6 +2333,8 @@ import './rastercoords.js'
             }) }
           )
 
+          asset.label.on('click', onAssetClick)
+          
           asset.label.id$ = Math.random()
           asset.label.assetID = assetID
 
