@@ -191,6 +191,13 @@ import './rastercoords.js'
 
         al: {},
       },
+
+      state: {
+        senecaLoading: false,
+        senecaLoaded: false,
+        dataLoading: false,
+        dataLoaded: false,
+      },
       
       upload: {
         assetI: 0,
@@ -345,14 +352,14 @@ import './rastercoords.js'
 
       
       let loadData = async ()=>{
-        while(self.dataLoading) {
+        while(self.state.dataLoading) {
           await new Promise(r=>setTimeout(r,33))
         }
-        if(self.dataLoaded) {
+        if(self.state.dataLoaded) {
           done(self.data)
           return
         }
-        self.dataLoading = true
+        self.state.dataLoading = true
         
         let query = {
           project_id: self.config.project_id,
@@ -360,14 +367,8 @@ import './rastercoords.js'
           stage: self.config.stage,
         }
 
-        // let entlist = {
-        //   asset:[],
-        //   room:[],
-        //   building:[],
-        //   geofence:[],
-        // }
-
         const entnames = [
+
           'building',
           'geofence',
           'building',
@@ -384,12 +385,7 @@ import './rastercoords.js'
             self.data[kind] = res.list
           }
         }
-        
-        // self.data.asset = entlist.asset
-        // self.data.room = entlist.room
-        // self.data.building = entlist.building
-        // self.data.geofence = entlist.geofence
-        
+                
         self.data.asset.forEach(ent=>{
           if(null == ent.tag) {
             ent.tag = ent.name || 'NO TAG'
@@ -445,8 +441,8 @@ import './rastercoords.js'
         self.data.roomMap = roomMap
         
         self.data.deps = deps
-        self.dataLoaded = true
-        self.dataLoading = false
+        self.state.dataLoaded = true
+        self.state.dataLoading = false
         
         done(self.data)
       }
@@ -599,10 +595,12 @@ import './rastercoords.js'
       }, self.domInterval)
     }
 
-    self.send = async function(msg) {
+    
+    self.send = async function(msg, done) {
       self.log('send', 'in', msg)
-      
-      let result = await self.seneca.post(msg)
+
+      let seneca = await self.getSeneca()
+      let result = await seneca.post(msg)
       
       if(null != msg.zoom) {
         self.map.setZoom(msg.zoom)
@@ -612,9 +610,14 @@ import './rastercoords.js'
         self.map.setView(msg.view, msg.zoom || self.config.mapMinZoom)
       }
 
+      if(done) {
+        return done(null, result)
+      }
+      
       return result
     }
 
+    
     self.listen = function(listenerOrName, listenerMaybe) {
       let listener = listenerMaybe || listenerOrName
       let name = 'string' === typeof listenerOrName ? listenerOrName : null
@@ -1746,6 +1749,15 @@ import './rastercoords.js'
         return self.seneca
       }
 
+      while(self.state.senecaLoading) {
+        await new Promise(r=>setTimeout(r,33))
+      }
+      if(self.state.senecaLoaded) {
+        return self.seneca
+      }
+      self.state.senecaLoading = true
+
+      
       let endpoint = (msg) => {
         let suffix = '/api/web' + '/public/' + msg.on
         let origin = self.config.endpoint // 'http://127.0.0.1:8888'
@@ -1809,6 +1821,9 @@ import './rastercoords.js'
         .fix('srv:plantquest,part:assetmap')
 
       amseneca
+        .message('get:info', async function getInfo(msg) {
+          return { ...self.info }
+        })
         .message('cmd:reset', async function resetMap(msg) {
           self.clearRoomAssets()
           self.unselectRoom()
@@ -2158,6 +2173,8 @@ import './rastercoords.js'
       }
       
       
+      self.state.senecaLoading = false
+      self.state.senecaLoaded = true
       return self.seneca = seneca
     }
     
