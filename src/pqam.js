@@ -507,7 +507,6 @@ import './rastercoords.js'
                 if(-1 < index) {
                   self.data.asset[index] = assetEnt
                 }
-                let assetCurrent = self.current.asset[assetEnt.id]
                 let assetInst = self.asset.map[assetEnt.id]
 
                 assetInst.ent = assetEnt
@@ -516,8 +515,8 @@ import './rastercoords.js'
                 if(assetInst.shown) {
                   self.layer.asset.removeLayer(assetInst.label)
                   assetInst.label = null
-                  assetCurrent.indicator.remove()
-                  assetCurrent.indicator = null
+                  assetInst.indicator.remove()
+                  assetInst.indicator = null
 
                   assetInst.show({
                     pqam: self,
@@ -901,11 +900,11 @@ import './rastercoords.js'
           
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
-	    let assetCurrent = self.current.asset[layer.assetID]
-            if(null == assetCurrent) return;
+      let assetInst = self.asset.map[layer.assetID]
+            if(null == assetInst) return;
 
-	    if(assetCurrent) {
-              assetCurrent.indicator.addTo(self.layer.indicator)
+	    if(assetInst) {
+              assetInst.indicator.addTo(self.layer.indicator)
             }
 	  }
           
@@ -918,11 +917,11 @@ import './rastercoords.js'
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	    
-	    let assetCurrent = self.current.asset[layer.assetID]
+	    let assetInst = self.asset.map[layer.assetID]
 	    
-	    if(assetCurrent) {
-	      if(assetCurrent.indicator) {
-	        assetCurrent.indicator.remove()
+	    if(assetInst) {
+	      if(assetInst.indicator) {
+	        assetInst.indicator.remove()
 	      }
 	    }
 	  }
@@ -1299,7 +1298,8 @@ import './rastercoords.js'
       let assets = (self.data.deps.pc.room[roomID] ?
                     self.data.deps.pc.room[roomID].asset : []) || []
       for(let assetID of assets) {
-        let assetState = self.current.asset[assetID]
+        let assetInst = self.asset.map[assetID]
+        let assetState = assetInst.state
         if(assetState && assetState.stateName) {
           let stateDef = self.config.states[assetState.stateName]
           if('alert' === stateDef.marker) {
@@ -1466,12 +1466,11 @@ import './rastercoords.js'
 
     
     self.clearRoomAssets = function(roomID) {
-      for(let assetID in self.current.asset) {
-        let assetCurrent = self.current.asset[assetID]
-        let asset = self.asset.map[assetID]
+      for(let assetID in self.asset.map) {
+        let assetInst = self.asset.map[assetID]
         if(self.data.deps.cp.asset[assetID].room !== roomID) {
-          if(assetCurrent.indicator) {
-            assetCurrent.indicator.remove(self.layer.asset)
+          if(assetInst.indicator) {
+            assetInst.indicator.remove(self.layer.asset)
           }
           if(asset.label) {
             asset.label.remove(self.layer.asset)
@@ -1486,8 +1485,8 @@ import './rastercoords.js'
                     self.data.deps.pc.room[roomID].asset : []) || []
 
       for(let assetID of assets) {
-        let assetCurrent = self.current.asset[assetID]
-        if(assetCurrent && assetCurrent.alarm) {
+        let assetInst = self.asset.map[assetID]
+        if(assetInst && assetInst.alarm) {
           self.showAsset({
             assetID,
             // stateName: assetCurrent.alarm,
@@ -2070,6 +2069,7 @@ import './rastercoords.js'
     shown = null
     label = null
     state = null
+    alarm = null
     
     constructor(ent,ctx) {
       this.ent = ent
@@ -2105,10 +2105,6 @@ import './rastercoords.js'
       let asset = this
       let assetID = asset.ent.id
 
-      let assetCurrent =
-          pqam.current.asset[assetID] || (pqam.current.asset[assetID]={})
-      assetCurrent.assetID = assetID
-
       let defaultState = (Object.keys(pqam.config.states)[0])
       
       state = state || this.state || defaultState
@@ -2130,20 +2126,15 @@ import './rastercoords.js'
         }
       
         asset.infobox = infobox == null ? true : !!infobox
-
-        assetCurrent.assetID = assetID
-        assetCurrent.xco = assetProps.xco
-        assetCurrent.yco = assetProps.yco
         
         if(hide) {
           asset.hide({
-            pqam,
-            assetCurrent
+            pqam
           })
           return
         }
         else if(infobox) {
-          pqam.current.assetInfoShown[assetID] = assetCurrent
+          pqam.current.assetInfoShown[assetID] = assetProps
         }
 
         asset.shown = true
@@ -2182,16 +2173,16 @@ import './rastercoords.js'
         }
 
 
-        if(null == assetCurrent.indicator || (
+        if(null == asset.indicator || (
           null != state && state !== this.state)) {
           this.state = state
           
-          // assetCurrent.stateName = stateName
+          // asset.stateName = stateName
           let color = stateDef.color
 
-          if(assetCurrent.indicator) {
-            assetCurrent.indicator.remove()
-            delete assetCurrent.indicator
+          if(asset.indicator) {
+            asset.indicator.remove()
+            delete asset.indicator
           }
 
           if(asset.label) {
@@ -2199,13 +2190,13 @@ import './rastercoords.js'
             delete asset.label
           }
 
-          assetCurrent.indicator = asset
+          asset.indicator = asset
             .buildIndicator({ color })
             .on('click', onAssetClick)
         }
 
       
-        assetCurrent.blink = null == blink ? false : blink
+        asset.blink = null == blink ? false : blink
         
         if(null == asset.label) {
           // NOTE: this marker gets clustered!
@@ -2233,7 +2224,7 @@ import './rastercoords.js'
         asset.label.addTo(pqam.layer.asset)
         
         if( !pqam.config.asset.cluster) {
-          assetCurrent.indicator.addTo(pqam.layer.indicator)
+          asset.indicator.addTo(pqam.layer.indicator)
         }
         
         
@@ -2241,7 +2232,7 @@ import './rastercoords.js'
           setTimeout(()=>{
             pqam.openAssetInfo({
               asset: assetProps,
-              assetMarker: assetCurrent.indicator,
+              assetMarker: asset.indicator,
               xco: assetProps.xco,
               yco: assetProps.yco
             })
@@ -2292,15 +2283,12 @@ import './rastercoords.js'
       }
       catch(e) {
         pqam.log('ERROR','showAsset','1050',
-                 e.message, e, assetID, assetProps, assetCurrent)
+                 e.message, e, assetID, assetProps)
       }
     }
 
     hide(args) {
-      const {
-        pqam,
-        assetCurrent,
-      } = args
+      const { pqam } = args
 
       let asset = this
       let assetID = asset.ent.id
@@ -2309,8 +2297,8 @@ import './rastercoords.js'
       if(asset.label) {
         pqam.layer.asset.removeLayer(asset.label)
       }
-      if(assetCurrent.indicator) {
-        assetCurrent.indicator.remove()
+      if(asset.indicator) {
+        asset.indicator.remove()
       }
       delete pqam.current.assetInfoShown[assetID] 
     }
