@@ -75,7 +75,10 @@ import './rastercoords.js'
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
+
+        // TODO: refactor into asset section
         showAllAssets: true,
+        showLevelAssets: true,
 
         debug: {
           click: false,
@@ -189,6 +192,8 @@ import './rastercoords.js'
         assetInfoShown: {},
         assetHistory: [],
 
+        assetsShownOnLevel: {},
+        
         al: {},
       },
 
@@ -1078,6 +1083,8 @@ import './rastercoords.js'
               self.showMap(index,{
                 centerView:false,
                 startZoom:false,
+                showAllAssets:false,
+                showLevelAssets:true,
                 whence:'toolbarlevel'
               })
             }
@@ -1121,9 +1128,6 @@ import './rastercoords.js'
           })
 
           div.appendChild(ul)
-          
-          // <ul class="leaflet-control-toolbar leaflet-toolbar-0 "><li class="plantquest-level-current"><a class="leaflet-toolbar-icon" href="#" title="">First Floor</a></li><li class=""><a class="leaflet-toolbar-icon" href="#" title="">Second Floor</a></li></ul>
-          
           
           return div
         },
@@ -1524,6 +1528,7 @@ import './rastercoords.js'
       let centerView = false === flags.centerView ? false : true
       let startZoom = false === flags.startZoom ? false : true
       let showAllAssets = false === flags.showAllAssets ? false : true
+      let showLevelAssets = true === flags.showLevelAssets ? true : false
       
       self.closeAssetInfo()
       self.closeClusterInfo()
@@ -1585,6 +1590,17 @@ import './rastercoords.js'
             asset: null,
           })
         }
+        else if(showLevelAssets && self.config.showLevelAssets) {
+          self.send({
+            srv:'plantquest',
+            part:'assetmap',
+            show: 'asset',
+            asset: null,
+            levelAssets: true,
+          })
+        }
+
+
       }
       else {
         self.map.setView(self.config.mapStart, self.config.mapStartZoom)
@@ -1715,7 +1731,7 @@ import './rastercoords.js'
           self.unselectRoom()
           self.closeAssetInfo()
           self.closeClusterInfo()
-
+          self.current.assetsShownOnLevel = {}
           self.map.setView(self.config.mapStart, self.config.mapStartZoom)
         })
       
@@ -1882,6 +1898,7 @@ import './rastercoords.js'
         try {
           if(msg.reset) {
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
+            self.current.assetsShownOnLevel = {}
             out.reset = true
           }
 
@@ -1890,17 +1907,28 @@ import './rastercoords.js'
           
           self.current.assetHistory.map(hist=>hist.remove())
           self.current.assetHistory.length = 0
+
+          let assetsShown = []
           
-          if(Array.isArray(msg.asset) || null === msg.asset || msg.only) {
+          if(Array.isArray(msg.asset) ||
+             null === msg.asset ||
+             msg.only ||
+             msg.levelAssets
+            ) {
             let allAssetIDs = Object.keys(self.data.assetMap)
             let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
             let showAll = null === msg.asset
 
             let stateName = msg.state
 
+            let assetList = (msg.only?allAssetIDs:assetIDList)
+
+            let prevAssetsOnLevel =
+                self.current.assetsShownOnLevel[''+self.loc.map] || []
+            
             out.multiple = true
             let showargs = []
-            for(let assetID of (msg.only?allAssetIDs:assetIDList)) {
+            for(let assetID of assetList) {
               let assetInst = self.asset.map[assetID]
               let assetData = assetInst.ent
               
@@ -1917,8 +1945,14 @@ import './rastercoords.js'
 
                 shown = assetData.map-1 == self.loc.map ? shown : false
 
-                // setTimeout(()=>{
-                //assetInst.show({
+                if(msg.levelAssets && 0 < prevAssetsOnLevel.length) {
+                  shown = prevAssetsOnLevel.includes(assetData.id)
+                }
+                
+                if(shown) {
+                  assetsShown.push(assetInst.ent.id)
+                }
+                
                 showargs.push([assetInst,{
                   pqam: self,
                   state: stateName,
@@ -1929,10 +1963,15 @@ import './rastercoords.js'
                   whence: 'multiple~'+mark,
                   closeinfo: false,
                 }])
-                //},1)
               }
             }
 
+            if(0 < assetsShown.length) {
+              self.current.assetsShownOnLevel[''+self.loc.map] = assetsShown
+            }
+            else {
+              self.current.assetsShownOnLevel[''+self.loc.map] = []
+            }
             
             function showBatch(n,m) {
               for(let i = n; i < m; i++) {
@@ -2868,11 +2907,19 @@ import './rastercoords.js'
 
       return pqam
     },
-    instance: {}
+    instance: {},
+    prepare() {
+      top.info = {
+        name: '@plantquest/assetmap',
+        version: Pkg.version,
+      }
+    }
   }
   
     
   W.PlantQuestAssetMap = top
+
+  W.PlantQuestAssetMap.prepare()
 
 
   function injectStyle() {
