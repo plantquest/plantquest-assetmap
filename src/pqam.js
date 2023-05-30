@@ -1218,94 +1218,6 @@ import './rastercoords.js'
       }
     }        
 
-
-    self.selectRoom = function(roomId,opts) {
-      opts = opts || {}
-      try {
-        let room = self.data.roomMap[roomId]
-        let isChosen = self.loc.chosen.room && roomId === self.loc.chosen.room.room
-        
-        if(null == self.data.roomMap[roomId] || isChosen) {
-          self.focusRoom(self.loc.chosen.room)
-          return
-        }
-
-        self.log('selectRoom', roomId, room)
-
-
-        
-        let roomState = self.current.room[room.room] ||
-            (self.current.room[room.room]={alarm:'neutral'})
-
-        if(self.loc.poly) {
-          self.loc.poly.remove(self.layer.room)
-          self.loc.poly = null
-        }
-        self.loc.room = null
-
-        if(self.loc.chosen.poly && room !== self.loc.chosen.room) {
-          let prevRoom = self.loc.chosen.room
-          let prevRoomState = self.current.room[prevRoom.room] ||
-              (self.current.room[prevRoom.room]={alarm:'neutral'})
-
-          self.loc.chosen.poly.remove(self.layer.room)
-          self.loc.chosen.poly = null
-        }
-
-        if(self.loc.popup) {
-          self.loc.popup.remove(self.map)
-          self.loc.popop = null
-        }
-
-        self.loc.chosen.room = room
-
-
-        let room_poly = convertRoomPoly(self.config.mapImg, room.poly)
-        
-        self.loc.chosen.poly = L.polygon(
-          room_poly, {
-            pane: 'room',
-            color: self.config.room.color
-          })
-        self.loc.chosen.poly.on('click', ()=>self.selectRoom(room.room))
-        
-        self.loc.chosen.poly.addTo(self.layer.room)
-
-        let roomlatlng = self.focusRoom(room)
-        
-        // convert for popup
-        let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
-        let roompos_x = roomlatlng[1]
-        let roompos = c_asset_coords({y: roompos_y-4, x: roompos_x+5 } )
-               
-        // map focus on room selection
-        self.loc.popup = L.popup({
-          autoClose: false,
-          closeOnClick: false,
-        })
-          .setLatLng(roompos)
-          .setContent(self.roomPopup(self.loc.chosen.room))
-          .openOn(self.map)
-        
-        // self.map.setView(roompos,
-                         // self.map.getZoom())
-                         
-
-        // self.showRoomAssets(room.room)
-        // self.clearRoomAssets(room.room)
-
-        // self.zoomEndRender()
-        
-        if(!opts.mute) {
-          self.click({select:'room', room:self.loc.chosen.room.room})
-        }
-      }
-      catch(e) {
-        self.log('ERROR','selectRoom','1010', roomId, e.message, e)
-      }
-    }
-
-
     self.unselectRoom = function() {
       let prevRoom = self.loc.chosen.room
       if(prevRoom) {
@@ -1330,32 +1242,6 @@ import './rastercoords.js'
           self.loc.popop = null
         }
       }
-    }
-
-    
-    self.focusRoom = function(room) {
-      if(null == room) return;
-      
-      let roomlatlng = [0,0]
-      for(let point of room.poly) {
-        if(point[0] > roomlatlng[0]) {
-          roomlatlng[0] = point[0]
-          roomlatlng[1] = point[1]
-        }
-      }
-
-      // let roompos = [roomlatlng[0],roomlatlng[1]-30]
-      
-      let roompos_y = convert_poly_y(self.config.mapImg, roomlatlng[0])
-      let roompos_x = roomlatlng[1]
-      let roompos = c_asset_coords({y: roompos_y, x: roompos_x-30 } )
-      // self.map.setView(roompos, self.config.mapRoomFocusZoom)
-      self.map.setView(roompos,
-                        self.config.mapRoomFocusZoom)
-                        
-      // self.zoomEndRender()
-      
-      return roomlatlng
     }
 
     
@@ -1911,6 +1797,7 @@ import './rastercoords.js'
       
         .message('show:room', async function(msg) {
           let room = self.data.roomMap[msg.room]
+          let roomInst = self.room.map[room.id]
           
           if(room) {
             if(msg.assets) {
@@ -1929,7 +1816,7 @@ import './rastercoords.js'
             }
 
             if(msg.focus) {
-              self.selectRoom(room.room, { mute:true })
+              roomInst.select(room.room, { mute: true })
             }
           }
           else {
@@ -2461,6 +2348,120 @@ import './rastercoords.js'
       return this.poly
     }
 
+    focus(room) {
+      if(null == room) return;
+      
+      let pqam = this.ctx.pqam
+      
+      let roomlatlng = [0,0]
+      for(let point of room.poly) {
+        if(point[0] > roomlatlng[0]) {
+          roomlatlng[0] = point[0]
+          roomlatlng[1] = point[1]
+        }
+      }
+
+      // let roompos = [roomlatlng[0],roomlatlng[1]-30]
+      
+      let roompos_y = convert_poly_y(pqam.config.mapImg, roomlatlng[0])
+      let roompos_x = roomlatlng[1]
+      let roompos = c_asset_coords({y: roompos_y, x: roompos_x-30 } )
+      // pqam.map.setView(roompos, pqam.config.mapRoomFocusZoom)
+      pqam.map.setView(roompos,
+                        pqam.config.mapRoomFocusZoom)
+                        
+      // pqam.zoomEndRender()
+      
+      return roomlatlng
+    }
+
+    select(roomId, opts) {
+      opts = opts || {}
+
+      let pqam = this.ctx.pqam
+
+      try {
+        let room = pqam.data.roomMap[roomId]
+        let isChosen = pqam.loc.chosen.room && roomId === pqam.loc.chosen.room.room
+        
+        if(null == pqam.data.roomMap[roomId] || isChosen) {
+          this.focus(pqam.loc.chosen.room)
+          return
+        }
+
+        pqam.log('selectRoom', roomId, room)
+        
+        let roomState = pqam.current.room[room.room] ||
+            (pqam.current.room[room.room]={alarm:'neutral'})
+
+        if(pqam.loc.poly) {
+          pqam.loc.poly.remove(pqam.layer.room)
+          pqam.loc.poly = null
+        }
+        pqam.loc.room = null
+
+        if(pqam.loc.chosen.poly && room !== pqam.loc.chosen.room) {
+          let prevRoom = pqam.loc.chosen.room
+          let prevRoomState = pqam.current.room[prevRoom.room] ||
+              (pqam.current.room[prevRoom.room]={alarm:'neutral'})
+
+          pqam.loc.chosen.poly.remove(pqam.layer.room)
+          pqam.loc.chosen.poly = null
+        }
+
+        if(pqam.loc.popup) {
+          pqam.loc.popup.remove(pqam.map)
+          pqam.loc.popop = null
+        }
+
+        pqam.loc.chosen.room = room
+
+
+        let room_poly = convertRoomPoly(pqam.config.mapImg, room.poly)
+        
+        pqam.loc.chosen.poly = L.polygon(
+          room_poly, {
+            pane: 'room',
+            color: pqam.config.room.color
+          })
+        pqam.loc.chosen.poly.on('click', ()=>this.select(room.room))
+        
+        pqam.loc.chosen.poly.addTo(pqam.layer.room)
+
+        let roomlatlng = this.focus(room)
+        
+        // convert for popup
+        let roompos_y = convert_poly_y(pqam.config.mapImg, roomlatlng[0])
+        let roompos_x = roomlatlng[1]
+        let roompos = c_asset_coords({y: roompos_y-4, x: roompos_x+5 } )
+               
+        // map focus on room selection
+        pqam.loc.popup = L.popup({
+          autoClose: false,
+          closeOnClick: false,
+        })
+          .setLatLng(roompos)
+          .setContent(pqam.roomPopup(pqam.loc.chosen.room))
+          .openOn(pqam.map)
+        
+        // pqam.map.setView(roompos,
+                         // pqam.map.getZoom())
+                         
+
+        // pqam.showRoomAssets(room.room)
+        // pqam.clearRoomAssets(room.room)
+
+        // pqam.zoomEndRender()
+        
+        if(!opts.mute) {
+          pqam.click({select:'room', room:pqam.loc.chosen.room.room})
+        }
+      }
+      catch(e) {
+        pqam.log('ERROR','selectRoom','1010', roomId, e.message, e)
+      }
+    }
+
 
     // TODO: need a mapState object
     onZoom(zoom, mapID, layer) {
@@ -2519,7 +2520,7 @@ import './rastercoords.js'
     }
     
     onClick(event) {
-      this.ctx.pqam.selectRoom(this.ent.id)
+      this.select(this.ent.id)
     }
   }
 
