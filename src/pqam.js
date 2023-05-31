@@ -18,7 +18,6 @@ import './rastercoords.js'
 
 
 ;(function(W, D) {
-
   W.$L = L
   
   const log = (...args) => {
@@ -2134,7 +2133,7 @@ import './rastercoords.js'
           return
         }
         else if(infobox) {
-          pqam.current.assetInfoShown[assetID] = assetProps
+          pqam.current.assetInfoShown[assetID] = asset
         }
 
         asset.shown = true
