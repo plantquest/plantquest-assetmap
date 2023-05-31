@@ -899,7 +899,7 @@ import './rastercoords.js'
           
 
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
-      let assetInst = self.asset.map[layer.assetID]
+            let assetInst = self.asset.map[layer.assetID]
             if(null == assetInst) return;
 
 	    if(assetInst) {
