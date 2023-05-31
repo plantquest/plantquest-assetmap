@@ -1472,8 +1472,8 @@ import './rastercoords.js'
           if(assetInst.indicator) {
             assetInst.indicator.remove(self.layer.asset)
           }
-          if(asset.label) {
-            asset.label.remove(self.layer.asset)
+          if(assetInst.label) {
+            assetInst.label.remove(self.layer.asset)
           }
         }
       }
