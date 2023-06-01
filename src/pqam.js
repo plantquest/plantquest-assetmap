@@ -1298,11 +1298,10 @@ import './rastercoords.js'
                     self.data.deps.pc.room[roomID].asset : []) || []
       for(let assetID of assets) {
         let assetInst = self.asset.map[assetID]
-        let assetState = assetInst.state
-        if(assetState && assetState.stateName) {
-          let stateDef = self.config.states[assetState.stateName]
+        if(assetInst && assetInst.state) {
+          let stateDef = self.config.states[assetInst.state]
           if('alert' === stateDef.marker) {
-            let priority = Object.keys(self.config.states).indexOf(assetState.stateName)
+            let priority = Object.keys(self.config.states).indexOf(assetInst.state)
             if(newPriority < priority) {
               actualStateDef = stateDef
             }
