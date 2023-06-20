@@ -580,6 +580,10 @@ import './rastercoords.js'
       root.style.textAlign = 'center'
       root.style.position = 'relative'
       root.innerHTML = buildContainer()
+      // Only one map in the parent container ( target )
+      if(1 <= self.target.children.length) {
+        return
+      }
       self.target.appendChild(root)
 
       
