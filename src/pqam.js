@@ -500,45 +500,7 @@ import './rastercoords.js'
           let updatedAssets = res.list
 
           for(let assetEnt of updatedAssets) {
-            try {
-              let existing = self.data.assetMap[assetEnt.id]
-              if(existing.t_m < assetEnt.t_m) {
-                self.data.assetMap[assetEnt.id] = assetEnt
-                let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
-                if(-1 < index) {
-                  self.data.asset[index] = assetEnt
-                }
-                let assetCurrent = self.current.asset[assetEnt.id]
-                let assetInst = self.asset.map[assetEnt.id]
-
-                assetInst.ent = assetEnt
-                assetInst = self.config.asset.prepare(assetInst) || assetInst
-                
-                if(assetInst.shown) {
-                  self.layer.asset.removeLayer(assetInst.label)
-                  assetInst.label = null
-                  assetCurrent.indicator.remove()
-                  assetCurrent.indicator = null
-
-                  assetInst.show({
-                    pqam: self,
-                    assetID: assetEnt.id,
-                    // stateName: assetCurrent.stateName,
-                    hide: false,
-                    blink: false ,
-                    showRoom: false,
-                    infobox: assetInst.infobox,
-                    whence: 'updatedAssets',
-                  })
-                }
-                else {
-                  delete self.current.asset[assetInst.id]
-                }
-              }
-            }
-            catch(e) {
-              self.log('ERROR', 'UPDATE', assetEnt, e)
-            }
+            self.setAsset(assetEnt)
           }
         }
         
@@ -572,6 +534,15 @@ import './rastercoords.js'
       self.target.style.width = self.config.width
       self.target.style.height = self.config.height
 
+      Object.values(self.asset.map).forEach(asset=>{
+        delete asset.label
+        delete asset.indicator
+      })
+
+      // Only one map in the parent container ( target )
+      if(1 <= self.target.children.length) {
+        return
+      }
       
       let root = Element('div')
       root.style.boxSizing = 'border-box'
@@ -583,13 +554,6 @@ import './rastercoords.js'
       root.style.position = 'relative'
       root.innerHTML = buildContainer()
       self.target.appendChild(root)
-
-      
-      Object.values(self.asset.map).forEach(asset=>{
-        delete asset.label
-        delete asset.indicator
-      })
-
       
       setTimeout(()=>{
         self.vis.map.elem = $('#plantquest-assetmap-map')
@@ -1156,6 +1120,81 @@ import './rastercoords.js'
       // TODO: need to define a zoom event schema
       let shown = Object.values(self.room.map).map(room=>
         room.onZoom(zoom, self.loc.map, self.layer.roomLabel))
+    }
+
+
+    self.setAsset = function(assetEnt) {
+      try {
+        let existing = self.data.assetMap[assetEnt.id]
+        
+        if(existing) {
+          Object.assign(existing, assetEnt)
+        }
+        else {
+          self.data.assetMap[assetEnt.id] = assetEnt
+        }
+        
+        let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
+        if(-1 < index) {
+          assetEnt = Object.assign(self.data.asset[index], assetEnt)
+        }
+        else {
+          self.data.asset.push(assetEnt)
+        }
+        
+        let assetCurrent = self.current.asset[assetEnt.id]
+        
+        let assetInst = self.asset.map[assetEnt.id]
+        
+        if(null == assetInst) {
+          assetInst = self.asset.map[assetEnt.id] = new Asset(assetEnt, {
+            cfg: self.config,
+            pqam: self
+          })
+        }
+        
+        assetInst.ent = assetEnt
+        assetInst = self.config.asset.prepare(assetInst) || assetInst
+          
+        if(assetInst.shown) {
+          self.layer.asset.removeLayer(assetInst.label)
+          assetInst.label = null
+
+          if(assetCurrent) {
+            assetCurrent.indicator.remove()
+            assetCurrent.indicator = null
+          }
+
+          let showinfobox = assetInst.infobox
+
+          if(showinfobox) {
+            self.emit({
+              srv:'plantquest',
+              part:'assetmap',
+              show:'asset',
+              asset: assetEnt,
+            })
+          }
+          
+          assetInst.show({
+            pqam: self,
+            assetID: assetEnt.id,
+            hide: false,
+            blink: false ,
+            showRoom: false,
+            infobox: showinfobox,
+            whence: 'setAsset',
+          })
+        }
+        else {
+          delete self.current.asset[assetInst.id]
+        }
+
+        return assetEnt
+      }
+      catch(e) {
+        self.log('ERROR', 'setAsset', assetEnt, e)
+      }
     }
     
     
@@ -1870,6 +1909,8 @@ import './rastercoords.js'
 
         .message('show:asset', showAssetMsg)
         .message('hide:asset', showAssetMsg)
+        .message('load:asset', loadAssetMsg)
+        .message('set:asset', setAssetMsg)
 
         .message('show:geofence', showGeofenceMsg)
         .message('hide:geofence', showGeofenceMsg)
@@ -1889,6 +1930,43 @@ import './rastercoords.js'
       await seneca.ready()
 
 
+      async function loadAssetMsg(msg) {
+        let assetIDs = msg.asset || []
+        assetIDs = Array.isArray(assetIDs) ? assetIDs : [assetIDs]
+        assetIDs = assetIDs.filter(assetID=>'string' === typeof assetID)
+        let query = {}
+        if(0 < assetIDs.length) {
+          query.id = assetIDs
+        }
+        let assetEnts =
+            await self.seneca.post('aim:web,on:assetmap,list:asset',{query})
+
+        if(assetEnts.ok) {
+          self.seneca.act('srv:plantquest,part:assetmap,set:asset',{
+            asset: assetEnts.list
+          })
+        }
+        
+        return assetEnts
+      }
+      
+      
+      async function setAssetMsg(msg) {
+        let assetProps = msg.asset || []
+        assetProps = Array.isArray(assetProps) ? assetProps : [assetProps]
+        assetProps = assetProps.filter(assetProp=>null!=assetProp)
+
+        let assetEnts = []
+        
+        for(let aI = 0; aI < assetProps.length; aI++) {
+          let assetEnt = self.setAsset(assetProps[aI])
+          assetEnts.push(assetEnt)
+        }
+        
+        return assetEnts
+      }
+
+      
       async function showAssetMsg(msg) {
         let mark = Math.random()
         let out = { multiple: false }
@@ -1986,15 +2064,21 @@ import './rastercoords.js'
 
 
           if('string' === typeof msg.asset) {
+            let assetInst = self.asset.map[msg.asset]
+            if(null == assetInst) {
+              out.err = new Error('unknown asset: '+msg.asset)
+              return out
+            }
+            
             let assetRoom = self.data.deps.cp.asset[msg.asset]
             // let assetData = self.asset.map[assetID].ent
-            let assetInst = self.asset.map[msg.asset]
             let assetData = assetInst.ent
             let zoom = msg.zoom || self.config.mapMaxZoom
             
             if(assetRoom) {
               dlog.push('showAssetMsg single '+mark)
-              
+
+              // emit-show-asset
               self.emit({
                 srv:'plantquest',
                 part:'assetmap',
@@ -2107,6 +2191,7 @@ import './rastercoords.js'
     return self
   }
 
+  
   class Building {
     ent = null
     ctx = null
@@ -2186,7 +2271,6 @@ import './rastercoords.js'
         }
       
         asset.infobox = infobox == null ? true : !!infobox
-
         assetCurrent.assetID = assetID
         assetCurrent.xco = assetProps.xco
         assetCurrent.yco = assetProps.yco

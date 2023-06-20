@@ -13367,10 +13367,10 @@ var __async = (__this, __arguments, generator) => {
     "leaflet-rastercoords": "1.0.5",
     "leaflet.markercluster": "1.5.3",
     "seneca-browser": "4.0.1",
-    "seneca-entity": "21.1.0",
+    "seneca-entity": "22.1.0",
     "seneca-mem-store": "8.0.1",
     serve: "^14.2.0",
-    vite: "^4.3.3"
+    vite: "^4.3.9"
   };
   const files = [
     "LICENSE",
@@ -31506,7 +31506,10 @@ var __async = (__this, __arguments, generator) => {
         provide: true
       },
       transaction: {
-        active: false
+        active: false,
+        rollback: {
+          onerror: true
+        }
       }
     };
     function entity2() {
@@ -31521,31 +31524,33 @@ var __async = (__this, __arguments, generator) => {
       const store2 = (0, store_1.Store)();
       seneca.add("role:basic,cmd:generate_id", generate_id);
       if (opts.transaction.active) {
-        seneca.on("act-err", function entity_act_err(msg2, err) {
-          var _a, _b;
-          if ("sys" === msg2.entity && "rollback" === msg2.transaction) {
-            return;
-          }
-          let instance = this;
-          let custom = (_a = instance === null || instance === void 0 ? void 0 : instance.fixedmeta) === null || _a === void 0 ? void 0 : _a.custom;
-          let tmap = ((_b = custom === null || custom === void 0 ? void 0 : custom.sys__entity) === null || _b === void 0 ? void 0 : _b.transaction) || {};
-          let txs = Object.values(tmap);
-          for (let tx of txs) {
-            if (null != tx.finish) {
-              continue;
+        if (opts.transaction.rollback.onerror) {
+          seneca.on("act-err", function entity_act_err(msg2, err) {
+            var _a, _b;
+            if ("sys" === msg2.entity && "rollback" === msg2.transaction) {
+              return;
             }
-            let get_transaction = () => tx;
-            let canon = tx.canon;
-            tx.finish = Date.now();
-            instance.act("sys:entity,transaction:rollback", __spreadProps(__spreadValues({}, canon), {
-              get_transaction,
-              msg: msg2,
-              err
-            }), function(err2, result) {
-              tx.result = result;
-            });
-          }
-        });
+            let instance = this;
+            let custom = (_a = instance === null || instance === void 0 ? void 0 : instance.fixedmeta) === null || _a === void 0 ? void 0 : _a.custom;
+            let tmap = ((_b = custom === null || custom === void 0 ? void 0 : custom.sys__entity) === null || _b === void 0 ? void 0 : _b.transaction) || {};
+            let txs = Object.values(tmap);
+            for (let tx of txs) {
+              if (null != tx.finish) {
+                continue;
+              }
+              let get_transaction = () => tx;
+              let canon = tx.canon;
+              tx.finish = Date.now();
+              instance.act("sys:entity,transaction:rollback", __spreadProps(__spreadValues({}, canon), {
+                get_transaction,
+                msg: msg2,
+                err
+              }), function(err2, result) {
+                tx.result = result;
+              });
+            }
+          });
+        }
       }
       seneca.util.parsecanon = seneca.util.parsecanon || make_entity_1.MakeEntity.parsecanon;
       const sd = seneca.delegate();
@@ -31571,7 +31576,7 @@ var __async = (__this, __arguments, generator) => {
           let emptyEntity = this();
           return get_state(emptyEntity, canonspec);
         };
-        entityAPI.begin = function(canonspec, extra) {
+        entityAPI.transaction = function(canonspec, extra) {
           return __async(this, null, function* () {
             if (!opts.transaction.active) {
               return null;
@@ -31585,7 +31590,7 @@ var __async = (__this, __arguments, generator) => {
               throw err;
             }
             let result = yield new Promise((res, rej) => {
-              state.instance.act("sys:entity,transaction:begin", __spreadValues(__spreadValues({}, state.canon), extra || {}), function(err, out) {
+              state.instance.act("sys:entity,transaction:transaction", __spreadValues(__spreadValues({}, state.canon), extra || {}), function(err, out) {
                 return err ? rej(err) : res(out);
               });
             });
@@ -31611,12 +31616,15 @@ var __async = (__this, __arguments, generator) => {
             });
             transaction.sid = transactionInstance.id;
             transaction.did = transactionInstance.did;
-            transactionInstance.entity = state.instance.entity.bind(transactionInstance);
+            transactionInstance.entity = function(...args) {
+              return state.instance.entity.call(transactionInstance, ...args);
+            };
             Object.assign(transactionInstance.entity, state.instance.entity);
+            transactionInstance.entity.did = transactionInstance.did;
             return transactionInstance;
           });
         };
-        entityAPI.end = function(canonspec, extra) {
+        entityAPI.commit = function(canonspec, extra) {
           return __async(this, null, function* () {
             if (!opts.transaction.active) {
               return null;
@@ -31630,7 +31638,7 @@ var __async = (__this, __arguments, generator) => {
             let get_transaction = () => transaction;
             transaction.finish = Date.now();
             let result = yield new Promise((res, rej) => {
-              state.instance.act("sys:entity,transaction:end", __spreadProps(__spreadValues(__spreadValues({}, state.canon), extra || {}), {
+              state.instance.act("sys:entity,transaction:commit", __spreadProps(__spreadValues(__spreadValues({}, state.canon), extra || {}), {
                 get_transaction
               }), function(err, out) {
                 return err ? rej(err) : res(out);
@@ -32220,40 +32228,7 @@ var __async = (__this, __arguments, generator) => {
             if (res.ok) {
               let updatedAssets = res.list;
               for (let assetEnt of updatedAssets) {
-                try {
-                  let existing = self2.data.assetMap[assetEnt.id];
-                  if (existing.t_m < assetEnt.t_m) {
-                    self2.data.assetMap[assetEnt.id] = assetEnt;
-                    let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
-                    if (-1 < index2) {
-                      self2.data.asset[index2] = assetEnt;
-                    }
-                    let assetCurrent2 = self2.current.asset[assetEnt.id];
-                    let assetInst = self2.asset.map[assetEnt.id];
-                    assetInst.ent = assetEnt;
-                    assetInst = self2.config.asset.prepare(assetInst) || assetInst;
-                    if (assetInst.shown) {
-                      self2.layer.asset.removeLayer(assetInst.label);
-                      assetInst.label = null;
-                      assetCurrent2.indicator.remove();
-                      assetCurrent2.indicator = null;
-                      assetInst.show({
-                        pqam: self2,
-                        assetID: assetEnt.id,
-                        // stateName: assetCurrent.stateName,
-                        hide: false,
-                        blink: false,
-                        showRoom: false,
-                        infobox: assetInst.infobox,
-                        whence: "updatedAssets"
-                      });
-                    } else {
-                      delete self2.current.asset[assetInst.id];
-                    }
-                  }
-                } catch (e) {
-                  self2.log("ERROR", "UPDATE", assetEnt, e);
-                }
+                self2.setAsset(assetEnt);
               }
             }
           });
@@ -32271,6 +32246,13 @@ var __async = (__this, __arguments, generator) => {
         }
         self2.target.style.width = self2.config.width;
         self2.target.style.height = self2.config.height;
+        Object.values(self2.asset.map).forEach((asset) => {
+          delete asset.label;
+          delete asset.indicator;
+        });
+        if (1 <= self2.target.children.length) {
+          return;
+        }
         let root = Element2("div");
         root.style.boxSizing = "border-box";
         root.style.width = "100%";
@@ -32281,10 +32263,6 @@ var __async = (__this, __arguments, generator) => {
         root.style.position = "relative";
         root.innerHTML = buildContainer();
         self2.target.appendChild(root);
-        Object.values(self2.asset.map).forEach((asset) => {
-          delete asset.label;
-          delete asset.indicator;
-        });
         setTimeout(() => {
           self2.vis.map.elem = $("#plantquest-assetmap-map");
           self2.build();
@@ -32684,6 +32662,63 @@ var __async = (__this, __arguments, generator) => {
         if (null == zoom)
           return;
         let shown = Object.values(self2.room.map).map((room) => room.onZoom(zoom, self2.loc.map, self2.layer.roomLabel));
+      };
+      self2.setAsset = function(assetEnt) {
+        try {
+          let existing = self2.data.assetMap[assetEnt.id];
+          if (existing) {
+            Object.assign(existing, assetEnt);
+          } else {
+            self2.data.assetMap[assetEnt.id] = assetEnt;
+          }
+          let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
+          if (-1 < index2) {
+            assetEnt = Object.assign(self2.data.asset[index2], assetEnt);
+          } else {
+            self2.data.asset.push(assetEnt);
+          }
+          let assetCurrent2 = self2.current.asset[assetEnt.id];
+          let assetInst = self2.asset.map[assetEnt.id];
+          if (null == assetInst) {
+            assetInst = self2.asset.map[assetEnt.id] = new Asset(assetEnt, {
+              cfg: self2.config,
+              pqam: self2
+            });
+          }
+          assetInst.ent = assetEnt;
+          assetInst = self2.config.asset.prepare(assetInst) || assetInst;
+          if (assetInst.shown) {
+            self2.layer.asset.removeLayer(assetInst.label);
+            assetInst.label = null;
+            if (assetCurrent2) {
+              assetCurrent2.indicator.remove();
+              assetCurrent2.indicator = null;
+            }
+            let showinfobox = assetInst.infobox;
+            if (showinfobox) {
+              self2.emit({
+                srv: "plantquest",
+                part: "assetmap",
+                show: "asset",
+                asset: assetEnt
+              });
+            }
+            assetInst.show({
+              pqam: self2,
+              assetID: assetEnt.id,
+              hide: false,
+              blink: false,
+              showRoom: false,
+              infobox: showinfobox,
+              whence: "setAsset"
+            });
+          } else {
+            delete self2.current.asset[assetInst.id];
+          }
+          return assetEnt;
+        } catch (e) {
+          self2.log("ERROR", "setAsset", assetEnt, e);
+        }
       };
       self2.checkRooms = function() {
         let xco = self2.loc.x;
@@ -33229,7 +33264,7 @@ var __async = (__this, __arguments, generator) => {
               self2.unselectRoom();
               self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
             });
-          }).message("show:asset", showAssetMsg).message("hide:asset", showAssetMsg).message("show:geofence", showGeofenceMsg).message("hide:geofence", showGeofenceMsg).message("relate:room-asset", function(msg2) {
+          }).message("show:asset", showAssetMsg).message("hide:asset", showAssetMsg).message("load:asset", loadAssetMsg).message("set:asset", setAssetMsg).message("show:geofence", showGeofenceMsg).message("hide:geofence", showGeofenceMsg).message("relate:room-asset", function(msg2) {
             return __async(this, null, function* () {
               self2.emit({
                 srv: "plantquest",
@@ -33243,6 +33278,37 @@ var __async = (__this, __arguments, generator) => {
             });
           });
           yield seneca.ready();
+          function loadAssetMsg(msg2) {
+            return __async(this, null, function* () {
+              let assetIDs = msg2.asset || [];
+              assetIDs = Array.isArray(assetIDs) ? assetIDs : [assetIDs];
+              assetIDs = assetIDs.filter((assetID) => "string" === typeof assetID);
+              let query = {};
+              if (0 < assetIDs.length) {
+                query.id = assetIDs;
+              }
+              let assetEnts = yield self2.seneca.post("aim:web,on:assetmap,list:asset", { query });
+              if (assetEnts.ok) {
+                self2.seneca.act("srv:plantquest,part:assetmap,set:asset", {
+                  asset: assetEnts.list
+                });
+              }
+              return assetEnts;
+            });
+          }
+          function setAssetMsg(msg2) {
+            return __async(this, null, function* () {
+              let assetProps = msg2.asset || [];
+              assetProps = Array.isArray(assetProps) ? assetProps : [assetProps];
+              assetProps = assetProps.filter((assetProp) => null != assetProp);
+              let assetEnts = [];
+              for (let aI = 0; aI < assetProps.length; aI++) {
+                let assetEnt = self2.setAsset(assetProps[aI]);
+                assetEnts.push(assetEnt);
+              }
+              return assetEnts;
+            });
+          }
           function showAssetMsg(msg2) {
             return __async(this, null, function* () {
               let mark = Math.random();
@@ -33312,8 +33378,12 @@ var __async = (__this, __arguments, generator) => {
                   }
                 }
                 if ("string" === typeof msg2.asset) {
-                  let assetRoom = self2.data.deps.cp.asset[msg2.asset];
                   let assetInst = self2.asset.map[msg2.asset];
+                  if (null == assetInst) {
+                    out.err = new Error("unknown asset: " + msg2.asset);
+                    return out;
+                  }
+                  let assetRoom = self2.data.deps.cp.asset[msg2.asset];
                   let assetData = assetInst.ent;
                   let zoom = msg2.zoom || self2.config.mapMaxZoom;
                   if (assetRoom) {
