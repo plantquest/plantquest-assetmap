@@ -13328,7 +13328,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "4.2.0";
+const version = "4.2.1";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -33316,18 +33316,31 @@ L.RasterCoords.prototype = {
               self2.current.assetHistory.map((hist) => hist.remove());
               self2.current.assetHistory.length = 0;
               let assetsShown = [];
-              if (Array.isArray(msg2.asset) || null === msg2.asset || msg2.only || msg2.levelAssets) {
+              let multiple = Array.isArray(msg2.asset);
+              if (multiple && msg2.only) {
+                for (let level of self2.config.levels) {
+                  self2.current.assetsShownOnLevel["" + level.index] = [];
+                }
+                for (let assetID of msg2.asset) {
+                  let assetInst = self2.asset.map[assetID];
+                  let levelStr = "" + ((assetInst.ent.map | 0) - 1);
+                  self2.current.assetsShownOnLevel[levelStr].push(assetID);
+                }
+              } else if (true !== msg2.levelAssets) {
+                self2.current.assetsShownOnLevel = {};
+              }
+              if (multiple || null === msg2.asset || msg2.only || msg2.levelAssets) {
                 let showBatch = function(n, m2) {
                   for (let i = n; i < m2; i++) {
                     showargs[i] && showargs[i][0].show(showargs[i][1]);
                   }
                 };
                 let allAssetIDs = Object.keys(self2.data.assetMap);
-                let assetIDList = Array.isArray(msg2.asset) ? msg2.asset : allAssetIDs;
+                let assetIDList = multiple ? msg2.asset : allAssetIDs;
                 let showAll = null === msg2.asset;
                 let stateName = msg2.state;
                 let assetList = msg2.only ? allAssetIDs : assetIDList;
-                let prevAssetsOnLevel = self2.current.assetsShownOnLevel["" + self2.loc.map] || [];
+                let prevAssetsOnLevel = self2.current.assetsShownOnLevel["" + self2.loc.map];
                 out.multiple = true;
                 let showargs = [];
                 for (let assetID of assetList) {
@@ -33340,7 +33353,7 @@ L.RasterCoords.prototype = {
                     let shown = showAll || -1 != assetIDList.indexOf(assetID);
                     shown = "hide" === msg2.asset ? !shown : shown;
                     shown = assetData.map - 1 == self2.loc.map ? shown : false;
-                    if (msg2.levelAssets && (0 < prevAssetsOnLevel.length || "level" === self2.config.asset.set)) {
+                    if (msg2.levelAssets && (null != prevAssetsOnLevel || "level" === self2.config.asset.set)) {
                       shown = prevAssetsOnLevel.includes(assetData.id);
                     }
                     if (shown) {

@@ -1988,14 +1988,32 @@ import './rastercoords.js'
           self.current.assetHistory.length = 0
 
           let assetsShown = []
+          let multiple = Array.isArray(msg.asset)
+
+
+          if(multiple && msg.only) {
+            for(let level of self.config.levels) {
+              self.current.assetsShownOnLevel[''+level.index] = []
+            }
+
+            for(let assetID of msg.asset) {
+              let assetInst = self.asset.map[assetID]
+              let levelStr = ''+((assetInst.ent.map|0)-1)
+              self.current.assetsShownOnLevel[levelStr].push(assetID)
+            }
+          }
+          else if(true !== msg.levelAssets) {
+            self.current.assetsShownOnLevel = {}
+          }
+
           
-          if(Array.isArray(msg.asset) ||
+          if(multiple ||
              null === msg.asset ||
              msg.only ||
              msg.levelAssets
             ) {
             let allAssetIDs = Object.keys(self.data.assetMap)
-            let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
+            let assetIDList = multiple ? msg.asset : allAssetIDs
             let showAll = null === msg.asset
 
             let stateName = msg.state
@@ -2003,7 +2021,7 @@ import './rastercoords.js'
             let assetList = (msg.only?allAssetIDs:assetIDList)
 
             let prevAssetsOnLevel =
-                self.current.assetsShownOnLevel[''+self.loc.map] || []
+                self.current.assetsShownOnLevel[''+self.loc.map]
             
             out.multiple = true
             let showargs = []
@@ -2024,9 +2042,12 @@ import './rastercoords.js'
 
                 shown = assetData.map-1 == self.loc.map ? shown : false
 
-                if(msg.levelAssets &&
-                   (0 < prevAssetsOnLevel.length ||
-                    'level' === self.config.asset.set))
+                if(
+                  msg.levelAssets &&
+                    (null != prevAssetsOnLevel ||
+                     'level' === self.config.asset.set
+                    )
+                  )
                 {
                   shown = prevAssetsOnLevel.includes(assetData.id)
                 }
