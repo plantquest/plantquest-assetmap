@@ -31958,6 +31958,8 @@ L.RasterCoords.prototype = {
         ],
         asset: {
           cluster: true,
+          set: "global",
+          // 'level'|'global'
           prepare: (x) => x
         },
         building: {
@@ -33345,7 +33347,7 @@ L.RasterCoords.prototype = {
                     let shown = showAll || -1 != assetIDList.indexOf(assetID);
                     shown = "hide" === msg2.asset ? !shown : shown;
                     shown = assetData.map - 1 == self2.loc.map ? shown : false;
-                    if (msg2.levelAssets && 0 < prevAssetsOnLevel.length) {
+                    if (msg2.levelAssets && (0 < prevAssetsOnLevel.length || "level" === self2.config.asset.set)) {
                       shown = prevAssetsOnLevel.includes(assetData.id);
                     }
                     if (shown) {

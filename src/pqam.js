@@ -153,6 +153,7 @@ import './rastercoords.js'
         
         asset: {
           cluster: true,
+          set: 'global', // 'level'|'global'
           prepare: (x)=>x,
         },
 
@@ -2023,7 +2024,10 @@ import './rastercoords.js'
 
                 shown = assetData.map-1 == self.loc.map ? shown : false
 
-                if(msg.levelAssets && 0 < prevAssetsOnLevel.length) {
+                if(msg.levelAssets &&
+                   (0 < prevAssetsOnLevel.length ||
+                    'level' === self.config.asset.set))
+                {
                   shown = prevAssetsOnLevel.includes(assetData.id)
                 }
                 
