@@ -1984,6 +1984,7 @@ import './rastercoords.js'
                 }])
               }
             }
+            
             if(0 < assetsShown.length) {
               self.current.assetsShownOnLevel[''+self.loc.map] = assetsShown
             }
@@ -2900,7 +2901,6 @@ import './rastercoords.js'
     }
 
   }
-
   const top = {
     make: (id)=>{
       id = id || (''+Math.random()).substring(2,8)
