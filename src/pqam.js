@@ -1934,7 +1934,7 @@ import './rastercoords.js'
                 
             }
             
-            let allAssetIDs = self.current.currentShownAssets || Object.keys(self.data.assetMap)
+            let allAssetIDs = self.current.currentShownAssets
             let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
             let showAll = null === msg.asset
 
