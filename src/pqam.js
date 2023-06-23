@@ -192,6 +192,7 @@ import './rastercoords.js'
         assetHistory: [],
 
         assetsShownOnLevel: {},
+        currentShownAssets: [],
         
         al: {},
       },
@@ -1543,7 +1544,6 @@ import './rastercoords.js'
             lt.classList.add('plantquest-level-current')
           }
         },1)
-
         
         if(self.leaflet.maptile) {
           self.leaflet.maptile.remove(self.map)
@@ -1912,14 +1912,36 @@ import './rastercoords.js'
              msg.only ||
              msg.levelAssets
             ) {
-            let allAssetIDs = Object.keys(self.data.assetMap)
+            
+            // Clear the map out of assets when there is a new 'show' message
+            if(msg.asset) {
+              for(let assetID of self.current.currentShownAssets ) {
+                let assetInst = self.asset.map[assetID]
+                assetInst.show({
+                  pqam: self,
+                  // state: undefined,
+                  hide: true,
+                  blink: !!msg.blink,
+                  showRoom: false,
+                  infobox: false,
+                  whence: 'multiple~'+mark,
+                  closeinfo: false,
+                })
+                
+                
+              }
+              self.current.currentShownAssets = msg.asset
+                
+            }
+            
+            let allAssetIDs = self.current.currentShownAssets || Object.keys(self.data.assetMap)
+            let currentAssetIDs = self.current.currentShownAssets
             let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
             let showAll = null === msg.asset
 
             let stateName = msg.state
 
             let assetList = (msg.only?allAssetIDs:assetIDList)
-
             let prevAssetsOnLevel =
                 self.current.assetsShownOnLevel[''+self.loc.map] || []
             
@@ -1962,7 +1984,6 @@ import './rastercoords.js'
                 }])
               }
             }
-
             if(0 < assetsShown.length) {
               self.current.assetsShownOnLevel[''+self.loc.map] = assetsShown
             }
@@ -2880,7 +2901,6 @@ import './rastercoords.js'
 
   }
 
-  
   const top = {
     make: (id)=>{
       id = id || (''+Math.random()).substring(2,8)
