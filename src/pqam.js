@@ -192,7 +192,7 @@ import './rastercoords.js'
         assetHistory: [],
 
         assetsShownOnLevel: {},
-        currentShownAssets: [],
+        currentShownAssets: null,
         
         al: {},
       },
@@ -1915,7 +1915,7 @@ import './rastercoords.js'
             
             // Clear the map out of assets when there is a new 'show' message
             if(msg.asset) {
-              for(let assetID of self.current.currentShownAssets ) {
+              for(let assetID of ( self.current.currentShownAssets || [] ) ) {
                 let assetInst = self.asset.map[assetID]
                 assetInst.show({
                   pqam: self,
@@ -1934,7 +1934,7 @@ import './rastercoords.js'
                 
             }
             
-            let allAssetIDs = self.current.currentShownAssets
+            let allAssetIDs = self.current.currentShownAssets || Object.keys(self.data.assetMap)
             let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
             let showAll = null === msg.asset
 
