@@ -1934,7 +1934,7 @@ import './rastercoords.js'
 
             
             // Clear the map out of assets when there is a 'clear' message
-            if('previous' == msg.clear) {
+            if(msg.only) {
               clearPrevious(msg, mark)
               self.current.currentShownAssets = []
               
@@ -1947,15 +1947,16 @@ import './rastercoords.js'
             self.current.currentShownAssets = msg.asset === null ? Object.keys(self.data.assetMap) : self.current.currentShownAssets
             
             
-            let allAssetIDs = self.current.currentShownAssets
-            let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
+            
+            let assetIDList = self.current.currentShownAssets
             let showAll = null === msg.asset
 
             let stateName = msg.state
 
-            let assetList = (msg.only?allAssetIDs:assetIDList)
+            let assetList = assetIDList
             let prevAssetsOnLevel =
                 self.current.assetsShownOnLevel[''+self.loc.map] || []
+            
             
             out.multiple = true
             let showargs = []
@@ -1970,7 +1971,7 @@ import './rastercoords.js'
                   continue
                 }
                 
-                let shown = showAll || -1!=assetIDList.indexOf(assetID)
+                let shown = showAll || true
                 
                 shown = 'hide'===msg.asset ? !shown : shown
 
