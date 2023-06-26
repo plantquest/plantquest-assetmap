@@ -1934,7 +1934,7 @@ import './rastercoords.js'
 
             
             // Clear the map out of assets when there is a 'clear' message
-            if(msg.clear == 'previous') {
+            if('previous' == msg.clear) {
               clearPrevious(msg, mark)
               self.current.currentShownAssets = []
               
