@@ -1592,8 +1592,9 @@ import './rastercoords.js'
             srv:'plantquest',
             part:'assetmap',
             show: 'asset',
-            asset: null,
+            asset: undefined,
             levelAssets: true,
+            
           })
         }
 
@@ -1897,6 +1898,7 @@ import './rastercoords.js'
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
             self.current.assetsShownOnLevel = {}
             out.reset = true
+            self.current.currentShownAssets = null
           }
 
           self.closeAssetInfo()
@@ -1914,7 +1916,7 @@ import './rastercoords.js'
             ) {
             
             // Clear the map out of assets when there is a new 'show' message
-            if(msg.asset) {
+            if(Array.isArray(msg.asset)) {
               for(let assetID of ( self.current.currentShownAssets || [] ) ) {
                 let assetInst = self.asset.map[assetID]
                 assetInst.show({
@@ -1932,6 +1934,12 @@ import './rastercoords.js'
               }
               self.current.currentShownAssets = msg.asset
                 
+            }
+            else if(msg.asset === undefined) {
+              self.current.currentShownAssets = self.current.currentShownAssets || []
+            }
+            else if(msg.asset === null) {
+              self.current.currentShownAssets = Object.keys(self.data.assetMap)
             }
             
             let allAssetIDs = self.current.currentShownAssets || Object.keys(self.data.assetMap)
