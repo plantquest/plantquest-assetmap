@@ -192,7 +192,7 @@ import './rastercoords.js'
         assetHistory: [],
 
         assetsShownOnLevel: {},
-        currentShownAssets: null,
+        currentShownAssets: [],
         
         al: {},
       },
@@ -1885,6 +1885,22 @@ import './rastercoords.js'
         .message('srv:plantquest,part:assetmap', async function(msg) {})
 
       await seneca.ready()
+      
+      async function clearPrevious(msg, mark) {
+        for(let assetID of self.current.currentShownAssets ) {
+          let assetInst = self.asset.map[assetID]
+          assetInst.show({
+            pqam: self,
+            // state: undefined,
+            hide: true,
+            blink: !!msg.blink,
+            showRoom: false,
+            infobox: false,
+            whence: 'multiple~'+mark,
+            closeinfo: false,
+          })
+        }
+      }
 
 
       async function showAssetMsg(msg) {
@@ -1898,7 +1914,8 @@ import './rastercoords.js'
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
             self.current.assetsShownOnLevel = {}
             out.reset = true
-            self.current.currentShownAssets = null
+            clearPrevious(msg, mark)
+            self.current.currentShownAssets = []
           }
 
           self.closeAssetInfo()
@@ -1914,35 +1931,23 @@ import './rastercoords.js'
              msg.only ||
              msg.levelAssets
             ) {
+
             
-            // Clear the map out of assets when there is a new 'show' message
+            // Clear the map out of assets when there is a 'clear' message
+            if(msg.clear == 'previous') {
+              clearPrevious(msg, mark)
+              self.current.currentShownAssets = []
+              
+            }
+            
             if(Array.isArray(msg.asset)) {
-              for(let assetID of ( self.current.currentShownAssets || [] ) ) {
-                let assetInst = self.asset.map[assetID]
-                assetInst.show({
-                  pqam: self,
-                  // state: undefined,
-                  hide: true,
-                  blink: !!msg.blink,
-                  showRoom: false,
-                  infobox: false,
-                  whence: 'multiple~'+mark,
-                  closeinfo: false,
-                })
-                
-                
-              }
-              self.current.currentShownAssets = msg.asset
-                
-            }
-            else if(msg.asset === undefined) {
-              self.current.currentShownAssets = self.current.currentShownAssets || []
-            }
-            else if(msg.asset === null) {
-              self.current.currentShownAssets = Object.keys(self.data.assetMap)
+              self.current.currentShownAssets = [ ...new Set([ ...self.current.currentShownAssets, ...msg.asset ]) ]
             }
             
-            let allAssetIDs = self.current.currentShownAssets || Object.keys(self.data.assetMap)
+            self.current.currentShownAssets = msg.asset === null ? Object.keys(self.data.assetMap) : self.current.currentShownAssets
+            
+            
+            let allAssetIDs = self.current.currentShownAssets
             let assetIDList = Array.isArray(msg.asset) ? msg.asset : allAssetIDs
             let showAll = null === msg.asset
 
