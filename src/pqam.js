@@ -1992,7 +1992,6 @@ import './rastercoords.js'
         try {
           if(msg.reset) {
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
-            self.current.shownOnLevel = {}
             out.reset = true
             clearPrevious(msg, mark)
             self.current.shownAssets = []
