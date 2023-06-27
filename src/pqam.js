@@ -1636,7 +1636,6 @@ import './rastercoords.js'
             srv:'plantquest',
             part:'assetmap',
             show: 'asset',
-            asset: undefined,
             levelAssets: true,
           })
         }
