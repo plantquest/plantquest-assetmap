@@ -560,7 +560,6 @@ import './rastercoords.js'
     }
 
     self.send = async function(msg) {
-      
       self.log('send', 'in', msg)
       
       let result = await self.seneca.post(msg)
