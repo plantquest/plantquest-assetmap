@@ -194,6 +194,7 @@ import './rastercoords.js'
         assetHistory: [],
 
         assetsShownOnLevel: {},
+        shownAssets: [],
         
         al: {},
       },
@@ -1635,7 +1636,7 @@ import './rastercoords.js'
             srv:'plantquest',
             part:'assetmap',
             show: 'asset',
-            asset: null,
+            asset: undefined,
             levelAssets: true,
           })
         }
@@ -1966,7 +1967,22 @@ import './rastercoords.js'
         
         return assetEnts
       }
-
+      
+      async function clearPrevious(msg, mark) {
+        for(let assetID of self.current.shownAssets ) {
+          let assetInst = self.asset.map[assetID]
+          assetInst.show({
+            pqam: self,
+            // state: undefined,
+            hide: true,
+            blink: !!msg.blink,
+            showRoom: false,
+            infobox: false,
+            whence: 'multiple~'+mark,
+            closeinfo: false,
+          })
+        }
+      }
       
       async function showAssetMsg(msg) {
         let mark = Math.random()
@@ -1977,8 +1993,10 @@ import './rastercoords.js'
         try {
           if(msg.reset) {
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
-            self.current.assetsShownOnLevel = {}
+            self.current.shownOnLevel = {}
             out.reset = true
+            clearPrevious(msg, mark)
+            self.current.shownAssets = []
           }
 
           self.closeAssetInfo()
@@ -1986,42 +2004,43 @@ import './rastercoords.js'
           
           self.current.assetHistory.map(hist=>hist.remove())
           self.current.assetHistory.length = 0
+          
+          let multiple = Array.isArray(msg.asset)
+          let showAll = null === msg.asset
 
           let assetsShown = []
-          let multiple = Array.isArray(msg.asset)
-
-
-          if(multiple && msg.only) {
-            for(let level of self.config.levels) {
-              self.current.assetsShownOnLevel[''+level.index] = []
-            }
-
-            for(let assetID of msg.asset) {
-              let assetInst = self.asset.map[assetID]
-              let levelStr = ''+((assetInst.ent.map|0)-1)
-              self.current.assetsShownOnLevel[levelStr].push(assetID)
-            }
-          }
-          else if(true !== msg.levelAssets) {
-            self.current.assetsShownOnLevel = {}
-          }
-
+          
+          
           
           if(multiple ||
-             null === msg.asset ||
+             showAll ||
              msg.only ||
              msg.levelAssets
             ) {
-            let allAssetIDs = Object.keys(self.data.assetMap)
-            let assetIDList = multiple ? msg.asset : allAssetIDs
-            let showAll = null === msg.asset
+
+            
+            // Clear the map out of assets when there is a 'clear' message
+            if(msg.only) {
+              clearPrevious(msg, mark)
+              self.current.shownAssets = []
+              
+            }
+            
+            // append
+            if(multiple) {
+              self.current.shownAssets = [ ...new Set([ ...self.current.shownAssets, ...msg.asset ]) ]
+            }
+            
+            self.current.shownAssets = showAll ? Object.keys(self.data.assetMap) : self.current.shownAssets
+            
+            let assetIDList = self.current.shownAssets
 
             let stateName = msg.state
 
-            let assetList = (msg.only?allAssetIDs:assetIDList)
-
+            let assetList = assetIDList
             let prevAssetsOnLevel =
-                self.current.assetsShownOnLevel[''+self.loc.map]
+                self.current.assetsShownOnLevel[''+self.loc.map] || []
+            
             
             out.multiple = true
             let showargs = []
@@ -2036,19 +2055,13 @@ import './rastercoords.js'
                   continue
                 }
                 
-                let shown = showAll || -1!=assetIDList.indexOf(assetID)
+                let shown = showAll || true
                 
                 shown = 'hide'===msg.asset ? !shown : shown
 
                 shown = assetData.map-1 == self.loc.map ? shown : false
 
-                if(
-                  msg.levelAssets &&
-                    (null != prevAssetsOnLevel ||
-                     'level' === self.config.asset.set
-                    )
-                  )
-                {
+                if(msg.levelAssets && 0 < prevAssetsOnLevel.length) {
                   shown = prevAssetsOnLevel.includes(assetData.id)
                 }
                 
@@ -2068,7 +2081,6 @@ import './rastercoords.js'
                 }])
               }
             }
-
             if(0 < assetsShown.length) {
               self.current.assetsShownOnLevel[''+self.loc.map] = assetsShown
             }
@@ -2086,6 +2098,7 @@ import './rastercoords.js'
               ((jj)=>setTimeout(()=>showBatch(jj,jj+size),2*((j+1)/size)))(j)
             }
           }
+
 
 
           if('string' === typeof msg.asset) {
