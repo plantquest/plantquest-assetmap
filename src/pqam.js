@@ -559,8 +559,7 @@ import './rastercoords.js'
       }, self.domInterval)
     }
 
-    self.send = async function(...msgs) {
-      let msg = msgs.reduce((acc, msg) => Seneca.util.deepextend(acc, Seneca.util.Jsonic(msg)), {})
+    self.send = async function(msg) {
       
       self.log('send', 'in', msg)
       
