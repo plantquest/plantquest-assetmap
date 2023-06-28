@@ -2029,8 +2029,10 @@ import './rastercoords.js'
               let set = new Set([...self.current.shownAssets, ...msg.asset])
 
               if('asset' === msg.hide) {
-                msg.asset.forEach(asset => set.delete(asset))
-                clearPrevious(msg.asset, msg, mark)
+                msg.asset.forEach(asset => {
+                  set.delete(asset)
+                  clearPrevious([asset], msg, mark)
+                })
               }
               self.current.shownAssets = [
                 ...set
