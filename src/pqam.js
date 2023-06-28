@@ -1967,8 +1967,8 @@ import './rastercoords.js'
         return assetEnts
       }
       
-      async function clearPrevious(msg, mark) {
-        for(let assetID of self.current.shownAssets ) {
+      async function clearPrevious(assetList, msg, mark) {
+        for(let assetID of assetList) {
           let assetInst = self.asset.map[assetID]
           assetInst.show({
             pqam: self,
@@ -1993,7 +1993,7 @@ import './rastercoords.js'
           if(msg.reset) {
             await this.post('srv:plantquest,part:assetmap,cmd:reset')
             out.reset = true
-            clearPrevious(msg, mark)
+            clearPrevious(self.current.shownAssets, msg, mark)
             self.current.shownAssets = []
           }
 
@@ -2019,14 +2019,22 @@ import './rastercoords.js'
             
             // Clear the map out of assets when there is a 'clear' message
             if(msg.only) {
-              clearPrevious(msg, mark)
+              clearPrevious(self.current.shownAssets, msg, mark)
               self.current.shownAssets = []
               
             }
             
             // append
             if(multiple) {
-              self.current.shownAssets = [ ...new Set([ ...self.current.shownAssets, ...msg.asset ]) ]
+              let set = new Set([...self.current.shownAssets, ...msg.asset])
+
+              if('asset' === msg.hide) {
+                msg.asset.forEach(asset => set.delete(asset))
+                clearPrevious(msg.asset, msg, mark)
+              }
+              self.current.shownAssets = [
+                ...set
+              ]
             }
             
             self.current.shownAssets = showAll ? Object.keys(self.data.assetMap) : self.current.shownAssets
