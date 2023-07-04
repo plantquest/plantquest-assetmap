@@ -496,7 +496,7 @@ import './rastercoords.js'
               'aim:web,on:assetmap,list:asset',
               {query:{t_m:{$gte:(Date.now()-(2*self.config.update.interval))}}}
             )
-
+        console.log('update res: ', res)
         if(res.ok) {
           let updatedAssets = res.list
 
@@ -1847,6 +1847,7 @@ import './rastercoords.js'
           .message('remove:'+entname, async function removeItem(msg) {
             let { id } = msg
             let res = await this.post('aim:web,on:assetmap', { remove:entname, id } )
+            console.log('rm res: ', res)
 
             if(res.ok) {
               self.emit({
