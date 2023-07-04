@@ -153,6 +153,9 @@ import './rastercoords.js'
         
         asset: {
           cluster: true,
+          label: true,
+          click: true,
+          cmp: 'circle',
           set: 'global', // 'level'|'global'
           prepare: (x)=>x,
         },
@@ -2265,14 +2268,30 @@ import './rastercoords.js'
     
     buildIndicator(args) {
       const {
-        color
+        pqam,
+        color,
       } = args
-      return L.circle(
-        c_asset_coords({x: this.ent.xco, y: this.ent.yco}), {
-          radius: 0.2,
-          color,
-          weight: 2,
-        })
+      
+      let indicator = pqam.config.asset.cmp
+      let indicators = {
+        'circle': () => L.circle(
+          c_asset_coords({x: this.ent.xco, y: this.ent.yco}), {
+            radius: 0.2,
+            color,
+            weight: 2,
+          }),
+        'marker': () => L.marker(
+          c_asset_coords({x: this.ent.xco, y: this.ent.yco}),
+          { icon: L.icon({
+              iconUrl: '/green-pin.png',
+              iconSize: [32, 37],
+              iconAnchor: [16, 37],
+              popupAnchor: [-3, -37],
+            }) 
+          })
+      }
+      
+      return indicators[indicator]()
     }
 
 
@@ -2291,6 +2310,8 @@ import './rastercoords.js'
 
       let asset = this
       let assetID = asset.ent.id
+      let showLabel = pqam.config.asset.label
+      let assetClick = pqam.config.asset.click
 
       let assetCurrent =
           pqam.current.asset[assetID] || (pqam.current.asset[assetID]={})
@@ -2343,6 +2364,9 @@ import './rastercoords.js'
 
 
         const onAssetClick = ()=>{
+          if(!assetClick) {
+            return
+          }
           if(pqam.current.assetInfoShown[assetProps.id]) {
             pqam.closeAssetInfo()
           }
@@ -2386,7 +2410,7 @@ import './rastercoords.js'
           }
 
           assetCurrent.indicator = asset
-            .buildIndicator({ color })
+            .buildIndicator({ color, pqam })
             .on('click', onAssetClick)
         }
 
@@ -2400,13 +2424,13 @@ import './rastercoords.js'
             { icon: L.divIcon({
               className: 'plantquest-assetmap-asset-marker',
               // iconSize: [38, 95]
-              html: '<span class="'+
+              html: showLabel ? '<span class="'+
                 'plantquest-font-asset-label '+
-              `">${assetProps.tag.replace(/\s+/g,'&nbsp;')}</span>`
+              `">${assetProps.tag.replace(/\s+/g,'&nbsp;')}</span>` : ``
             }) }
           )
 
-          asset.label.on('click', onAssetClick)
+          showLabel && asset.label.on('click', onAssetClick)
           
           asset.label.id$ = Math.random()
           asset.label.assetID = assetID
