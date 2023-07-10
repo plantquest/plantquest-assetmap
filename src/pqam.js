@@ -2037,8 +2037,10 @@ import './rastercoords.js'
             
             console.log('shownAssets: ', self.current.shownAssets.length)
             
+            self.current.shownAssets = showAll ? new Set(Object.keys(self.data.assetMap)) : self.current.shownAssets
+            
             // Clear the map out of assets when there is a 'clear' message
-            if(msg.only) {
+            if(msg.only || (showAll && 'asset' === msg.hide) ) {
               clearPrevious(self.current.shownAssets, msg, mark)
               self.current.shownAssets.clear()
               
@@ -2057,7 +2059,7 @@ import './rastercoords.js'
               }
             }
             
-            self.current.shownAssets = showAll ? new Set(Object.keys(self.data.assetMap)) : self.current.shownAssets
+            
             
             let assetIDList = self.current.shownAssets
 
