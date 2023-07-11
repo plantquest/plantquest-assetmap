@@ -13332,7 +13332,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "4.2.1";
+  const version = "4.2.2";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -31499,10 +31499,7 @@ var __async = (__this, __arguments, generator) => {
         provide: true
       },
       transaction: {
-        active: false,
-        rollback: {
-          onerror: true
-        }
+        active: false
       }
     };
     function entity2() {
@@ -31517,33 +31514,31 @@ var __async = (__this, __arguments, generator) => {
       const store2 = (0, store_1.Store)();
       seneca.add("role:basic,cmd:generate_id", generate_id);
       if (opts.transaction.active) {
-        if (opts.transaction.rollback.onerror) {
-          seneca.on("act-err", function entity_act_err(msg2, err) {
-            var _a, _b;
-            if ("sys" === msg2.entity && "rollback" === msg2.transaction) {
-              return;
+        seneca.on("act-err", function entity_act_err(msg2, err) {
+          var _a, _b;
+          if ("sys" === msg2.entity && "rollback" === msg2.transaction) {
+            return;
+          }
+          let instance = this;
+          let custom = (_a = instance === null || instance === void 0 ? void 0 : instance.fixedmeta) === null || _a === void 0 ? void 0 : _a.custom;
+          let tmap = ((_b = custom === null || custom === void 0 ? void 0 : custom.sys__entity) === null || _b === void 0 ? void 0 : _b.transaction) || {};
+          let txs = Object.values(tmap);
+          for (let tx of txs) {
+            if (null != tx.finish) {
+              continue;
             }
-            let instance = this;
-            let custom = (_a = instance === null || instance === void 0 ? void 0 : instance.fixedmeta) === null || _a === void 0 ? void 0 : _a.custom;
-            let tmap = ((_b = custom === null || custom === void 0 ? void 0 : custom.sys__entity) === null || _b === void 0 ? void 0 : _b.transaction) || {};
-            let txs = Object.values(tmap);
-            for (let tx of txs) {
-              if (null != tx.finish) {
-                continue;
-              }
-              let get_transaction = () => tx;
-              let canon = tx.canon;
-              tx.finish = Date.now();
-              instance.act("sys:entity,transaction:rollback", __spreadProps(__spreadValues({}, canon), {
-                get_transaction,
-                msg: msg2,
-                err
-              }), function(err2, result) {
-                tx.result = result;
-              });
-            }
-          });
-        }
+            let get_transaction = () => tx;
+            let canon = tx.canon;
+            tx.finish = Date.now();
+            instance.act("sys:entity,transaction:rollback", __spreadProps(__spreadValues({}, canon), {
+              get_transaction,
+              msg: msg2,
+              err
+            }), function(err2, result) {
+              tx.result = result;
+            });
+          }
+        });
       }
       seneca.util.parsecanon = seneca.util.parsecanon || make_entity_1.MakeEntity.parsecanon;
       const sd = seneca.delegate();
@@ -31569,7 +31564,7 @@ var __async = (__this, __arguments, generator) => {
           let emptyEntity = this();
           return get_state(emptyEntity, canonspec);
         };
-        entityAPI.transaction = function(canonspec, extra) {
+        entityAPI.begin = function(canonspec, extra) {
           return __async(this, null, function* () {
             if (!opts.transaction.active) {
               return null;
@@ -31583,7 +31578,7 @@ var __async = (__this, __arguments, generator) => {
               throw err;
             }
             let result = yield new Promise((res, rej) => {
-              state.instance.act("sys:entity,transaction:transaction", __spreadValues(__spreadValues({}, state.canon), extra || {}), function(err, out) {
+              state.instance.act("sys:entity,transaction:begin", __spreadValues(__spreadValues({}, state.canon), extra || {}), function(err, out) {
                 return err ? rej(err) : res(out);
               });
             });
@@ -31609,15 +31604,12 @@ var __async = (__this, __arguments, generator) => {
             });
             transaction.sid = transactionInstance.id;
             transaction.did = transactionInstance.did;
-            transactionInstance.entity = function(...args) {
-              return state.instance.entity.call(transactionInstance, ...args);
-            };
+            transactionInstance.entity = state.instance.entity.bind(transactionInstance);
             Object.assign(transactionInstance.entity, state.instance.entity);
-            transactionInstance.entity.did = transactionInstance.did;
             return transactionInstance;
           });
         };
-        entityAPI.commit = function(canonspec, extra) {
+        entityAPI.end = function(canonspec, extra) {
           return __async(this, null, function* () {
             if (!opts.transaction.active) {
               return null;
@@ -31631,7 +31623,7 @@ var __async = (__this, __arguments, generator) => {
             let get_transaction = () => transaction;
             transaction.finish = Date.now();
             let result = yield new Promise((res, rej) => {
-              state.instance.act("sys:entity,transaction:commit", __spreadProps(__spreadValues(__spreadValues({}, state.canon), extra || {}), {
+              state.instance.act("sys:entity,transaction:end", __spreadProps(__spreadValues(__spreadValues({}, state.canon), extra || {}), {
                 get_transaction
               }), function(err, out) {
                 return err ? rej(err) : res(out);
@@ -31955,6 +31947,9 @@ var __async = (__this, __arguments, generator) => {
           ],
           asset: {
             cluster: true,
+            label: true,
+            click: true,
+            cmp: "circle",
             set: "global",
             // 'level'|'global'
             prepare: (x) => x
@@ -31988,6 +31983,7 @@ var __async = (__this, __arguments, generator) => {
           assetInfoShown: {},
           assetHistory: [],
           assetsShownOnLevel: {},
+          shownAssets: /* @__PURE__ */ new Set(),
           al: {}
         },
         state: {
@@ -32708,7 +32704,18 @@ var __async = (__this, __arguments, generator) => {
               whence: "setAsset"
             });
           } else {
-            delete self2.current.asset[assetInst.id];
+            let show = assetEnt.map - 1 == self2.loc.map;
+            show && assetInst.show({
+              pqam: self2,
+              assetID: assetEnt.id,
+              hide: false,
+              blink: false,
+              showRoom: false,
+              infobox: false,
+              whence: "setAsset"
+            });
+            self2.current.shownAssets.add(assetEnt.id);
+            self2.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room };
           }
           return assetEnt;
         } catch (e) {
@@ -33038,7 +33045,6 @@ var __async = (__this, __arguments, generator) => {
               srv: "plantquest",
               part: "assetmap",
               show: "asset",
-              asset: null,
               levelAssets: true
             });
           }
@@ -33304,6 +33310,23 @@ var __async = (__this, __arguments, generator) => {
               return assetEnts;
             });
           }
+          function clearPrevious(assetList, msg2, mark) {
+            return __async(this, null, function* () {
+              for (let assetID of assetList) {
+                let assetInst = self2.asset.map[assetID];
+                assetInst.show({
+                  pqam: self2,
+                  // state: undefined,
+                  hide: true,
+                  blink: !!msg2.blink,
+                  showRoom: false,
+                  infobox: false,
+                  whence: "multiple~" + mark,
+                  closeinfo: false
+                });
+              }
+            });
+          }
           function showAssetMsg(msg2) {
             return __async(this, null, function* () {
               let mark = Math.random();
@@ -33312,39 +33335,40 @@ var __async = (__this, __arguments, generator) => {
               try {
                 if (msg2.reset) {
                   yield this.post("srv:plantquest,part:assetmap,cmd:reset");
-                  self2.current.assetsShownOnLevel = {};
                   out.reset = true;
+                  clearPrevious(self2.current.shownAssets, msg2, mark);
+                  self2.current.shownAssets.clear();
                 }
                 self2.closeAssetInfo();
                 self2.closeClusterInfo();
                 self2.current.assetHistory.map((hist) => hist.remove());
                 self2.current.assetHistory.length = 0;
-                let assetsShown = [];
                 let multiple = Array.isArray(msg2.asset);
-                if (multiple && msg2.only) {
-                  for (let level of self2.config.levels) {
-                    self2.current.assetsShownOnLevel["" + level.index] = [];
-                  }
-                  for (let assetID of msg2.asset) {
-                    let assetInst = self2.asset.map[assetID];
-                    let levelStr = "" + ((assetInst.ent.map | 0) - 1);
-                    self2.current.assetsShownOnLevel[levelStr].push(assetID);
-                  }
-                } else if (true !== msg2.levelAssets) {
-                  self2.current.assetsShownOnLevel = {};
-                }
-                if (multiple || null === msg2.asset || msg2.only || msg2.levelAssets) {
+                let showAll = null === msg2.asset;
+                if (multiple || showAll || msg2.only || msg2.levelAssets) {
                   let showBatch = function(n, m2) {
                     for (let i = n; i < m2; i++) {
                       showargs[i] && showargs[i][0].show(showargs[i][1]);
                     }
                   };
-                  let allAssetIDs = Object.keys(self2.data.assetMap);
-                  let assetIDList = multiple ? msg2.asset : allAssetIDs;
-                  let showAll = null === msg2.asset;
+                  self2.current.shownAssets = showAll ? new Set(Object.keys(self2.data.assetMap)) : self2.current.shownAssets;
+                  if (msg2.only || showAll && "asset" === msg2.hide) {
+                    clearPrevious(self2.current.shownAssets, msg2, mark);
+                    self2.current.shownAssets.clear();
+                  }
+                  if (multiple) {
+                    let set = self2.current.shownAssets;
+                    msg2.asset.forEach((a) => set.add(a));
+                    if ("asset" === msg2.hide) {
+                      msg2.asset.forEach((asset) => {
+                        set.delete(asset);
+                        clearPrevious([asset], msg2, mark);
+                      });
+                    }
+                  }
+                  let assetIDList = self2.current.shownAssets;
                   let stateName = msg2.state;
-                  let assetList = msg2.only ? allAssetIDs : assetIDList;
-                  let prevAssetsOnLevel = self2.current.assetsShownOnLevel["" + self2.loc.map];
+                  let assetList = assetIDList;
                   out.multiple = true;
                   let showargs = [];
                   for (let assetID of assetList) {
@@ -33354,15 +33378,9 @@ var __async = (__this, __arguments, generator) => {
                       if (msg2.asset === assetData.id) {
                         continue;
                       }
-                      let shown = showAll || -1 != assetIDList.indexOf(assetID);
+                      let shown = showAll || true;
                       shown = "hide" === msg2.asset ? !shown : shown;
                       shown = assetData.map - 1 == self2.loc.map ? shown : false;
-                      if (msg2.levelAssets && (null != prevAssetsOnLevel || "level" === self2.config.asset.set)) {
-                        shown = prevAssetsOnLevel.includes(assetData.id);
-                      }
-                      if (shown) {
-                        assetsShown.push(assetInst.ent.id);
-                      }
                       showargs.push([assetInst, {
                         pqam: self2,
                         state: stateName,
@@ -33374,11 +33392,6 @@ var __async = (__this, __arguments, generator) => {
                         closeinfo: false
                       }]);
                     }
-                  }
-                  if (0 < assetsShown.length) {
-                    self2.current.assetsShownOnLevel["" + self2.loc.map] = assetsShown;
-                  } else {
-                    self2.current.assetsShownOnLevel["" + self2.loc.map] = [];
                   }
                   let size = 444;
                   for (let j = 0; j < showargs.length; j += size) {
@@ -33425,6 +33438,12 @@ var __async = (__this, __arguments, generator) => {
                       }
                     }
                     setTimeout(() => {
+                      let set = self2.current.shownAssets;
+                      if ("asset" === msg2.hide) {
+                        set.delete(msg2.asset);
+                      } else {
+                        set.add(msg2.asset);
+                      }
                       assetInst.show({
                         pqam: self2,
                         state: msg2.state,
@@ -33506,16 +33525,32 @@ var __async = (__this, __arguments, generator) => {
       }
       buildIndicator(args) {
         const {
+          pqam,
           color
         } = args;
-        return L$1.circle(
-          c_asset_coords({ x: this.ent.xco, y: this.ent.yco }),
-          {
-            radius: 0.2,
-            color,
-            weight: 2
-          }
-        );
+        let indicator = pqam.config.asset.cmp;
+        let indicators = {
+          "circle": () => L$1.circle(
+            c_asset_coords({ x: this.ent.xco, y: this.ent.yco }),
+            {
+              radius: 0.2,
+              color,
+              weight: 2
+            }
+          ),
+          "marker": () => L$1.marker(
+            c_asset_coords({ x: this.ent.xco, y: this.ent.yco }),
+            {
+              icon: L$1.icon({
+                iconUrl: "/green-pin.png",
+                iconSize: [32, 37],
+                iconAnchor: [16, 37],
+                popupAnchor: [-3, -37]
+              })
+            }
+          )
+        };
+        return indicators[indicator]();
       }
       show(spec) {
         let {
@@ -33531,6 +33566,8 @@ var __async = (__this, __arguments, generator) => {
         } = spec;
         let asset = this;
         let assetID = asset.ent.id;
+        let showLabel = pqam.config.asset.label;
+        let assetClick = pqam.config.asset.click;
         let assetCurrent2 = pqam.current.asset[assetID] || (pqam.current.asset[assetID] = {});
         assetCurrent2.assetID = assetID;
         let defaultState = Object.keys(pqam.config.states)[0];
@@ -33566,6 +33603,9 @@ var __async = (__this, __arguments, generator) => {
           let ax = assetPoint[1];
           let ay = assetPoint[0];
           const onAssetClick = () => {
+            if (!assetClick) {
+              return;
+            }
             if (pqam.current.assetInfoShown[assetProps.id]) {
               pqam.closeAssetInfo();
             } else {
@@ -33596,7 +33636,7 @@ var __async = (__this, __arguments, generator) => {
               pqam.layer.asset.removeLayer(asset.label);
               delete asset.label;
             }
-            assetCurrent2.indicator = asset.buildIndicator({ color }).on("click", onAssetClick);
+            assetCurrent2.indicator = asset.buildIndicator({ color, pqam }).on("click", onAssetClick);
           }
           assetCurrent2.blink = null == blink ? false : blink;
           if (null == asset.label) {
@@ -33605,10 +33645,10 @@ var __async = (__this, __arguments, generator) => {
               { icon: L$1.divIcon({
                 className: "plantquest-assetmap-asset-marker",
                 // iconSize: [38, 95]
-                html: `<span class="plantquest-font-asset-label ">${assetProps.tag.replace(/\s+/g, "&nbsp;")}</span>`
+                html: showLabel ? `<span class="plantquest-font-asset-label ">${assetProps.tag.replace(/\s+/g, "&nbsp;")}</span>` : ``
               }) }
             );
-            asset.label.on("click", onAssetClick);
+            showLabel && asset.label.on("click", onAssetClick);
             asset.label.id$ = Math.random();
             asset.label.assetID = assetID;
             pqam.current.al[assetID] = pqam.current.al[assetID] || [];
