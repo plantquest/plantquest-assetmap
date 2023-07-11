@@ -508,7 +508,6 @@ import './rastercoords.js'
             self.setAsset(assetEnt)
           }
         }
-        console.log('update res: ', res)
         
       }, self.config.update.interval)
     }
@@ -1161,7 +1160,6 @@ import './rastercoords.js'
         
         assetInst.ent = assetEnt
         assetInst = self.config.asset.prepare(assetInst) || assetInst
-        console.log('assetInst: ', assetInst)
           
         if(assetInst.shown) {
           self.layer.asset.removeLayer(assetInst.label)
@@ -1205,9 +1203,7 @@ import './rastercoords.js'
             infobox: false,
             whence: 'setAsset',
           })
-          console.log('currentAssets: ', self.current.shownAssets)
           self.current.shownAssets.add(assetEnt.id)
-          console.log('deps:: ', self.data.deps.cp.asset)
           self.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room }
           // delete self.current.asset[assetInst.id]
         }
@@ -2006,7 +2002,6 @@ import './rastercoords.js'
       async function showAssetMsg(msg) {
         let mark = Math.random()
         let out = { multiple: false }
-        console.log('show Msg: ', msg)
 
         dlog.push('showAssetMsg '+mark, msg)
         
@@ -2034,8 +2029,6 @@ import './rastercoords.js'
              msg.only ||
              msg.levelAssets
             ) {
-            
-            console.log('shownAssets: ', self.current.shownAssets.length)
             
             self.current.shownAssets = showAll ? new Set(Object.keys(self.data.assetMap)) : self.current.shownAssets
             
@@ -2115,7 +2108,6 @@ import './rastercoords.js'
 
           if('string' === typeof msg.asset) {
             let assetInst = self.asset.map[msg.asset]
-            console.log('assetInst0: ', assetInst)
             if(null == assetInst) {
               out.err = new Error('unknown asset: '+msg.asset)
               return out
@@ -2173,7 +2165,6 @@ import './rastercoords.js'
                 } else {
                   set.add(msg.asset)
                 }
-                console.log('set size: ', set.size)
 
                 assetInst.show({
                   pqam: self,
