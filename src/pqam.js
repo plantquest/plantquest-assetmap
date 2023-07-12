@@ -495,10 +495,16 @@ import './rastercoords.js'
     self.updates = function() {
       clearInterval(self.current.updateInterval)
       self.current.updateInterval = setInterval(async function() {
+        let query = {
+          project_id: self.config.project_id,
+          plant_id: self.config.plant_id,
+          stage: self.config.stage,
+          t_m:{$gte:(Date.now()-(2*self.config.update.interval))}
+        }
         let res =
             await self.seneca.post(
               'aim:web,on:assetmap,list:asset',
-              {query:{t_m:{$gte:(Date.now()-(2*self.config.update.interval))}}}
+              { query, }
             )
 
         if(res.ok) {
