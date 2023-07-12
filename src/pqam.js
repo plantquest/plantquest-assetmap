@@ -1204,6 +1204,7 @@ import './rastercoords.js'
             whence: 'setAsset',
           })
           self.current.shownAssets.add(assetEnt.id)
+          self.data.deps.cp.asset = self.data.deps.cp.asset || {}
           self.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room }
           // delete self.current.asset[assetInst.id]
         }
