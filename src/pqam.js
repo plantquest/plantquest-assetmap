@@ -1798,11 +1798,11 @@ import './rastercoords.js'
 
           .message('save:'+entname, async function saveItem(msg) {
             let item = msg[entname] || msg.item
-            item = { ...item, ...{
+            item = { ...{
               project_id: self.config.project_id,
               plant_id: self.config.plant_id,
               stage: self.config.stage,
-            } }
+            }, ...item }
             
             let res = await this.post('aim:web,on:assetmap', { save:entname, item } )
 
