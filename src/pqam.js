@@ -140,16 +140,7 @@ import './rastercoords.js'
           zoom: null // null => appear at mapMaxZoom
         },
 
-        plants: [
-          {
-            "name": "Building 112-AP1",
-            "center": [4780, 904]
-          },
-          {
-            "name": "Building 118-AP1",
-            "center": [2316,3402]
-          }
-        ],
+        plants: [],
         
         asset: {
           cluster: true,
