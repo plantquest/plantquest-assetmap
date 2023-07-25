@@ -2461,8 +2461,6 @@ import './rastercoords.js'
           let textField = pqam.config.asset.label.field
           let text = assetProps[textField].replace(/\s+/g,'&nbsp;')
 
-          console.log('LABEL-TEXT', text, textField)
-          
           // NOTE: this marker gets clustered!
           asset.label = L.marker(
             c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),

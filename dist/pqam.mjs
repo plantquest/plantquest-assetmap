@@ -13325,7 +13325,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "4.3.0";
+const version = "4.3.1";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -33679,7 +33679,6 @@ L.RasterCoords.prototype = {
         if (null == asset.label) {
           let textField = pqam.config.asset.label.field;
           let text = assetProps[textField].replace(/\s+/g, "&nbsp;");
-          console.log("LABEL-TEXT", text, textField);
           asset.label = L$1.marker(
             c_asset_coords({ x: ax + 12, y: ay - 5 + 10 * Math.random() }),
             { icon: L$1.divIcon({
