@@ -59,10 +59,7 @@ function getAugmentedNamespace(n) {
   if (typeof f == "function") {
     var a = function a2() {
       if (this instanceof a2) {
-        var args = [null];
-        args.push.apply(args, arguments);
-        var Ctor = Function.bind.apply(f, args);
-        return new Ctor();
+        return Reflect.construct(f, arguments, this.constructor);
       }
       return f.apply(this, arguments);
     };
@@ -31502,7 +31499,10 @@ var entity_1 = entity.exports;
       provide: true
     },
     transaction: {
-      active: false
+      active: false,
+      rollback: {
+        onerror: true
+      }
     }
   };
   function entity2() {
@@ -31517,31 +31517,33 @@ var entity_1 = entity.exports;
     const store2 = (0, store_1.Store)();
     seneca.add("role:basic,cmd:generate_id", generate_id);
     if (opts.transaction.active) {
-      seneca.on("act-err", function entity_act_err(msg2, err) {
-        var _a, _b;
-        if ("sys" === msg2.entity && "rollback" === msg2.transaction) {
-          return;
-        }
-        let instance = this;
-        let custom = (_a = instance === null || instance === void 0 ? void 0 : instance.fixedmeta) === null || _a === void 0 ? void 0 : _a.custom;
-        let tmap = ((_b = custom === null || custom === void 0 ? void 0 : custom.sys__entity) === null || _b === void 0 ? void 0 : _b.transaction) || {};
-        let txs = Object.values(tmap);
-        for (let tx of txs) {
-          if (null != tx.finish) {
-            continue;
+      if (opts.transaction.rollback.onerror) {
+        seneca.on("act-err", function entity_act_err(msg2, err) {
+          var _a, _b;
+          if ("sys" === msg2.entity && "rollback" === msg2.transaction) {
+            return;
           }
-          let get_transaction = () => tx;
-          let canon = tx.canon;
-          tx.finish = Date.now();
-          instance.act("sys:entity,transaction:rollback", __spreadProps(__spreadValues({}, canon), {
-            get_transaction,
-            msg: msg2,
-            err
-          }), function(err2, result) {
-            tx.result = result;
-          });
-        }
-      });
+          let instance = this;
+          let custom = (_a = instance === null || instance === void 0 ? void 0 : instance.fixedmeta) === null || _a === void 0 ? void 0 : _a.custom;
+          let tmap = ((_b = custom === null || custom === void 0 ? void 0 : custom.sys__entity) === null || _b === void 0 ? void 0 : _b.transaction) || {};
+          let txs = Object.values(tmap);
+          for (let tx of txs) {
+            if (null != tx.finish) {
+              continue;
+            }
+            let get_transaction = () => tx;
+            let canon = tx.canon;
+            tx.finish = Date.now();
+            instance.act("sys:entity,transaction:rollback", __spreadProps(__spreadValues({}, canon), {
+              get_transaction,
+              msg: msg2,
+              err
+            }), function(err2, result) {
+              tx.result = result;
+            });
+          }
+        });
+      }
     }
     seneca.util.parsecanon = seneca.util.parsecanon || make_entity_1.MakeEntity.parsecanon;
     const sd = seneca.delegate();
@@ -31567,7 +31569,7 @@ var entity_1 = entity.exports;
         let emptyEntity = this();
         return get_state(emptyEntity, canonspec);
       };
-      entityAPI.begin = function(canonspec, extra) {
+      entityAPI.transaction = function(canonspec, extra) {
         return __async(this, null, function* () {
           if (!opts.transaction.active) {
             return null;
@@ -31581,7 +31583,7 @@ var entity_1 = entity.exports;
             throw err;
           }
           let result = yield new Promise((res, rej) => {
-            state.instance.act("sys:entity,transaction:begin", __spreadValues(__spreadValues({}, state.canon), extra || {}), function(err, out) {
+            state.instance.act("sys:entity,transaction:transaction", __spreadValues(__spreadValues({}, state.canon), extra || {}), function(err, out) {
               return err ? rej(err) : res(out);
             });
           });
@@ -31607,12 +31609,15 @@ var entity_1 = entity.exports;
           });
           transaction.sid = transactionInstance.id;
           transaction.did = transactionInstance.did;
-          transactionInstance.entity = state.instance.entity.bind(transactionInstance);
+          transactionInstance.entity = function(...args) {
+            return state.instance.entity.call(transactionInstance, ...args);
+          };
           Object.assign(transactionInstance.entity, state.instance.entity);
+          transactionInstance.entity.did = transactionInstance.did;
           return transactionInstance;
         });
       };
-      entityAPI.end = function(canonspec, extra) {
+      entityAPI.commit = function(canonspec, extra) {
         return __async(this, null, function* () {
           if (!opts.transaction.active) {
             return null;
@@ -31626,7 +31631,7 @@ var entity_1 = entity.exports;
           let get_transaction = () => transaction;
           transaction.finish = Date.now();
           let result = yield new Promise((res, rej) => {
-            state.instance.act("sys:entity,transaction:end", __spreadProps(__spreadValues(__spreadValues({}, state.canon), extra || {}), {
+            state.instance.act("sys:entity,transaction:commit", __spreadProps(__spreadValues(__spreadValues({}, state.canon), extra || {}), {
               get_transaction
             }), function(err, out) {
               return err ? rej(err) : res(out);
@@ -31949,6 +31954,9 @@ L.RasterCoords.prototype = {
           }
         ],
         asset: {
+          label: {
+            field: "tag"
+          },
           cluster: true,
           label: true,
           click: true,
@@ -32228,7 +32236,39 @@ L.RasterCoords.prototype = {
           if (res.ok) {
             let updatedAssets = res.list;
             for (let assetEnt of updatedAssets) {
-              self2.setAsset(assetEnt);
+              try {
+                let existing = self2.data.assetMap[assetEnt.id];
+                if (existing.t_m < assetEnt.t_m) {
+                  self2.data.assetMap[assetEnt.id] = assetEnt;
+                  let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
+                  if (-1 < index2) {
+                    self2.data.asset[index2] = assetEnt;
+                  }
+                  let assetInst = self2.asset.map[assetEnt.id];
+                  assetInst.ent = assetEnt;
+                  assetInst = self2.config.asset.prepare(assetInst) || assetInst;
+                  if (assetInst.shown) {
+                    self2.layer.asset.removeLayer(assetInst.label);
+                    assetInst.label = null;
+                    assetInst.indicator.remove();
+                    assetInst.indicator = null;
+                    assetInst.show({
+                      pqam: self2,
+                      assetID: assetEnt.id,
+                      // stateName: assetCurrent.stateName,
+                      hide: false,
+                      blink: false,
+                      showRoom: false,
+                      infobox: assetInst.infobox,
+                      whence: "updatedAssets"
+                    });
+                  } else {
+                    delete self2.current.asset[assetInst.id];
+                  }
+                }
+              } catch (e) {
+                self2.log("ERROR", "UPDATE", assetEnt, e);
+              }
             }
           }
         });
@@ -32480,21 +32520,21 @@ L.RasterCoords.prototype = {
         self2.map.on("layeradd", (event) => {
           let layer = event.layer;
           if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
-            let assetCurrent2 = self2.current.asset[layer.assetID];
-            if (null == assetCurrent2)
+            let assetInst = self2.asset.map[layer.assetID];
+            if (null == assetInst)
               return;
-            if (assetCurrent2) {
-              assetCurrent2.indicator.addTo(self2.layer.indicator);
+            if (assetInst) {
+              assetInst.indicator.addTo(self2.layer.indicator);
             }
           }
         });
         self2.map.on("layerremove", (event) => {
           let layer = event.layer;
           if (layer instanceof L$1.Marker && !(layer instanceof L$1.MarkerCluster)) {
-            let assetCurrent2 = self2.current.asset[layer.assetID];
-            if (assetCurrent2) {
-              if (assetCurrent2.indicator) {
-                assetCurrent2.indicator.remove();
+            let assetInst = self2.asset.map[layer.assetID];
+            if (assetInst) {
+              if (assetInst.indicator) {
+                assetInst.indicator.remove();
               }
             }
           }
@@ -32829,11 +32869,11 @@ L.RasterCoords.prototype = {
       let newPriority = Object.keys(self2.config.states).indexOf(newStateDef.stateName);
       let assets = (self2.data.deps.pc.room[roomID] ? self2.data.deps.pc.room[roomID].asset : []) || [];
       for (let assetID of assets) {
-        let assetState = self2.current.asset[assetID];
-        if (assetState && assetState.stateName) {
-          let stateDef = self2.config.states[assetState.stateName];
+        let assetInst = self2.asset.map[assetID];
+        if (assetInst && assetInst.state) {
+          let stateDef = self2.config.states[assetInst.state];
           if ("alert" === stateDef.marker) {
-            let priority = Object.keys(self2.config.states).indexOf(assetState.stateName);
+            let priority = Object.keys(self2.config.states).indexOf(assetInst.state);
             if (newPriority < priority) {
               actualStateDef = stateDef;
             }
@@ -32963,15 +33003,14 @@ L.RasterCoords.prototype = {
       }
     };
     self2.clearRoomAssets = function(roomID) {
-      for (let assetID in self2.current.asset) {
-        let assetCurrent2 = self2.current.asset[assetID];
-        let asset = self2.asset.map[assetID];
+      for (let assetID in self2.asset.map) {
+        let assetInst = self2.asset.map[assetID];
         if (self2.data.deps.cp.asset[assetID].room !== roomID) {
-          if (assetCurrent2.indicator) {
-            assetCurrent2.indicator.remove(self2.layer.asset);
+          if (assetInst.indicator) {
+            assetInst.indicator.remove(self2.layer.asset);
           }
-          if (asset.label) {
-            asset.label.remove(self2.layer.asset);
+          if (assetInst.label) {
+            assetInst.label.remove(self2.layer.asset);
           }
         }
       }
@@ -32979,8 +33018,8 @@ L.RasterCoords.prototype = {
     self2.showRoomAssets = function(roomID) {
       let assets = (self2.data.deps.pc.room[roomID] ? self2.data.deps.pc.room[roomID].asset : []) || [];
       for (let assetID of assets) {
-        let assetCurrent2 = self2.current.asset[assetID];
-        if (assetCurrent2 && assetCurrent2.alarm) {
+        let assetInst = self2.asset.map[assetID];
+        if (assetInst && assetInst.alarm) {
           self2.showAsset({
             assetID,
             // stateName: assetCurrent.alarm,
@@ -33530,6 +33569,7 @@ L.RasterCoords.prototype = {
       __publicField(this, "shown", null);
       __publicField(this, "label", null);
       __publicField(this, "state", null);
+      __publicField(this, "alarm", null);
       this.ent = ent;
       this.ctx = ctx;
     }
@@ -33578,8 +33618,6 @@ L.RasterCoords.prototype = {
       let assetID = asset.ent.id;
       let showLabel = pqam.config.asset.label;
       let assetClick = pqam.config.asset.click;
-      let assetCurrent2 = pqam.current.asset[assetID] || (pqam.current.asset[assetID] = {});
-      assetCurrent2.assetID = assetID;
       let defaultState = Object.keys(pqam.config.states)[0];
       state = state || this.state || defaultState;
       let stateDef = pqam.config.states[state] || pqam.config.states[defaultState];
@@ -33593,17 +33631,13 @@ L.RasterCoords.prototype = {
           return;
         }
         asset.infobox = infobox == null ? true : !!infobox;
-        assetCurrent2.assetID = assetID;
-        assetCurrent2.xco = assetProps.xco;
-        assetCurrent2.yco = assetProps.yco;
         if (hide) {
           asset.hide({
-            pqam,
-            assetCurrent: assetCurrent2
+            pqam
           });
           return;
         } else if (infobox) {
-          pqam.current.assetInfoShown[assetID] = assetCurrent2;
+          pqam.current.assetInfoShown[assetID] = asset;
         }
         asset.shown = true;
         let assetPoint = [
@@ -33635,27 +33669,30 @@ L.RasterCoords.prototype = {
             asset: assetProps
           });
         };
-        if (null == assetCurrent2.indicator || null != state && state !== this.state) {
+        if (null == asset.indicator || null != state && state !== this.state) {
           this.state = state;
           let color = stateDef.color;
-          if (assetCurrent2.indicator) {
-            assetCurrent2.indicator.remove();
-            delete assetCurrent2.indicator;
+          if (asset.indicator) {
+            asset.indicator.remove();
+            delete asset.indicator;
           }
           if (asset.label) {
             pqam.layer.asset.removeLayer(asset.label);
             delete asset.label;
           }
-          assetCurrent2.indicator = asset.buildIndicator({ color, pqam }).on("click", onAssetClick);
+          asset.indicator = asset.buildIndicator({ color, pqam }).on("click", onAssetClick);
         }
-        assetCurrent2.blink = null == blink ? false : blink;
+        asset.blink = null == blink ? false : blink;
         if (null == asset.label) {
+          let textField = pqam.config.asset.label.field;
+          let text = assetProps[textField].replace(/\s+/g, "&nbsp;");
+          console.log("LABEL-TEXT", text, textField);
           asset.label = L$1.marker(
             c_asset_coords({ x: ax + 12, y: ay - 5 + 10 * Math.random() }),
             { icon: L$1.divIcon({
               className: "plantquest-assetmap-asset-marker",
               // iconSize: [38, 95]
-              html: showLabel ? `<span class="plantquest-font-asset-label ">${assetProps.tag.replace(/\s+/g, "&nbsp;")}</span>` : ``
+              html: showLabel ? `<span class="plantquest-font-asset-label ">${text}</span>` : ""
             }) }
           );
           showLabel && asset.label.on("click", onAssetClick);
@@ -33666,13 +33703,13 @@ L.RasterCoords.prototype = {
         }
         asset.label.addTo(pqam.layer.asset);
         if (!pqam.config.asset.cluster) {
-          assetCurrent2.indicator.addTo(pqam.layer.indicator);
+          asset.indicator.addTo(pqam.layer.indicator);
         }
         if (asset.infobox) {
           setTimeout(() => {
             pqam.openAssetInfo({
               asset: assetProps,
-              assetMarker: assetCurrent2.indicator,
+              assetMarker: asset.indicator,
               xco: assetProps.xco,
               yco: assetProps.yco
             });
@@ -33721,24 +33758,20 @@ L.RasterCoords.prototype = {
           e.message,
           e,
           assetID,
-          assetProps,
-          assetCurrent2
+          assetProps
         );
       }
     }
     hide(args) {
-      const {
-        pqam,
-        assetCurrent: assetCurrent2
-      } = args;
+      const { pqam } = args;
       let asset = this;
       let assetID = asset.ent.id;
       asset.shown = false;
       if (asset.label) {
         pqam.layer.asset.removeLayer(asset.label);
       }
-      if (assetCurrent2.indicator) {
-        assetCurrent2.indicator.remove();
+      if (asset.indicator) {
+        asset.indicator.remove();
       }
       delete pqam.current.assetInfoShown[assetID];
     }
