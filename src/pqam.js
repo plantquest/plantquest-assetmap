@@ -151,6 +151,9 @@ import './rastercoords.js'
         ],
         
         asset: {
+          label: {
+            field: 'tag',
+          },
           cluster: true,
           prepare: (x)=>x,
         },
@@ -2124,12 +2127,14 @@ import './rastercoords.js'
     label = null
     state = null
     alarm = null
+
     
     constructor(ent,ctx) {
       this.ent = ent
       this.ctx = ctx
     }
     
+
     buildIndicator(args) {
       const {
         color
@@ -2253,6 +2258,11 @@ import './rastercoords.js'
         asset.blink = null == blink ? false : blink
         
         if(null == asset.label) {
+          let textField = pqam.config.asset.label.field
+          let text = assetProps[textField].replace(/\s+/g,'&nbsp;')+'~'+textField
+
+          console.log('LABEL-TEXT', text, textField)
+          
           // NOTE: this marker gets clustered!
           asset.label = L.marker(
             c_asset_coords({x: ax+12, y: ay-5+(10*Math.random()) }),
@@ -2261,7 +2271,7 @@ import './rastercoords.js'
               // iconSize: [38, 95]
               html: '<span class="'+
                 'plantquest-font-asset-label '+
-              `">${assetProps.tag.replace(/\s+/g,'&nbsp;')}</span>`
+              `">${text}</span>`
             }) }
           )
 
