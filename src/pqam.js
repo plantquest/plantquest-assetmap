@@ -1989,9 +1989,22 @@ import './rastercoords.js'
 
         .message('srv:plantquest,part:assetmap', async function(msg) {})
 
+        .message('close:assetinfo', closeAssetInfoMsg)
+        .message('close:clusterinfo', closeClusterInfoMsg)
+      
       await seneca.ready()
 
 
+      async function closeAssetInfoMsg(msg) {
+        self.closeAssetInfo()
+      }
+
+      
+      async function closeClusterInfoMsg(msg) {
+        self.closeClusterInfo()
+      }
+
+      
       async function loadAssetMsg(msg) {
         let assetIDs = msg.asset || []
         assetIDs = Array.isArray(assetIDs) ? assetIDs : [assetIDs]
