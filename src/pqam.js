@@ -559,6 +559,14 @@ import './rastercoords.js'
               } else if(!existing || existing?.t_m == assetEnt.t_m) { // POST
                 let show = assetEnt.map-1 == self.loc.map
                 self.data.assetMap[assetEnt.id] = assetEnt
+                
+                let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
+                if(-1 < index) {
+                  self.data.asset[index] = assetEnt
+                } else {
+                  self.data.asset.push(assetEnt)
+                }
+                
                 show &&
                   assetInst.show({
                     pqam: self,

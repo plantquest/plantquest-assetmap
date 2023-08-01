@@ -13339,7 +13339,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "4.4.1";
+  const version = "4.4.2";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -32274,6 +32274,12 @@ var __async = (__this, __arguments, generator) => {
                   } else if (!existing || (existing == null ? void 0 : existing.t_m) == assetEnt.t_m) {
                     let show = assetEnt.map - 1 == self2.loc.map;
                     self2.data.assetMap[assetEnt.id] = assetEnt;
+                    let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
+                    if (-1 < index2) {
+                      self2.data.asset[index2] = assetEnt;
+                    } else {
+                      self2.data.asset.push(assetEnt);
+                    }
                     show && assetInst.show({
                       pqam: self2,
                       assetID: assetEnt.id,
