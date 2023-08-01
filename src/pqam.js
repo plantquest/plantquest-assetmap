@@ -517,23 +517,15 @@ import './rastercoords.js'
               let existing = self.data.assetMap[assetEnt.id]
               let assetInst = self.asset.map[assetEnt.id]
               
-              if(existing) {
-                Object.assign(existing, assetEnt)
-              }
-              else {
-                self.data.assetMap[assetEnt.id] = assetEnt
-                existing = assetEnt
-              }
-              
               if(null == assetInst) {
                 assetInst = self.asset.map[assetEnt.id] = new Asset(assetEnt, {
                   cfg: self.config,
                   pqam: self
                 })
               }
-                
-                
-              if(existing.t_m < assetEnt.t_m) { // PUT
+              
+              
+              if(existing?.t_m < assetEnt.t_m) { // PUT
                 self.data.assetMap[assetEnt.id] = assetEnt
                 let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
                 if(-1 < index) {
@@ -564,8 +556,9 @@ import './rastercoords.js'
                 else {
                   delete self.current.asset[assetInst.id]
                 }
-              } else { // POST
+              } else if(!existing || existing?.t_m == assetEnt.t_m) { // POST
                 let show = assetEnt.map-1 == self.loc.map
+                self.data.assetMap[assetEnt.id] = assetEnt
                 show &&
                   assetInst.show({
                     pqam: self,
