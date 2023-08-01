@@ -1,6 +1,10 @@
 {
   "name": "@plantquest/assetmap",
+<<<<<<< HEAD
+  "version": "4.4.2",
+=======
   "version": "5.0.0",
+>>>>>>> 856df30f5e4b31f950f1b02f01ea17e5d78b769d
   "description": "PlantQuest Asset Map",
   "author": "plantquest",
   "license": "MIT",
