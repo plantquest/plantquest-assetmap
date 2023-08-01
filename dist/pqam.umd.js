@@ -63,7 +63,10 @@ var __async = (__this, __arguments, generator) => {
     if (typeof f == "function") {
       var a = function a2() {
         if (this instanceof a2) {
-          return Reflect.construct(f, arguments, this.constructor);
+          var args = [null];
+          args.push.apply(args, arguments);
+          var Ctor = Function.bind.apply(f, args);
+          return new Ctor();
         }
         return f.apply(this, arguments);
       };
@@ -13336,7 +13339,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "4.4.0";
+  const version = "4.4.1";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -31503,10 +31506,7 @@ var __async = (__this, __arguments, generator) => {
         provide: true
       },
       transaction: {
-        active: false,
-        rollback: {
-          onerror: true
-        }
+        active: false
       }
     };
     function entity2() {
@@ -31521,33 +31521,31 @@ var __async = (__this, __arguments, generator) => {
       const store2 = (0, store_1.Store)();
       seneca.add("role:basic,cmd:generate_id", generate_id);
       if (opts.transaction.active) {
-        if (opts.transaction.rollback.onerror) {
-          seneca.on("act-err", function entity_act_err(msg2, err) {
-            var _a, _b;
-            if ("sys" === msg2.entity && "rollback" === msg2.transaction) {
-              return;
+        seneca.on("act-err", function entity_act_err(msg2, err) {
+          var _a, _b;
+          if ("sys" === msg2.entity && "rollback" === msg2.transaction) {
+            return;
+          }
+          let instance = this;
+          let custom = (_a = instance === null || instance === void 0 ? void 0 : instance.fixedmeta) === null || _a === void 0 ? void 0 : _a.custom;
+          let tmap = ((_b = custom === null || custom === void 0 ? void 0 : custom.sys__entity) === null || _b === void 0 ? void 0 : _b.transaction) || {};
+          let txs = Object.values(tmap);
+          for (let tx of txs) {
+            if (null != tx.finish) {
+              continue;
             }
-            let instance = this;
-            let custom = (_a = instance === null || instance === void 0 ? void 0 : instance.fixedmeta) === null || _a === void 0 ? void 0 : _a.custom;
-            let tmap = ((_b = custom === null || custom === void 0 ? void 0 : custom.sys__entity) === null || _b === void 0 ? void 0 : _b.transaction) || {};
-            let txs = Object.values(tmap);
-            for (let tx of txs) {
-              if (null != tx.finish) {
-                continue;
-              }
-              let get_transaction = () => tx;
-              let canon = tx.canon;
-              tx.finish = Date.now();
-              instance.act("sys:entity,transaction:rollback", __spreadProps(__spreadValues({}, canon), {
-                get_transaction,
-                msg: msg2,
-                err
-              }), function(err2, result) {
-                tx.result = result;
-              });
-            }
-          });
-        }
+            let get_transaction = () => tx;
+            let canon = tx.canon;
+            tx.finish = Date.now();
+            instance.act("sys:entity,transaction:rollback", __spreadProps(__spreadValues({}, canon), {
+              get_transaction,
+              msg: msg2,
+              err
+            }), function(err2, result) {
+              tx.result = result;
+            });
+          }
+        });
       }
       seneca.util.parsecanon = seneca.util.parsecanon || make_entity_1.MakeEntity.parsecanon;
       const sd = seneca.delegate();
@@ -31573,7 +31571,7 @@ var __async = (__this, __arguments, generator) => {
           let emptyEntity = this();
           return get_state(emptyEntity, canonspec);
         };
-        entityAPI.transaction = function(canonspec, extra) {
+        entityAPI.begin = function(canonspec, extra) {
           return __async(this, null, function* () {
             if (!opts.transaction.active) {
               return null;
@@ -31587,7 +31585,7 @@ var __async = (__this, __arguments, generator) => {
               throw err;
             }
             let result = yield new Promise((res, rej) => {
-              state.instance.act("sys:entity,transaction:transaction", __spreadValues(__spreadValues({}, state.canon), extra || {}), function(err, out) {
+              state.instance.act("sys:entity,transaction:begin", __spreadValues(__spreadValues({}, state.canon), extra || {}), function(err, out) {
                 return err ? rej(err) : res(out);
               });
             });
@@ -31613,15 +31611,12 @@ var __async = (__this, __arguments, generator) => {
             });
             transaction.sid = transactionInstance.id;
             transaction.did = transactionInstance.did;
-            transactionInstance.entity = function(...args) {
-              return state.instance.entity.call(transactionInstance, ...args);
-            };
+            transactionInstance.entity = state.instance.entity.bind(transactionInstance);
             Object.assign(transactionInstance.entity, state.instance.entity);
-            transactionInstance.entity.did = transactionInstance.did;
             return transactionInstance;
           });
         };
-        entityAPI.commit = function(canonspec, extra) {
+        entityAPI.end = function(canonspec, extra) {
           return __async(this, null, function* () {
             if (!opts.transaction.active) {
               return null;
@@ -31635,7 +31630,7 @@ var __async = (__this, __arguments, generator) => {
             let get_transaction = () => transaction;
             transaction.finish = Date.now();
             let result = yield new Promise((res, rej) => {
-              state.instance.act("sys:entity,transaction:commit", __spreadProps(__spreadValues(__spreadValues({}, state.canon), extra || {}), {
+              state.instance.act("sys:entity,transaction:end", __spreadProps(__spreadValues(__spreadValues({}, state.canon), extra || {}), {
                 get_transaction
               }), function(err, out) {
                 return err ? rej(err) : res(out);
@@ -32242,13 +32237,19 @@ var __async = (__this, __arguments, generator) => {
               for (let assetEnt of updatedAssets) {
                 try {
                   let existing = self2.data.assetMap[assetEnt.id];
-                  if (existing.t_m < assetEnt.t_m) {
+                  let assetInst = self2.asset.map[assetEnt.id];
+                  if (null == assetInst) {
+                    assetInst = self2.asset.map[assetEnt.id] = new Asset(assetEnt, {
+                      cfg: self2.config,
+                      pqam: self2
+                    });
+                  }
+                  if ((existing == null ? void 0 : existing.t_m) < assetEnt.t_m) {
                     self2.data.assetMap[assetEnt.id] = assetEnt;
                     let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
                     if (-1 < index2) {
                       self2.data.asset[index2] = assetEnt;
                     }
-                    let assetInst = self2.asset.map[assetEnt.id];
                     assetInst.ent = assetEnt;
                     assetInst = self2.config.asset.prepare(assetInst) || assetInst;
                     if (assetInst.shown) {
@@ -32264,11 +32265,28 @@ var __async = (__this, __arguments, generator) => {
                         blink: false,
                         showRoom: false,
                         infobox: assetInst.infobox,
+                        closeinfo: false,
                         whence: "updatedAssets"
                       });
                     } else {
                       delete self2.current.asset[assetInst.id];
                     }
+                  } else if (!existing || (existing == null ? void 0 : existing.t_m) == assetEnt.t_m) {
+                    let show = assetEnt.map - 1 == self2.loc.map;
+                    self2.data.assetMap[assetEnt.id] = assetEnt;
+                    show && assetInst.show({
+                      pqam: self2,
+                      assetID: assetEnt.id,
+                      hide: false,
+                      blink: false,
+                      showRoom: false,
+                      infobox: false,
+                      closeinfo: false,
+                      whence: "updatedAssets"
+                    });
+                    self2.current.shownAssets.add(assetEnt.id);
+                    self2.data.deps.cp.asset = self2.data.deps.cp.asset || {};
+                    self2.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room };
                   }
                 } catch (e) {
                   self2.log("ERROR", "UPDATE", assetEnt, e);
