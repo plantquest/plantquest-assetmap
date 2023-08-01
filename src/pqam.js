@@ -515,13 +515,30 @@ import './rastercoords.js'
           for(let assetEnt of updatedAssets) {
             try {
               let existing = self.data.assetMap[assetEnt.id]
-              if(existing.t_m < assetEnt.t_m) {
+              let assetInst = self.asset.map[assetEnt.id]
+              
+              if(existing) {
+                Object.assign(existing, assetEnt)
+              }
+              else {
+                self.data.assetMap[assetEnt.id] = assetEnt
+                existing = assetEnt
+              }
+              
+              if(null == assetInst) {
+                assetInst = self.asset.map[assetEnt.id] = new Asset(assetEnt, {
+                  cfg: self.config,
+                  pqam: self
+                })
+              }
+                
+                
+              if(existing.t_m < assetEnt.t_m) { // PUT
                 self.data.assetMap[assetEnt.id] = assetEnt
                 let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
                 if(-1 < index) {
                   self.data.asset[index] = assetEnt
                 }
-                let assetInst = self.asset.map[assetEnt.id]
 
                 assetInst.ent = assetEnt
                 assetInst = self.config.asset.prepare(assetInst) || assetInst
@@ -540,12 +557,30 @@ import './rastercoords.js'
                     blink: false ,
                     showRoom: false,
                     infobox: assetInst.infobox,
+                    closeinfo: false,
                     whence: 'updatedAssets',
                   })
                 }
                 else {
                   delete self.current.asset[assetInst.id]
                 }
+              } else { // POST
+                let show = assetEnt.map-1 == self.loc.map
+                show &&
+                  assetInst.show({
+                    pqam: self,
+                    assetID: assetEnt.id,
+                    hide: false,
+                    blink: false ,
+                    showRoom: false,
+                    infobox: false,
+                    closeinfo: false,
+                    whence: 'updatedAssets',
+                  })
+                  self.current.shownAssets.add(assetEnt.id)
+                  // TODO: full cp check
+                  self.data.deps.cp.asset = self.data.deps.cp.asset || {}
+                  self.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room }
               }
             }
             catch(e) {
