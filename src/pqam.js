@@ -556,7 +556,7 @@ import './rastercoords.js'
                 else {
                   delete self.current.asset[assetInst.id]
                 }
-              } else if(!existing || existing?.t_m == assetEnt.t_m) { // POST
+              } else if(!existing) { // POST
                 let show = assetEnt.map-1 == self.loc.map
                 self.data.assetMap[assetEnt.id] = assetEnt
                 
