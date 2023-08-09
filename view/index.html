@@ -4,21 +4,25 @@
 </head>
 <body>
   <h2>VIEW MAP</h2>
-  <div id="plantquest-assetmap"></div>
+  <div style="height: 100px;weight:100px" id="plantquest-assetmap"></div>
   
   <script>
-    window.PlantQuestAssetMap.start({
+  console.log('window:: ', window.PlantQuestAssetMap)
+  
+  
+const options = {
   debugClick: false,
 
   showAllAssets: true,
   
   width: '100%',
   height: '100%',
-  mapImg: [6140, 4602],
+  mapImg: [7800, 5850],
   mapMinZoom: 2,
-  mapStartZoom: 1.5,
+  // mapStartZoom: 1.5,
 
-  // mode: MODE,
+  data: 'https://demo.plantquest.app/sample-data.js',
+  mode: 'demo',
   // plant_id: PLANT_ID,
   // project_id: PROJECT_ID,
   // stage: STAGE,
@@ -44,7 +48,12 @@
   ],
 
   asset: {
+    label: {
+      field: 'tag',
+    },
+    click: false,
     cluster: true,
+    // cmp: 'marker',
   },
   
   room: {
@@ -59,16 +68,27 @@
 
   geofence: {
     show: {
-      all: true
+      all: false
     }
   },
+  
+  debug: {
+    click: false,
+    coords: false,
+  },
+
 
   update: {
-    active: true,
+    active: false,
     interval: 10000
   }
 
-    })
+    }
+  
+    let pqam = window.PlantQuestAssetMap.make('demo')
+    let send = pqam.send.bind(pqam)
+    
+    pqam.start(options, ()=>{})
   </script>
 </body>
 </html>

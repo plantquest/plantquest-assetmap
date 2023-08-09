@@ -338,8 +338,17 @@ import './rastercoords.js'
         
         let assets = []
         let assetMap = {}
+        
+        // reference old static data
+        self.data.asset = self.data.assets
+        self.data.room = self.data.rooms
+        self.data.level = self.data.levels
+        self.data.building = self.data.buildings
+          
           
         let assetProps = self.data.asset[0]
+        
+        
         for(let rowI = 1; rowI < self.data.asset.length; rowI++) {
           let row = self.data.asset[rowI]
           let assetID = row[0]
@@ -350,14 +359,25 @@ import './rastercoords.js'
         self.data.assetMap = assetMap
         
         
-        let roomMap = self.data.room.reduce((a,r)=>(a[r.room]=r,a[r.id]=r,a),{})
+        let roomMap = self.data.room.reduce((a,r)=>(a[r.room]=r,a),{})
         self.data.roomMap = roomMap
         
         self.data.room.forEach(roomData=>{
+          // workaround for old static data
+          roomData.id = roomData.room
+          roomData.name = roomData.room
           self.room.map[roomData.id] = new Room(roomData, ctx)
         })
         
+       Object.values(assetMap).forEach(ent=>{
+          let asset = new Asset(ent, ctx)
+          self.asset.map[ent.id] =
+            self.config.asset.prepare(asset) || asset
+        })
+        
         self.log('data loaded')
+  
+  
   
         done(json)        
       }
@@ -467,11 +487,12 @@ import './rastercoords.js'
           const skript = document.createElement('script')
           skript.setAttribute('src', self.config.data)
           head.appendChild(skript)
+          
 
           let waiter = setInterval(()=>{
             self.log('loading data...')
             if(W.PLANTQUEST_ASSETMAP_DATA) {
-            
+              
               clearInterval(waiter)
               processData(W.PLANTQUEST_ASSETMAP_DATA)
             }
