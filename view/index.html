@@ -4,6 +4,8 @@
 </head>
 <body>
   <h2>VIEW MAP</h2>
+  <button id="open">open gallery</button>
+  <button id="close">close gallery</button>
   <div style="height: 100px;weight:100px" id="plantquest-assetmap"></div>
   
   <script>
@@ -84,11 +86,26 @@ const options = {
   }
 
     }
+    
   
     let pqam = window.PlantQuestAssetMap.make('demo')
     let send = pqam.send.bind(pqam)
     
     pqam.start(options, ()=>{})
+
+    let plug
+    document.querySelector('#open').addEventListener('click', (evnt)=>{
+
+      plug = L.leafletImageGallery({ img: ['img1.jpg'] })
+      plug.addTo(pqam.map)
+    })
+
+
+    document.querySelector('#close').addEventListener('click', (evnt)=>{
+      // plug = L.leafletImageGallery({ })
+      plug && plug.remove()
+    })
+
   </script>
 </body>
 </html>

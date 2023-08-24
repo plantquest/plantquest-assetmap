@@ -7,6 +7,8 @@ import 'leaflet.markercluster'
 import 'leaflet-path-drag'
 import 'leaflet-editable'
 
+import 'leaflet-image-gallery'
+
 
 import Pkg from '../package.json'
 
@@ -3467,6 +3469,187 @@ li.plantquest-level-current a.leaflet-toolbar-icon {
 .plantquest-font-s5 {
   font-size: 24pt;
 }
+
+.leaflet-image-gallery {
+	width: 100%;
+	height: 100%;
+	/*
+	font-size: 10px;
+	color: red;
+*/
+}
+
+/* Slideshow container */
+.slideshow-container {
+  width: 100%;
+  height: 100%;
+  padding: 60px 60px 60px 23px;
+  margin: auto;
+  display: flex;
+  flex-direction: row;
+  box-sizing:border-box;
+}
+
+.sidebar {
+  flex: 0 0 10%;
+  padding-top: 1%;
+  padding-right: 10px;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+
+}
+
+/*
+.sidebar:hover {
+  overflow: auto;
+}
+*/
+
+.sidebar::-webkit-scrollbar {
+  width: .4em;
+}
+ 
+.sidebar::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+ 
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
+}
+
+/* Hide the images by default */
+.mySlides {
+  display: none;
+  width: 100%;
+  height: 95%;
+  image-rendering: pixelated;
+  filter: blur(0);
+}
+
+.view {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 1%;
+}
+
+/* Next & previous buttons */
+.prev, .next {
+  cursor: pointer;
+  padding: 1%;
+  color: white;
+  transition: 0.6s ease;
+  user-select: none;
+  background-color: transparent;
+  border: 0;
+}
+
+/* Position the "next button" to the right */
+.next {
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+/* On hover, add a black background color with a little bit see-through 
+.prev:hover, .next:hover {
+  background-color: rgba(0,0,0,0.8);
+}
+*/
+
+/* Caption text */
+.text {
+  color: #f2f2f2;
+  font-size: 15px;
+  padding: 8px 12px;
+  bottom: 8px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Number text (1/3 etc) */
+.numbertext {
+  color: #f2f2f2;
+  font-size: 12px;
+  padding: 8px 12px;
+  top: 0;
+}
+
+/* The dots/bullets/indicators */
+.dot {
+  cursor: pointer;
+  /*
+  height: 25%;
+  width: 25%;
+  
+  */
+  width: 100%;
+  height: 19%;
+  
+  display: inline-block;
+  transition: border 0.1s ease;
+  
+  
+  background-color: rgba(0, 0, 0, 0.85);
+  margin: 3px;
+  
+  
+}
+
+.active, .dot:hover {
+  border: 2px solid white;
+}
+
+/* Fading animation */
+.fade {
+  animation-name: fade;
+  animation-duration: .5s;
+}
+
+@keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+
+/*
+width: 100%;height: 100%;object-fit: contain;
+*/
+.imgd {
+/*
+    width: 100%;
+    height: 86px;
+    object-fit: cover;
+    object-position: bottom;
+*/
+
+/*
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+*/
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-size: cover;
+  
+  /*
+  max-width: 100%;
+  max-height: 100%;
+  */
+
+  
+}
+
+#closeGallery {
+  top: 0;
+  left: 97%;
+  position: absolute;
+  padding:0%;
+  background-color: transparent;
+  border: 0;
+  font-size: 29px;
+}
+
 
 `
     head.appendChild(style)
