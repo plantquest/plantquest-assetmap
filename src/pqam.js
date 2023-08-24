@@ -568,17 +568,22 @@ import './rastercoords.js'
                 }
                 
                 show &&
-                  assetInst.show({
-                    pqam: self,
-                    assetID: assetEnt.id,
-                    hide: false,
-                    blink: false ,
-                    showRoom: false,
-                    infobox: false,
-                    closeinfo: false,
-                    whence: 'updatedAssets',
-                  })
-                  self.current.shownAssets.add(assetEnt.id)
+                  // Don't show new assets if we have shown assets - same filter
+                  !self.current.filterApplied &&
+                    assetInst.show({
+                      pqam: self,
+                      assetID: assetEnt.id,
+                      hide: false,
+                      blink: false ,
+                      showRoom: false,
+                      infobox: false,
+                      closeinfo: false,
+                      whence: 'updatedAssets',
+                    })
+                  // same here
+                  if(!self.current.filterApplied) {
+                    self.current.shownAssets.add(assetEnt.id)
+                  }
                   // TODO: full cp check
                   self.data.deps.cp.asset = self.data.deps.cp.asset || {}
                   self.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room }
@@ -766,7 +771,7 @@ import './rastercoords.js'
 
       self.log('build', ms, L)
       
-      // keep the shown assets
+      // Keep the shown assets
       if(0 != self.current.shownAssets.size) {
         self.send({
           srv:'plantquest',
@@ -2197,6 +2202,9 @@ import './rastercoords.js'
                 }])
               }
             }
+            
+            // showMsg applied: filter applied
+            self.current.filterApplied = true
             
             function showBatch(n,m) {
               for(let i = n; i < m; i++) {
