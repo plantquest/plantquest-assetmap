@@ -766,6 +766,17 @@ import './rastercoords.js'
 
       self.log('build', ms, L)
       
+      // keep the shown assets
+      if(0 != self.current.shownAssets.size) {
+        self.send({
+          srv:'plantquest',
+          part:'assetmap',
+          show: 'asset',
+          asset: [],
+        })
+        
+      }
+      
       if(self.map) {
         self.map.remove()
       }
