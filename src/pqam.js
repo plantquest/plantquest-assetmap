@@ -189,6 +189,7 @@ import './rastercoords.js'
       current: {
         started: false,
         rendered: false,
+        filterApplied: false,
         room: {},
         asset: {},
 
@@ -2204,7 +2205,10 @@ import './rastercoords.js'
             }
             
             // showMsg applied: filter applied
-            self.current.filterApplied = true
+            // unless switching between the levels
+            if(!msg.levelAssets) {
+              self.current.filterApplied = true
+            }
             
             function showBatch(n,m) {
               for(let i = n; i < m; i++) {
