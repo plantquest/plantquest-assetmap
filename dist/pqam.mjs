@@ -13332,7 +13332,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "4.4.3";
+const version = "4.4.4";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -31987,6 +31987,7 @@ L.RasterCoords.prototype = {
       current: {
         started: false,
         rendered: false,
+        filterApplied: false,
         room: {},
         asset: {},
         assetInfo: null,
@@ -32281,7 +32282,8 @@ L.RasterCoords.prototype = {
                   } else {
                     self2.data.asset.push(assetEnt);
                   }
-                  show && assetInst.show({
+                  show && // Don't show new assets if we have shown assets - same filter
+                  !self2.current.filterApplied && assetInst.show({
                     pqam: self2,
                     assetID: assetEnt.id,
                     hide: false,
@@ -32291,7 +32293,9 @@ L.RasterCoords.prototype = {
                     closeinfo: false,
                     whence: "updatedAssets"
                   });
-                  self2.current.shownAssets.add(assetEnt.id);
+                  if (!self2.current.filterApplied) {
+                    self2.current.shownAssets.add(assetEnt.id);
+                  }
                   self2.data.deps.cp.asset = self2.data.deps.cp.asset || {};
                   self2.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room };
                 }
@@ -32426,6 +32430,14 @@ L.RasterCoords.prototype = {
         bounds: [[0, 0], [...self2.config.mapBounds]]
       };
       self2.log("build", ms, L$1);
+      if (0 != self2.current.shownAssets.size) {
+        self2.send({
+          srv: "plantquest",
+          part: "assetmap",
+          show: "asset",
+          asset: []
+        });
+      }
       if (self2.map) {
         self2.map.remove();
       }
@@ -33480,6 +33492,9 @@ L.RasterCoords.prototype = {
                       closeinfo: false
                     }]);
                   }
+                }
+                if (!msg2.levelAssets) {
+                  self2.current.filterApplied = true;
                 }
                 let size = 444;
                 for (let j = 0; j < showargs.length; j += size) {
