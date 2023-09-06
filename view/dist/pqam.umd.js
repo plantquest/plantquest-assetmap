@@ -32087,6 +32087,10 @@ var __async = (__this, __arguments, generator) => {
         }
         const loadingInterval = setInterval(loading, 50);
       };
+      self2.restart = function(config, ready) {
+        self2.current.started = false;
+        self2.start(config, ready);
+      };
       self2.load = function(done2) {
         return __async(this, null, function* () {
           done2 = done2 || (() => {
@@ -32104,7 +32108,6 @@ var __async = (__this, __arguments, generator) => {
             self2.data.room = self2.data.rooms;
             self2.data.level = self2.data.levels;
             self2.data.building = self2.data.buildings;
-            console.log("DEEEEMO", self2.data);
             let assetProps = self2.data.asset[0];
             for (let rowI = 1; rowI < self2.data.asset.length; rowI++) {
               let row = self2.data.asset[rowI];
@@ -33066,7 +33069,7 @@ var __async = (__this, __arguments, generator) => {
         }
       };
       self2.getUrl = function(mapIndex) {
-        return self2.config.tilesEndPoint + "/" + mapIndex + "/{z}/{x}/{y}.png";
+        return self2.config.tilesEndPoint + "/" + self2.config.plant_id + "/" + mapIndex + "/{z}/{x}/{y}.png";
       }, self2.createTile = function(mapIndex) {
         let tileLyr = L$1.tileLayer(self2.getUrl(mapIndex), {
           bounds: self2.rc.getMaxBounds(),

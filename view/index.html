@@ -8,7 +8,8 @@
   
   <script>
   console.log('window:: ', window.PlantQuestAssetMap)
-  
+
+    window.PLANTQUEST_ASSETMAP_LOG = true
   
 const options = {
   debugClick: false,
@@ -23,12 +24,14 @@ const options = {
 
   data: 'https://demo.plantquest.app/sample-data.js',
   mode: 'demo',
+
   // plant_id: PLANT_ID,
   // project_id: PROJECT_ID,
   // stage: STAGE,
   // endpoint: ENDPOINT,
   // apikey: APIKEY,
   // tilesEndPoint: TILES,
+
   
   states: {
     up: { color: '#696', name: 'Up', marker: 'standard' },

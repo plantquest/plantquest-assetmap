@@ -321,6 +321,12 @@ import './rastercoords.js'
       const loadingInterval = setInterval(loading, 50)
     }
 
+
+    self.restart = function(config, ready) {
+      self.current.started = false
+      self.start(config, ready)
+    }
+    
     
     self.load = async function(done) {
       done = done || (()=>{})
@@ -1665,7 +1671,8 @@ import './rastercoords.js'
     }
 
     self.getUrl = function(mapIndex) {
-      return self.config.tilesEndPoint + '/' + mapIndex + '/{z}/{x}/{y}.png'
+      // return self.config.tilesEndPoint + '/' + mapIndex + '/{z}/{x}/{y}.png'
+      return self.config.tilesEndPoint + '/' + self.config.plant_id + '/' + mapIndex + '/{z}/{x}/{y}.png'
     },
     
     self.createTile = function(mapIndex) {
