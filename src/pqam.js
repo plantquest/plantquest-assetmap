@@ -138,17 +138,6 @@ import './rastercoords.js'
         label: {
           zoom: null // null => appear at mapMaxZoom
         },
-
-        plants: [
-          {
-            "name": "Building 112-AP1",
-            "center": [4780, 904]
-          },
-          {
-            "name": "Building 118-AP1",
-            "center": [2316,3402]
-          }
-        ],
         
         asset: {
           label: {
@@ -166,6 +155,10 @@ import './rastercoords.js'
           prepare: (x)=>x,
         },
         
+        level: {
+          prepare: (x)=>x,
+        },
+        
         update: {
           active: false,
           interval: 30000,
@@ -175,16 +168,11 @@ import './rastercoords.js'
       data: {
         level: [],
         room: [],
-        // building: [],
-        // geofence: [],
 
         // TOOD: refactor 
         assetMap: {},
         roomMap: {},
       },
-
-      // assetMap: {},
-      // roomMap: {},
 
       current: {
         started: false,
@@ -200,6 +188,8 @@ import './rastercoords.js'
 
         assetsShownOnLevel: {},
         shownAssets: new Set(),
+
+        building: null,
         
         al: {},
       },
@@ -232,6 +222,10 @@ import './rastercoords.js'
         map: {}
       },
 
+      level: {
+        map: {}
+      },
+
       ux: {
         room: {
 
@@ -260,7 +254,8 @@ import './rastercoords.js'
 
       // self.config = { ...self.config, ...(config || {}) }
       self.config = Seneca.util.deep(self.config,config)
-      self.log('start', JSON.stringify(config))
+
+      self.log('start', JSON.stringify(self.config))
       
       self.config.base = self.config.base || ''
 
@@ -270,7 +265,6 @@ import './rastercoords.js'
       
       async function loading() {
         if (false === self.current.started) {
-          
           self.current.started = true
 
           clearInterval(loadingInterval)
@@ -294,6 +288,9 @@ import './rastercoords.js'
               force: true,
               when: 'load'
             })
+
+            self.addBuildingControl()
+            // self.addLevelControl()
             
             if(self.config.update.active) {
               self.log('start','updates',self.data)
@@ -324,6 +321,7 @@ import './rastercoords.js'
 
     self.restart = function(config, ready) {
       self.current.started = false
+      self.state.dataLoaded = false
       self.start(config, ready)
     }
     
@@ -405,25 +403,31 @@ import './rastercoords.js'
           stage: self.config.stage,
         }
 
-        const entnames = [
 
+        // Load entities.
+        const entnames = [
           'building',
-          'geofence',
-          'building',
+          'level',
           'room',
+          'geofence',
           'asset',
-          ]
+        ]
         
         for(let kind of entnames) {
-          let res = await seneca.post(
-            'srv:plantquest,part:assetmap',
-            { list: kind, query, }
-          )
-          if(res.ok) {
-            self.data[kind] = res.list
+          try {
+            let res = await seneca.post(
+              'srv:plantquest,part:assetmap',
+              { list: kind, query, }
+            )
+            if(res && res.ok) {
+              self.data[kind] = res.list
+            }
+          }
+          catch(e) {
+            self.log('ERROR', 'list-ent', e)
           }
         }
-                
+
         self.data.asset.forEach(ent=>{
           if(null == ent.tag) {
             ent.tag = ent.name || 'NO TAG'
@@ -451,10 +455,21 @@ import './rastercoords.js'
             self.config.building.prepare(building) || building
         })
 
+        self.data.level.forEach(ent=>{
+          let level = new Level(ent, ctx)
+          self.level.map[ent.id] =
+            self.config.level.prepare(level) || level
+        })
+        
         self.data.asset.forEach(ent=>{
           let asset = new Asset(ent, ctx)
           self.asset.map[ent.id] =
             self.config.asset.prepare(asset) || asset
+        })
+
+
+        self.data.level.sort((a,b)=>{
+          return (+a.map) - (+b.map)
         })
         
         self.data.deps = {}
@@ -472,7 +487,7 @@ import './rastercoords.js'
         })
         
 
-        self.data.level = levels
+        // self.data.level = levels
         self.data.maps = maps
         
         self.data.assetMap = assetMap
@@ -481,6 +496,8 @@ import './rastercoords.js'
         self.data.deps = deps
         self.state.dataLoaded = true
         self.state.dataLoading = false
+
+        self.current.building = self.data.building[0]
         
         done(self.data)
       }
@@ -621,7 +638,7 @@ import './rastercoords.js'
     }
 
     
-    self.render = function(done) {      
+    self.render = function(done) {
       if(!self.current.styleInjected) {
         injectStyle()
         self.current.styleInjected = true
@@ -633,16 +650,6 @@ import './rastercoords.js'
         // clearInterval(loadingInterval)
         return
       }
-
-      // let elem = $('body > #plantquest-assetmap-assetinfo')
-      // if(elem) {
-      //   elem.remove()
-      // }
-
-      // elem = $('body > #plantquest-assetmap-assetcluster')
-      // if(elem) {
-      //   elem.remove()
-      // }
       
       self.target.style.width = self.config.width
       self.target.style.height = self.config.height
@@ -849,15 +856,8 @@ import './rastercoords.js'
       self.map.scrollWheelZoom._delta = 0
       
 
-      
-      
-      // self.map.scrollWheelZoom.addHooks()
-      
-
       // Separate Pane to ensure ordering below assets,
       // prevents lost click events.
-
-
       
       self.map.createPane('geofence')
       let geofencePane = self.map.getPane('geofence')
@@ -894,8 +894,6 @@ import './rastercoords.js'
       self.map.createPane('info')
       let infoPane = self.map.getPane('info')
       infoPane.style.zIndex = 3000
-      // labelPane.style.pointerEvents = 'none'
-
 
 
       
@@ -1143,11 +1141,19 @@ import './rastercoords.js'
         self.checkRoomsInterval =
           setInterval(self.checkRooms, self.config.mapInterval)
       }
+    }
+    
+    self.addLevelControl = function() {
+      if(self.current.levelControl) {
+        self.current.levelControl.remove()
+      }
 
       let levelActions = []
+      let levelsForBuilding =
+          self.data.level.filter(level=>
+            level.building_id===self.current.building?.id)
       
-      // self.data.level.forEach((level,index)=>{
-      self.config.levels.forEach((level,index)=>{
+      levelsForBuilding.forEach((level,index)=>{
         levelActions.push(
           L.Toolbar2.Action.extend({
             options: {
@@ -1175,8 +1181,18 @@ import './rastercoords.js'
       })
 
       self.map.addLayer(levelToolbar)
+      self.current.levelControl = levelToolbar
+    }
+    
 
-
+    self.addBuildingControl = function() {
+      if(self.current.levelControl) {
+        self.current.levelControl.remove()
+      }
+      if(self.current.buildingControl) {
+        self.current.buildingControl.remove()
+      }
+      
       let BuildingControl = L.Control.extend({
         onAdd: function(map) {
           let div = L.DomUtil.create('div')
@@ -1186,21 +1202,39 @@ import './rastercoords.js'
           ul.classList.add('leaflet-control-toolbar')
           ul.classList.add('leaflet-toolbar-0')
 
-          self.config.plants.forEach((plant,index)=>{
+          let selectors = []
+          
+          self.data.building.forEach((building,index)=>{
             let li = L.DomUtil.create('li')
+            li.classList.add('plantquest-tool-select-building')
+            li.setAttribute('data-plantquest-building',building.id)
+
             let a = L.DomUtil.create('a')
             a.classList.add('leaflet-toolbar-icon')
             a.setAttribute('href','#')
-            a.innerText = plant.name.replace('Building ','')
+            a.innerText = building.name.replace('Building ','')
+
             li.appendChild(a)
             ul.appendChild(li)
 
+            selectors.push(li)
+            
             li.addEventListener('click', ()=>{
+              self.current.building = building
               let coords = c_asset_coords({
-                x: plant.center[0],
-                y: plant.center[1]
+                x: building.center[0],
+                y: building.center[1]
               })
               self.map.setView(coords,self.config.mapMinZoom+1)
+              self.addLevelControl()
+
+              for(let selector of selectors) {
+                selector.classList.remove('plantquest-tool-select-building-active')
+                if(building.id ===
+                   selector.getAttribute('data-plantquest-building')) {
+                  selector.classList.add('plantquest-tool-select-building-active')
+                }
+              }
             })
           })
 
@@ -1214,9 +1248,10 @@ import './rastercoords.js'
         }
       })
 
-      let bc = new BuildingControl({ position: 'topright' })
-      bc.addTo(self.map)
-      
+      self.current.buildingControl = new BuildingControl({ position: 'topright' })
+      self.current.buildingControl.addTo(self.map)
+
+      self.addLevelControl()
     }
 
 
@@ -1671,8 +1706,9 @@ import './rastercoords.js'
     }
 
     self.getUrl = function(mapIndex) {
-      // return self.config.tilesEndPoint + '/' + mapIndex + '/{z}/{x}/{y}.png'
-      return self.config.tilesEndPoint + '/' + self.config.plant_id + '/' + mapIndex + '/{z}/{x}/{y}.png'
+      return self.config.tilesEndPoint + '/' +
+        self.config.plant_id + '/' +
+        mapIndex + '/{z}/{x}/{y}.png'
     },
     
     self.createTile = function(mapIndex) {
@@ -1881,6 +1917,11 @@ import './rastercoords.js'
           'aim:web,on:assetmap,load:geofence',
           'aim:web,on:assetmap,save:geofence',
           'aim:web,on:assetmap,remove:geofence',
+
+          'aim:web,on:assetmap,list:level',
+          'aim:web,on:assetmap,load:level',
+          'aim:web,on:assetmap,save:level',
+          'aim:web,on:assetmap,remove:level',
         ]
       })
 
@@ -1901,8 +1942,7 @@ import './rastercoords.js'
         })
       
 
-      let ents = ['asset','room','building','geofence']
-
+      let ents = ['asset','room','building','level','geofence']
 
       for(let entname of ents) {
         amseneca
@@ -2373,6 +2413,18 @@ import './rastercoords.js'
     }
   }
 
+
+  class Level {
+    ent = null
+    ctx = null
+    
+    constructor(ent,ctx) {
+      this.ent = ent
+      this.ctx = ctx
+    }
+  }
+
+  
 
   class Asset {
     mid = Math.random()
@@ -3455,6 +3507,11 @@ li.plantquest-level-current a.leaflet-toolbar-icon {
   color: #333;
 }
 
+.plantquest-tool-select-building {
+}
+.plantquest-tool-select-building-active a {
+  background-color:#CCC !important;
+}
 
 .plantquest-font-s0 {
   font-size: 4pt;

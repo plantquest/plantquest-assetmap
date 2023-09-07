@@ -13325,7 +13325,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "6.0.0";
+const version = "6.1.0";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -31936,16 +31936,6 @@ L.RasterCoords.prototype = {
           zoom: null
           // null => appear at mapMaxZoom
         },
-        plants: [
-          {
-            "name": "Building 112-AP1",
-            "center": [4780, 904]
-          },
-          {
-            "name": "Building 118-AP1",
-            "center": [2316, 3402]
-          }
-        ],
         asset: {
           label: {
             field: "tag"
@@ -31961,6 +31951,9 @@ L.RasterCoords.prototype = {
         building: {
           prepare: (x) => x
         },
+        level: {
+          prepare: (x) => x
+        },
         update: {
           active: false,
           interval: 3e4
@@ -31969,14 +31962,10 @@ L.RasterCoords.prototype = {
       data: {
         level: [],
         room: [],
-        // building: [],
-        // geofence: [],
         // TOOD: refactor 
         assetMap: {},
         roomMap: {}
       },
-      // assetMap: {},
-      // roomMap: {},
       current: {
         started: false,
         rendered: false,
@@ -31988,6 +31977,7 @@ L.RasterCoords.prototype = {
         assetHistory: [],
         assetsShownOnLevel: {},
         shownAssets: /* @__PURE__ */ new Set(),
+        building: null,
         al: {}
       },
       state: {
@@ -32012,6 +32002,9 @@ L.RasterCoords.prototype = {
       building: {
         map: {}
       },
+      level: {
+        map: {}
+      },
       ux: {
         room: {
           // { [mapid]: marker }
@@ -32032,7 +32025,7 @@ L.RasterCoords.prototype = {
         return;
       }
       self2.config = Seneca.util.deep(self2.config, config);
-      self2.log("start", JSON.stringify(config));
+      self2.log("start", JSON.stringify(self2.config));
       self2.config.base = self2.config.base || "";
       if (!self2.config.base.endsWith("/")) {
         self2.config.base += "/";
@@ -32061,6 +32054,7 @@ L.RasterCoords.prototype = {
                 force: true,
                 when: "load"
               });
+              self2.addBuildingControl();
               if (self2.config.update.active) {
                 self2.log("start", "updates", self2.data);
                 self2.updates();
@@ -32085,6 +32079,7 @@ L.RasterCoords.prototype = {
     };
     self2.restart = function(config, ready) {
       self2.current.started = false;
+      self2.state.dataLoaded = false;
       self2.start(config, ready);
     };
     self2.load = function(done2) {
@@ -32141,18 +32136,22 @@ L.RasterCoords.prototype = {
           };
           const entnames = [
             "building",
-            "geofence",
-            "building",
+            "level",
             "room",
+            "geofence",
             "asset"
           ];
           for (let kind of entnames) {
-            let res = yield seneca.post(
-              "srv:plantquest,part:assetmap",
-              { list: kind, query }
-            );
-            if (res.ok) {
-              self2.data[kind] = res.list;
+            try {
+              let res = yield seneca.post(
+                "srv:plantquest,part:assetmap",
+                { list: kind, query }
+              );
+              if (res && res.ok) {
+                self2.data[kind] = res.list;
+              }
+            } catch (e) {
+              self2.log("ERROR", "list-ent", e);
             }
           }
           self2.data.asset.forEach((ent) => {
@@ -32175,9 +32174,16 @@ L.RasterCoords.prototype = {
             let building = new Building(ent, ctx);
             self2.building.map[ent.id] = self2.config.building.prepare(building) || building;
           });
+          self2.data.level.forEach((ent) => {
+            let level = new Level(ent, ctx);
+            self2.level.map[ent.id] = self2.config.level.prepare(level) || level;
+          });
           self2.data.asset.forEach((ent) => {
             let asset = new Asset(ent, ctx);
             self2.asset.map[ent.id] = self2.config.asset.prepare(asset) || asset;
+          });
+          self2.data.level.sort((a, b) => {
+            return +a.map - +b.map;
           });
           self2.data.deps = {};
           let {
@@ -32191,13 +32197,13 @@ L.RasterCoords.prototype = {
             assets: self2.data.asset,
             rooms: self2.data.room
           });
-          self2.data.level = levels;
           self2.data.maps = maps;
           self2.data.assetMap = assetMap;
           self2.data.roomMap = roomMap;
           self2.data.deps = deps;
           self2.state.dataLoaded = true;
           self2.state.dataLoading = false;
+          self2.current.building = self2.data.building[0];
           done2(self2.data);
         });
         if (self2.config.mode == "demo") {
@@ -32670,8 +32676,17 @@ L.RasterCoords.prototype = {
       if ((_b = (_a = self2.config.room) == null ? void 0 : _a.outline) == null ? void 0 : _b.active) {
         self2.checkRoomsInterval = setInterval(self2.checkRooms, self2.config.mapInterval);
       }
+    };
+    self2.addLevelControl = function() {
+      if (self2.current.levelControl) {
+        self2.current.levelControl.remove();
+      }
       let levelActions = [];
-      self2.config.levels.forEach((level, index2) => {
+      let levelsForBuilding = self2.data.level.filter((level) => {
+        var _a;
+        return level.building_id === ((_a = self2.current.building) == null ? void 0 : _a.id);
+      });
+      levelsForBuilding.forEach((level, index2) => {
         levelActions.push(
           L$1.Toolbar2.Action.extend({
             options: {
@@ -32696,6 +32711,15 @@ L.RasterCoords.prototype = {
         position: "topright"
       });
       self2.map.addLayer(levelToolbar);
+      self2.current.levelControl = levelToolbar;
+    };
+    self2.addBuildingControl = function() {
+      if (self2.current.levelControl) {
+        self2.current.levelControl.remove();
+      }
+      if (self2.current.buildingControl) {
+        self2.current.buildingControl.remove();
+      }
       let BuildingControl = L$1.Control.extend({
         onAdd: function(map) {
           let div = L$1.DomUtil.create("div");
@@ -32703,20 +32727,32 @@ L.RasterCoords.prototype = {
           let ul = L$1.DomUtil.create("ul");
           ul.classList.add("leaflet-control-toolbar");
           ul.classList.add("leaflet-toolbar-0");
-          self2.config.plants.forEach((plant, index2) => {
+          let selectors = [];
+          self2.data.building.forEach((building, index2) => {
             let li = L$1.DomUtil.create("li");
+            li.classList.add("plantquest-tool-select-building");
+            li.setAttribute("data-plantquest-building", building.id);
             let a = L$1.DomUtil.create("a");
             a.classList.add("leaflet-toolbar-icon");
             a.setAttribute("href", "#");
-            a.innerText = plant.name.replace("Building ", "");
+            a.innerText = building.name.replace("Building ", "");
             li.appendChild(a);
             ul.appendChild(li);
+            selectors.push(li);
             li.addEventListener("click", () => {
+              self2.current.building = building;
               let coords = c_asset_coords({
-                x: plant.center[0],
-                y: plant.center[1]
+                x: building.center[0],
+                y: building.center[1]
               });
               self2.map.setView(coords, self2.config.mapMinZoom + 1);
+              self2.addLevelControl();
+              for (let selector of selectors) {
+                selector.classList.remove("plantquest-tool-select-building-active");
+                if (building.id === selector.getAttribute("data-plantquest-building")) {
+                  selector.classList.add("plantquest-tool-select-building-active");
+                }
+              }
             });
           });
           div.appendChild(ul);
@@ -32725,8 +32761,9 @@ L.RasterCoords.prototype = {
         onRemove: function(map) {
         }
       });
-      let bc = new BuildingControl({ position: "topright" });
-      bc.addTo(self2.map);
+      self2.current.buildingControl = new BuildingControl({ position: "topright" });
+      self2.current.buildingControl.addTo(self2.map);
+      self2.addLevelControl();
     };
     self2.zoomStartRender = function() {
       let zoom = self2.map.getZoom();
@@ -33220,7 +33257,11 @@ L.RasterCoords.prototype = {
             "aim:web,on:assetmap,list:geofence",
             "aim:web,on:assetmap,load:geofence",
             "aim:web,on:assetmap,save:geofence",
-            "aim:web,on:assetmap,remove:geofence"
+            "aim:web,on:assetmap,remove:geofence",
+            "aim:web,on:assetmap,list:level",
+            "aim:web,on:assetmap,load:level",
+            "aim:web,on:assetmap,save:level",
+            "aim:web,on:assetmap,remove:level"
           ]
         });
         const amseneca = seneca.fix("srv:plantquest,part:assetmap");
@@ -33238,7 +33279,7 @@ L.RasterCoords.prototype = {
             self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
           });
         });
-        let ents = ["asset", "room", "building", "geofence"];
+        let ents = ["asset", "room", "building", "level", "geofence"];
         for (let entname of ents) {
           amseneca.message("save:" + entname, function saveItem(msg2) {
             return __async(this, null, function* () {
@@ -33599,6 +33640,14 @@ L.RasterCoords.prototype = {
     return self2;
   }
   class Building {
+    constructor(ent, ctx) {
+      __publicField(this, "ent", null);
+      __publicField(this, "ctx", null);
+      this.ent = ent;
+      this.ctx = ctx;
+    }
+  }
+  class Level {
     constructor(ent, ctx) {
       __publicField(this, "ent", null);
       __publicField(this, "ctx", null);
@@ -34475,6 +34524,11 @@ li.plantquest-level-current a.leaflet-toolbar-icon {
   color: #333;
 }
 
+.plantquest-tool-select-building {
+}
+.plantquest-tool-select-building-active a {
+  background-color:#CCC !important;
+}
 
 .plantquest-font-s0 {
   font-size: 4pt;
