@@ -16,6 +16,7 @@ import SenecaEntity from 'seneca-entity'
 
 import './rastercoords.js'
 
+console.log('PQAM 01')
 
 ;(function(W, D) {
   W.$L = L
@@ -1212,7 +1213,7 @@ import './rastercoords.js'
             let a = L.DomUtil.create('a')
             a.classList.add('leaflet-toolbar-icon')
             a.setAttribute('href','#')
-            a.innerText = building.name.replace('Building ','')
+            a.innerText = (building.name||'').replace('Building ','')
 
             li.appendChild(a)
             ul.appendChild(li)
@@ -2095,10 +2096,104 @@ import './rastercoords.js'
 
         .message('close:assetinfo', closeAssetInfoMsg)
         .message('close:clusterinfo', closeClusterInfoMsg)
+
+
+        .message('show:group', showGroup)
+        .message('hide:group', hideGroup)
       
       await seneca.ready()
 
 
+      async function showGroup(msg) {
+        let groupName = msg.group
+
+        let groupMap = {
+          data9:  'Plant Room',   				
+          data10: 'ATEX Area',
+          data11: 'Noise >80db',
+          data12: 'Production Area',
+          data13: 'PPE Required',
+        }
+        let groupNameMap =
+            Object.entries(groupMap).reduce(((a,en)=>((a[en[1]]=en[0]), a)),{})
+
+        console.log('groupNameMap', groupNameMap)
+        
+        let fieldName = groupNameMap[groupName]
+        
+        for(let asset of Object.values(self.asset.map)) {
+          let row = asset.ent.row
+          if('1' == row[fieldName]) {
+            console.log('showGroup asset',fieldName, asset)
+            asset.show({
+              pqam: self,
+              assetID: asset.id,
+              // stateName: assetCurrent.stateName,
+              hide: false,
+              blink: false ,
+              showRoom: false,
+              infobox: false,
+              closeinfo: false,
+              whence: 'showGroup',
+            })
+          }
+        }
+
+        for(let room of Object.values(self.room.map)) {
+          let row = room.ent.row
+          // console.log('SG ROOM row',fieldName,row[fieldName])
+          if('1' == row[fieldName]) {
+            console.log('showGroup room',fieldName, room)
+            let room_poly = convertRoomPoly(self.config.mapImg, room.ent.poly)
+            room.show(self.layer.room, room_poly)
+          }
+        }
+
+        return {ok:true}
+      }
+
+      async function hideGroup(msg) {
+        let groupName = msg.group
+
+        let groupMap = {
+          data9:  'Plant Room',   				
+          data10: 'ATEX Area',
+          data11: 'Noise >80db',
+          data12: 'Production Area',
+          data13: 'PPE Required',
+        }
+        let groupNameMap =
+            Object.entries(groupMap).reduce(((a,en)=>((a[en[1]]=en[0]), a)),{})
+
+        let fieldName = groupNameMap[groupName]
+        
+        for(let asset of Object.values(self.asset.map)) {
+          let row = asset.ent.row
+          if('1' == row[fieldName]) {
+            console.log('hideGroup asset',fieldName, asset)
+            asset.show({
+              pqam: self,
+              assetID: asset.id,
+              hide: true,
+              whence: 'hideGroup',
+            })
+          }
+        }
+
+        for(let room of Object.values(self.room.map)) {
+          let row = room.ent.row
+          // console.log('SG ROOM row',fieldName,row[fieldName])
+          if('1' == row[fieldName]) {
+            console.log('hideGroup room',fieldName, room)
+            room.poly.remove(self.layer.room)
+          }
+        }
+
+        return {ok:true}
+
+      }
+
+      
       async function closeAssetInfoMsg(msg) {
         self.closeAssetInfo()
       }
