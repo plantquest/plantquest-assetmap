@@ -14,6 +14,7 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
+    <script src="./L.KittenLayer.js"></script>
     <title>Leaflet QuickStart</title>
   </head>
   <body>
@@ -63,6 +64,8 @@
           .openOn(map)
       }
       map.on('click', onMapClick)
+
+      L.tileLayer.kitten().addTo(map)
     </script>
   </body>
 </html>
