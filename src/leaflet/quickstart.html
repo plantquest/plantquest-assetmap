@@ -15,6 +15,7 @@
       crossorigin=""
     ></script>
     <script src="./L.KittenLayer.js"></script>
+    <script src="./L.StarPolygon.js"></script>
     <title>Leaflet QuickStart</title>
   </head>
   <body>
@@ -90,6 +91,8 @@
         .addTo(map)
         .bindPopup('Get egged lol')
         .openPopup()
+
+      L.Polygon.star([[51.48, -0.08]]).addTo(map)
     </script>
   </body>
 </html>
