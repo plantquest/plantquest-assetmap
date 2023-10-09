@@ -17,6 +17,8 @@ import SenecaEntity from 'seneca-entity'
 import './rastercoords.js'
 
 
+console.log('V01')
+
 ;(function(W, D) {
   W.$L = L
   
@@ -1707,7 +1709,7 @@ import './rastercoords.js'
 
     self.getUrl = function(mapIndex) {
       return self.config.tilesEndPoint + '/' +
-        self.config.plant_id + '/' +
+        (null == self.config.plant_id ? '' : (self.config.plant_id + '/')) +
         mapIndex + '/{z}/{x}/{y}.png'
     },
     
