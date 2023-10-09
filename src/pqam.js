@@ -502,7 +502,8 @@ import './rastercoords.js'
         done(self.data)
       }
 
-      
+
+      // DEPRECATED
       if(self.config.mode == 'demo') {
       
         if('https://demo.plantquest.app/sample-data.js' === self.config.data) {
