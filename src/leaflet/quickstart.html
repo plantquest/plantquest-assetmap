@@ -15,7 +15,8 @@
       crossorigin=""
     ></script>
     <script src="./L.KittenLayer.js"></script>
-    <script src="./L.StarPolygon.js"></script>
+    <script src="./L.Egg.js"></script>
+    <script src="./L.WatermarkControl.js"></script>
     <title>Leaflet QuickStart</title>
   </head>
   <body>
@@ -68,31 +69,44 @@
 
       // L.tileLayer.kitten().addTo(map)
 
-      L.circle([51.495, -0.08], {
-        radius: 300,
-        color: '#ffffff',
-        fillColor: '#ffffff',
-        fillOpacity: 1
-      }).addTo(map)
+      // L.circle([51.495, -0.08], {
+      //   radius: 300,
+      //   color: '#ffffff',
+      //   fillColor: '#ffffff',
+      //   fillOpacity: 1
+      // }).addTo(map)
 
-      L.circle([51.4945, -0.077], {
-        radius: 225,
-        color: '#ffffff',
-        fillColor: '#ffffff',
-        fillOpacity: 1
-      }).addTo(map)
+      // L.circle([51.4945, -0.077], {
+      //   radius: 225,
+      //   color: '#ffffff',
+      //   fillColor: '#ffffff',
+      //   fillOpacity: 1
+      // }).addTo(map)
 
-      L.circle([51.495, -0.08], {
-        radius: 150,
-        color: '#ffbf00',
-        fillColor: '#ffd500',
-        fillOpacity: 1
-      })
+      // L.circle([51.495, -0.08], {
+      //   radius: 150,
+      //   color: '#ffbf00',
+      //   fillColor: '#ffd500',
+      //   fillOpacity: 1
+      // })
+      //   .addTo(map)
+      //   .bindPopup('egg here')
+      //   .openPopup()
+
+      // L.Polygon.star([[51.48, -0.08]]).addTo(map)
+
+      L.control
+        .watermark({ position: 'bottomright', width: '100px' })
         .addTo(map)
-        .bindPopup('Get egged lol')
-        .openPopup()
 
-      L.Polygon.star([[51.48, -0.08]]).addTo(map)
+      let egg1 = L.egg({
+        position: [51.495, -0.08],
+        message: 'egg time'
+      }).addTo(map)
+      let egg2 = L.egg({
+        position: [51.495, -0.09],
+        message: 'second egg'
+      }).addTo(map)
     </script>
   </body>
 </html>
