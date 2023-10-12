@@ -98,15 +98,20 @@
       L.control
         .watermark({ position: 'bottomright', width: '100px' })
         .addTo(map)
+      // L.control.watermark().addTo(map)
 
-      let egg1 = L.egg({
-        position: [51.495, -0.08],
-        message: 'egg time'
-      }).addTo(map)
-      let egg2 = L.egg({
-        position: [51.495, -0.09],
-        message: 'second egg'
-      }).addTo(map)
+      let egg1 = L.control
+        .egg({
+          position: [51.495, -0.08],
+          message: 'egg time'
+        })
+        .addTo(map)
+      let egg2 = L.control
+        .egg({
+          position: [51.495, -0.09],
+          message: 'second egg'
+        })
+        .addTo(map)
     </script>
   </body>
 </html>

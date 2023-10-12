@@ -29,6 +29,6 @@ L.Control.Egg = L.Control.extend({
   }
 })
 
-L.egg = function (options) {
+L.control.egg = function (options) {
   return new L.Control.Egg(options)
 }
