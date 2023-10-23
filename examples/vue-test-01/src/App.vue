@@ -41,7 +41,8 @@ const TILES = import.meta.env.VITE_PLANTQUEST_ASSETMAP_TILES || 'NONE'
     up: { color: '#696', name: 'Up', marker: 'standard' },
     down: { color: '#666', name: 'Down', marker: 'standard' },
     missing: { color: '#f3f', name: 'Missing', marker: 'alert' },
-    alarm: { color: '#f33', name: 'Alarm', marker: 'alert' },
+  alarm: { color: '#f33', name: 'Alarm', marker: 'alert' },
+  'In Use': { color: '#f33', name: 'In Use', marker: 'alert' },
   },
   
   start: {
@@ -82,17 +83,14 @@ const TILES = import.meta.env.VITE_PLANTQUEST_ASSETMAP_TILES || 'NONE'
     interval: 30000
   }
   }
-  
+
   let pqam = window.PlantQuestAssetMap.make('demo')
   pqam.start(options, ()=>{})
-
-  
 </script>
 
 <template>
-<div>
-  <h1>MAP</h1>
-  <div style="height: 100px;weight:100px" id="plantquest-assetmap"></div>  
+<div style="height:500px;width:800px; background-color:red;" >
+  <div id="plantquest-assetmap"></div>  
 </div>
 </template>
 

@@ -247,11 +247,21 @@ import './rastercoords.js'
       if(self.current.started) {
         self.clearRoomAssets()
         self.unselectRoom()
-        
+
+        self.clearGeofences()
+        self.closeAssetInfo()
+        self.closeClusterInfo()
+        self.current.assetsShownOnLevel = {}
+
         self.map.setView(self.config.mapStart, self.config.mapStartZoom)
         return
       }
 
+      self.clearGeofences()
+      self.closeAssetInfo()
+      self.closeClusterInfo()
+      self.current.assetsShownOnLevel = {}
+      
       // self.config = { ...self.config, ...(config || {}) }
       self.config = Seneca.util.deep(self.config,config)
 
@@ -320,6 +330,7 @@ import './rastercoords.js'
 
 
     self.restart = function(config, ready) {
+      // console.log('RESTART', config)
       self.current.started = false
       self.state.dataLoaded = false
       self.start(config, ready)
@@ -1673,6 +1684,17 @@ import './rastercoords.js'
       }
     }
 
+
+    self.clearGeofences = function() {
+      for(let geofenceID in self.geofence.map) {
+        let geofence = self.geofence.map[geofenceID]
+        delete self.geofence.map[geofenceID]
+        if(geofence && geofence.hide) {
+          geofence.hide()
+        }
+      }
+    }
+    
     
     self.clearRoomAssets = function(roomID) {
       for(let assetID in self.asset.map) {
@@ -2441,6 +2463,10 @@ import './rastercoords.js'
     constructor(ent,ctx) {
       this.ent = ent
       this.ctx = ctx
+
+      if(null != ent.x_status) {
+        this.state = ent.x_status
+      }
     }
     
 
@@ -2495,6 +2521,9 @@ import './rastercoords.js'
       
       state = state || this.state || defaultState
 
+      // console.log('STATE', this.state, pqam.config.states[state], pqam.config.states, this)
+
+      
       let stateDef = pqam.config.states[state] || 
           pqam.config.states[defaultState]
 

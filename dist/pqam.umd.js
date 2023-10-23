@@ -13336,7 +13336,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "6.1.0";
+  const version = "6.2.0";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -32032,9 +32032,17 @@ var __async = (__this, __arguments, generator) => {
         if (self2.current.started) {
           self2.clearRoomAssets();
           self2.unselectRoom();
+          self2.clearGeofences();
+          self2.closeAssetInfo();
+          self2.closeClusterInfo();
+          self2.current.assetsShownOnLevel = {};
           self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
           return;
         }
+        self2.clearGeofences();
+        self2.closeAssetInfo();
+        self2.closeClusterInfo();
+        self2.current.assetsShownOnLevel = {};
         self2.config = Seneca.util.deep(self2.config, config);
         self2.log("start", JSON.stringify(self2.config));
         self2.config.base = self2.config.base || "";
@@ -33086,6 +33094,15 @@ var __async = (__this, __arguments, generator) => {
           geofence.hide();
         }
       };
+      self2.clearGeofences = function() {
+        for (let geofenceID in self2.geofence.map) {
+          let geofence = self2.geofence.map[geofenceID];
+          delete self2.geofence.map[geofenceID];
+          if (geofence && geofence.hide) {
+            geofence.hide();
+          }
+        }
+      };
       self2.clearRoomAssets = function(roomID) {
         for (let assetID in self2.asset.map) {
           let assetInst = self2.asset.map[assetID];
@@ -33678,6 +33695,9 @@ var __async = (__this, __arguments, generator) => {
         __publicField(this, "alarm", null);
         this.ent = ent;
         this.ctx = ctx;
+        if (null != ent.x_status) {
+          this.state = ent.x_status;
+        }
       }
       buildIndicator(args) {
         const {
