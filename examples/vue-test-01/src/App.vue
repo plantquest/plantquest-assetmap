@@ -9,7 +9,7 @@ const TILES = import.meta.env.VITE_PLANTQUEST_ASSETMAP_TILES || 'NONE'
   
   console.log('window:: ', window.PlantQuestAssetMap)
 
-  window.PLANTQUEST_ASSETMAP_LOG = true
+  window.PLANTQUEST_ASSETMAP_LOG = false
   
   const options = {
   debug: {

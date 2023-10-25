@@ -166,9 +166,11 @@ import './rastercoords.js'
       },
       
       data: {
+        building: [],
         level: [],
         room: [],
-
+        asset: [],
+        
         // TOOD: refactor 
         assetMap: {},
         roomMap: {},
@@ -199,6 +201,7 @@ import './rastercoords.js'
         senecaLoaded: false,
         dataLoading: false,
         dataLoaded: false,
+        rendered: false,
       },
       
       upload: {
@@ -257,6 +260,7 @@ import './rastercoords.js'
         return
       }
 
+      self.clearAssets()
       self.clearGeofences()
       self.closeAssetInfo()
       self.closeClusterInfo()
@@ -330,7 +334,6 @@ import './rastercoords.js'
 
 
     self.restart = function(config, ready) {
-      // console.log('RESTART', config)
       self.current.started = false
       self.state.dataLoaded = false
       self.start(config, ready)
@@ -346,7 +349,8 @@ import './rastercoords.js'
       
       let seneca = await self.getSeneca()
                   
-      
+
+      // TODO: remove - loads old static data
       let processData = async (json)=> {
       
         self.data = json
@@ -359,7 +363,6 @@ import './rastercoords.js'
         self.data.room = self.data.rooms
         self.data.level = self.data.levels
         self.data.building = self.data.buildings
-          
           
         let assetProps = self.data.asset[0]
         
@@ -423,6 +426,12 @@ import './rastercoords.js'
           'geofence',
           'asset',
         ]
+
+        // Clear previous data.
+        for(let kind of entnames) {
+          self.data[kind] = self.data[kind] || []
+          self.data[kind].length = 0
+        }
         
         for(let kind of entnames) {
           try {
@@ -651,6 +660,12 @@ import './rastercoords.js'
 
     
     self.render = function(done) {
+      if(self.state.rendered) {
+        return
+      }
+
+      self.state.rendered = true
+      
       if(!self.current.styleInjected) {
         injectStyle()
         self.current.styleInjected = true
@@ -999,7 +1014,7 @@ import './rastercoords.js'
             let assetInst = self.asset.map[layer.assetID]
             if(null == assetInst) return;
 
-	    if(assetInst) {
+	    if(assetInst && assetInst.indicator) {
               assetInst.indicator.addTo(self.layer.indicator)
             }
 	  }
@@ -1014,7 +1029,7 @@ import './rastercoords.js'
 	  if(layer instanceof L.Marker && !(layer instanceof L.MarkerCluster)){
 	    
 	    let assetInst = self.asset.map[layer.assetID]
-	    
+
 	    if(assetInst) {
 	      if(assetInst.indicator) {
 	        assetInst.indicator.remove()
@@ -1710,6 +1725,16 @@ import './rastercoords.js'
       }
     }
 
+    self.clearAssets = function(roomID) {
+      let counts = {label:0,indicator:0}
+      for(let assetID in self.asset.map) {
+        let assetInst = self.asset.map[assetID]
+        if(assetInst) {
+          assetInst.hide({pqam:self})
+        }
+        delete self.asset.map[assetID]
+      }
+    }
     
     self.showRoomAssets = function(roomID) {
       let assets = (self.data.deps.pc.room[roomID] ?
@@ -2520,8 +2545,6 @@ import './rastercoords.js'
       let defaultState = (Object.keys(pqam.config.states)[0])
       
       state = state || this.state || defaultState
-
-      // console.log('STATE', this.state, pqam.config.states[state], pqam.config.states, this)
 
       
       let stateDef = pqam.config.states[state] || 
