@@ -13329,7 +13329,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "6.2.0";
+  const version = "6.3.0";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
