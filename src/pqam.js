@@ -1787,21 +1787,7 @@ import './rastercoords.js'
       self.closeAssetInfo()
       self.closeClusterInfo()
       
-      if(flags.force || mapIndex !== self.loc.map) {
-
-        setTimeout(()=>{
-          let levelTools = $All('.leaflet-control-toolbar > li')
-
-          levelTools.forEach(lt=>lt.classList.remove('plantquest-level-current'))
-
-          // TODO: find level using id
-          let lt = levelTools[self.loc.map+2]
-          if(lt) {
-            lt.classList.add('plantquest-level-current')
-          }
-        },1)
-
-        
+      if(flags.force || mapIndex !== self.loc.map) {        
         if(self.leaflet.maptile) {
           self.leaflet.maptile.remove(self.map)
         }
@@ -3518,10 +3504,6 @@ div.plantquest-assetmap-asset-state-alarm {
     border-radius: 4px;
     background-color: #f33;
     opacity: 0.9;
-}
-
-li.plantquest-level-current a.leaflet-toolbar-icon {
-  background-color: #ccc;
 }
 
 .leaflet-pane svg {

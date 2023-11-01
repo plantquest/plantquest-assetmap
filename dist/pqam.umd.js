@@ -13336,7 +13336,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "6.4.0";
+  const version = "6.4.1";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -33174,14 +33174,6 @@ var __async = (__this, __arguments, generator) => {
         self2.closeAssetInfo();
         self2.closeClusterInfo();
         if (flags.force || mapIndex !== self2.loc.map) {
-          setTimeout(() => {
-            let levelTools = $All(".leaflet-control-toolbar > li");
-            levelTools.forEach((lt2) => lt2.classList.remove("plantquest-level-current"));
-            let lt = levelTools[self2.loc.map + 2];
-            if (lt) {
-              lt.classList.add("plantquest-level-current");
-            }
-          }, 1);
           if (self2.leaflet.maptile) {
             self2.leaflet.maptile.remove(self2.map);
           }
@@ -34534,10 +34526,6 @@ div.plantquest-assetmap-asset-state-alarm {
     border-radius: 4px;
     background-color: #f33;
     opacity: 0.9;
-}
-
-li.plantquest-level-current a.leaflet-toolbar-icon {
-  background-color: #ccc;
 }
 
 .leaflet-pane svg {
