@@ -29,7 +29,7 @@ const TILES = import.meta.env.VITE_PLANTQUEST_ASSETMAP_TILES || 'NONE'
   // mode: 'demo',
   mode: 'live',
 
-  plant_id: 'sanford',
+  plant_id: 'newbridge',
   project_id: 'm71044',
   stage: 'dev',
 

@@ -1205,6 +1205,7 @@ import './rastercoords.js'
       let levelToolbar = new L.Toolbar2.Control({
         actions: levelActions,
         position: 'topright',
+        className: 'plantquest-tool-level'
       })
 
       self.map.addLayer(levelToolbar)
@@ -1228,10 +1229,13 @@ import './rastercoords.js'
           let ul = L.DomUtil.create('ul')
           ul.classList.add('leaflet-control-toolbar')
           ul.classList.add('leaflet-toolbar-0')
+          ul.classList.add('plantquest-tool-building')
 
           let selectors = []
+
+          let buildings = [...self.data.building].sort((a,b)=>a.name>b.name?1:a.name<b.name?-1:0)
           
-          self.data.building.forEach((building,index)=>{
+          buildings.forEach((building,index)=>{
             let li = L.DomUtil.create('li')
             li.classList.add('plantquest-tool-select-building')
             li.setAttribute('data-plantquest-building',building.id)
@@ -3558,6 +3562,36 @@ li.plantquest-level-current a.leaflet-toolbar-icon {
   font-size: 12pt;
   font-style: italic;
   color: #333;
+}
+
+
+.plantquest-tool-level {
+  box-sizing: border-box;
+  width: 100px;
+}
+
+.plantquest-tool-level .leaflet-toolbar-icon {
+  width: 100% !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0px 4px;
+  box-sizing: border-box;
+}
+
+
+.plantquest-tool-building {
+  box-sizing: border-box;
+  width: 100px;
+}
+
+.plantquest-tool-building .leaflet-toolbar-icon {
+  width: 100% !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0px 4px;
+  box-sizing: border-box;
 }
 
 .plantquest-tool-select-building {
