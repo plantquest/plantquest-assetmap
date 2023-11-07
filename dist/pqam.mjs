@@ -13332,7 +13332,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "6.1.0";
+const version = "6.4.1";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -31967,8 +31967,10 @@ L.RasterCoords.prototype = {
         }
       },
       data: {
+        building: [],
         level: [],
         room: [],
+        asset: [],
         // TOOD: refactor 
         assetMap: {},
         roomMap: {}
@@ -31991,7 +31993,8 @@ L.RasterCoords.prototype = {
         senecaLoading: false,
         senecaLoaded: false,
         dataLoading: false,
-        dataLoaded: false
+        dataLoaded: false,
+        rendered: false
       },
       upload: {
         assetI: 0,
@@ -32028,9 +32031,18 @@ L.RasterCoords.prototype = {
       if (self2.current.started) {
         self2.clearRoomAssets();
         self2.unselectRoom();
+        self2.clearGeofences();
+        self2.closeAssetInfo();
+        self2.closeClusterInfo();
+        self2.current.assetsShownOnLevel = {};
         self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
         return;
       }
+      self2.clearAssets();
+      self2.clearGeofences();
+      self2.closeAssetInfo();
+      self2.closeClusterInfo();
+      self2.current.assetsShownOnLevel = {};
       self2.config = Seneca.util.deep(self2.config, config);
       self2.log("start", JSON.stringify(self2.config));
       self2.config.base = self2.config.base || "";
@@ -32148,6 +32160,10 @@ L.RasterCoords.prototype = {
             "geofence",
             "asset"
           ];
+          for (let kind of entnames) {
+            self2.data[kind] = self2.data[kind] || [];
+            self2.data[kind].length = 0;
+          }
           for (let kind of entnames) {
             try {
               let res = yield seneca.post(
@@ -32324,6 +32340,10 @@ L.RasterCoords.prototype = {
       }, self2.config.update.interval);
     };
     self2.render = function(done2) {
+      if (self2.state.rendered) {
+        return;
+      }
+      self2.state.rendered = true;
       if (!self2.current.styleInjected) {
         injectStyle();
         self2.current.styleInjected = true;
@@ -32572,7 +32592,7 @@ L.RasterCoords.prototype = {
             let assetInst = self2.asset.map[layer.assetID];
             if (null == assetInst)
               return;
-            if (assetInst) {
+            if (assetInst && assetInst.indicator) {
               assetInst.indicator.addTo(self2.layer.indicator);
             }
           }
@@ -32715,7 +32735,8 @@ L.RasterCoords.prototype = {
       });
       let levelToolbar = new L$1.Toolbar2.Control({
         actions: levelActions,
-        position: "topright"
+        position: "topright",
+        className: "plantquest-tool-level"
       });
       self2.map.addLayer(levelToolbar);
       self2.current.levelControl = levelToolbar;
@@ -32734,8 +32755,10 @@ L.RasterCoords.prototype = {
           let ul = L$1.DomUtil.create("ul");
           ul.classList.add("leaflet-control-toolbar");
           ul.classList.add("leaflet-toolbar-0");
+          ul.classList.add("plantquest-tool-building");
           let selectors = [];
-          self2.data.building.forEach((building, index2) => {
+          let buildings = [...self2.data.building].sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
+          buildings.forEach((building, index2) => {
             let li = L$1.DomUtil.create("li");
             li.classList.add("plantquest-tool-select-building");
             li.setAttribute("data-plantquest-building", building.id);
@@ -33082,6 +33105,15 @@ L.RasterCoords.prototype = {
         geofence.hide();
       }
     };
+    self2.clearGeofences = function() {
+      for (let geofenceID in self2.geofence.map) {
+        let geofence = self2.geofence.map[geofenceID];
+        delete self2.geofence.map[geofenceID];
+        if (geofence && geofence.hide) {
+          geofence.hide();
+        }
+      }
+    };
     self2.clearRoomAssets = function(roomID) {
       for (let assetID in self2.asset.map) {
         let assetInst = self2.asset.map[assetID];
@@ -33093,6 +33125,16 @@ L.RasterCoords.prototype = {
             assetInst.label.remove(self2.layer.asset);
           }
         }
+      }
+    };
+    self2.clearAssets = function(roomID) {
+      let counts = { label: 0, indicator: 0 };
+      for (let assetID in self2.asset.map) {
+        let assetInst = self2.asset.map[assetID];
+        if (assetInst) {
+          assetInst.hide({ pqam: self2 });
+        }
+        delete self2.asset.map[assetID];
       }
     };
     self2.showRoomAssets = function(roomID) {
@@ -33128,14 +33170,6 @@ L.RasterCoords.prototype = {
       self2.closeAssetInfo();
       self2.closeClusterInfo();
       if (flags.force || mapIndex !== self2.loc.map) {
-        setTimeout(() => {
-          let levelTools = $All(".leaflet-control-toolbar > li");
-          levelTools.forEach((lt2) => lt2.classList.remove("plantquest-level-current"));
-          let lt = levelTools[self2.loc.map + 2];
-          if (lt) {
-            lt.classList.add("plantquest-level-current");
-          }
-        }, 1);
         if (self2.leaflet.maptile) {
           self2.leaflet.maptile.remove(self2.map);
         }
@@ -33674,6 +33708,9 @@ L.RasterCoords.prototype = {
       __publicField(this, "alarm", null);
       this.ent = ent;
       this.ctx = ctx;
+      if (null != ent.x_status) {
+        this.state = ent.x_status;
+      }
     }
     buildIndicator(args) {
       const {
@@ -34487,10 +34524,6 @@ div.plantquest-assetmap-asset-state-alarm {
     opacity: 0.9;
 }
 
-li.plantquest-level-current a.leaflet-toolbar-icon {
-  background-color: #ccc;
-}
-
 .leaflet-pane svg {
     width: unset !important;
     height: unset !important;
@@ -34529,6 +34562,36 @@ li.plantquest-level-current a.leaflet-toolbar-icon {
   font-size: 12pt;
   font-style: italic;
   color: #333;
+}
+
+
+.plantquest-tool-level {
+  box-sizing: border-box;
+  width: 100px;
+}
+
+.plantquest-tool-level .leaflet-toolbar-icon {
+  width: 100% !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0px 4px;
+  box-sizing: border-box;
+}
+
+
+.plantquest-tool-building {
+  box-sizing: border-box;
+  width: 100px;
+}
+
+.plantquest-tool-building .leaflet-toolbar-icon {
+  width: 100% !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0px 4px;
+  box-sizing: border-box;
 }
 
 .plantquest-tool-select-building {
