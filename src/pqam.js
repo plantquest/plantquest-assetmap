@@ -16,7 +16,7 @@ import SenecaEntity from 'seneca-entity'
 
 import './rastercoords.js'
 
-// console.log('PQAM 5')
+// console.log('PQAM 6')
 
 ;(function(W, D) {
   W.$L = L
@@ -832,17 +832,17 @@ import './rastercoords.js'
 
     
     self.build = function() {
-      const mapent = self.data.map[0]
+      const mapent = self.data.map[0] || {}
 
       // TODO: refactor, these are inverted
-      self.config.mapBounds[0] = mapent.ph
-      self.config.mapBounds[1] = mapent.pw
+      self.config.mapBounds[0] = null != mapent.ph ? mapent.ph : self.config.mapBounds[0]
+      self.config.mapBounds[1] = null != mapent.pw ? mapent.pw : self.config.mapBounds[1]
         
-      self.config.mapImg[0] = mapent.pw
-      self.config.mapImg[1] = mapent.ph
+      self.config.mapImg[0] = null != mapent.pw ? mapent.pw : self.config.mapImg[0]
+      self.config.mapImg[1] = null != mapent.ph ? mapent.ph : self.config.mapImg[1]
       
-      self.config.mapStart[0] = mapent.psx
-      self.config.mapStart[1] = mapent.psy
+      self.config.mapStart[0] = null != mapent.psx ? mapent.psx : self.config.mapStart[0]
+      self.config.mapStart[1] = null != mapent.psy ? mapent.psy : self.config.mapStart[1]
             
       if(self.map) {
         self.map.remove()
@@ -1987,176 +1987,179 @@ import './rastercoords.js'
         ]
       })
 
-      const amseneca = seneca
-        .fix('srv:plantquest,part:assetmap')
+        .use(function pqam() {
+          const seneca = this
+          
+          const amseneca = seneca
+                .fix('srv:plantquest,part:assetmap')
 
-      amseneca
-        .message('get:info', async function getInfo(msg) {
-          return { ...self.info }
-        })
-        .message('cmd:reset', async function resetMap(msg) {
-          self.clearRoomAssets()
-          self.unselectRoom()
-          self.closeAssetInfo()
-          self.closeClusterInfo()
-          self.current.assetsShownOnLevel = {}
-          self.map.setView(self.config.mapStart, self.config.mapStartZoom)
-        })
-      
+          amseneca
+            .message('get:info', async function getInfo(msg) {
+              return { ...self.info }
+            })
+            .message('cmd:reset', async function resetMap(msg) {
+              self.clearRoomAssets()
+              self.unselectRoom()
+              self.closeAssetInfo()
+              self.closeClusterInfo()
+              self.current.assetsShownOnLevel = {}
+              self.map.setView(self.config.mapStart, self.config.mapStartZoom)
+            })
 
-      let ents = ['asset','room','building','level','geofence','map']
+          let ents = ['asset','room','building','level','geofence','map']
+          
+          for(let entname of ents) {
+            amseneca
 
-      for(let entname of ents) {
-        amseneca
+              .message('save:'+entname, async function saveItem(msg) {
+                let item = msg[entname] || msg.item
+                item = { ...item, ...{
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage,
+                } }
+                
+                let res = await this.post('aim:web,on:assetmap', { save:entname, item } )
 
-          .message('save:'+entname, async function saveItem(msg) {
-            let item = msg[entname] || msg.item
-            item = { ...item, ...{
-              project_id: self.config.project_id,
-              plant_id: self.config.plant_id,
-              stage: self.config.stage,
-            } }
-            
-            let res = await this.post('aim:web,on:assetmap', { save:entname, item } )
-
-            if(res.ok) {
-              self.emit({
-                srv:'plantquest',
-                part:'assetmap',
-                save: entname,
-                item: res.item,
-                [entname]: res.item
+                if(res.ok) {
+                  self.emit({
+                    srv:'plantquest',
+                    part:'assetmap',
+                    save: entname,
+                    item: res.item,
+                    [entname]: res.item
+                  })
+                }
+                
+                return res
               })
-            }
             
-            return res
-          })
-      
-          .message('load:'+entname, async function loadItem(msg) {
-            const { id } = msg
+              .message('load:'+entname, async function loadItem(msg) {
+                const { id } = msg
 
-            let res = await this.post('aim:web,on:assetmap', { load:entname, id, } )
+                let res = await this.post('aim:web,on:assetmap', { load:entname, id, } )
 
-            if(res.ok) {
-              self.emit({
-                srv:'plantquest',
-                part:'assetmap',
-                load: entname,
-                [entname]: res.item
+                if(res.ok) {
+                  self.emit({
+                    srv:'plantquest',
+                    part:'assetmap',
+                    load: entname,
+                    [entname]: res.item
+                  })
+                }
+                
+                return res
               })
-            }
             
-            return res
-          })
-        
-          .message('list:'+entname, async function listItem(msg) {
-            let { query } = msg
-            query = query || {
-              project_id: self.config.project_id,
-              plant_id: self.config.plant_id,
-              stage: self.config.stage,
-            }
+              .message('list:'+entname, async function listItem(msg) {
+                let { query } = msg
+                query = query || {
+                  project_id: self.config.project_id,
+                  plant_id: self.config.plant_id,
+                  stage: self.config.stage,
+                }
 
-            let res = await this.post('aim:web,on:assetmap', { list:entname, query, } )
+                let res = await this.post('aim:web,on:assetmap', { list:entname, query, } )
 
-            if(res.ok) {
-              self.emit({
-                srv:'plantquest',
-                part:'assetmap',
-                list: entname,
-                [entname]: res.list,
+                if(res.ok) {
+                  self.emit({
+                    srv:'plantquest',
+                    part:'assetmap',
+                    list: entname,
+                    [entname]: res.list,
+                  })
+                }
+                
+                return res
               })
-            }
-            
-            return res
-          })
 
-          .message('remove:'+entname, async function removeItem(msg) {
-            let { id } = msg
-            let res = await this.post('aim:web,on:assetmap', { remove:entname, id } )
+              .message('remove:'+entname, async function removeItem(msg) {
+                let { id } = msg
+                let res = await this.post('aim:web,on:assetmap', { remove:entname, id } )
 
-            if(res.ok) {
+                if(res.ok) {
+                  self.emit({
+                    srv: 'plantquest',
+                    part: 'assetmap',
+                    remove: entname,
+                    [entname]: res.item,
+                  })
+                }
+                
+                return res
+              })
+          }       
+
+          amseneca
+            .message('show:map', async function(msg) {
+              self.showMap(msg.map, {whence:'message'})
+            })
+          
+            .message('show:room', async function(msg) {
+              let room = self.data.roomMap[msg.room]
+              let roomInst = self.room.map[room.id]
+              
+              if(room) {
+                if(msg.assets) {
+                  if(msg.assets) {
+                    for(let assetID of msg.assets) {
+                      let asset = self.asset.map[assetID]
+                      if(asset) {
+                        asset.show({
+                          pqam: self,
+                          // stateName: asset.state,
+                          whence: 'show-room',
+                        })
+                      }
+                    }
+                  }
+                }
+
+                if(msg.focus) {
+                  roomInst.select(room.room, { mute: true })
+                }
+              }
+              else {
+                self.log('ERROR', 'send', 'room', 'unknown-room', msg)
+              }
+              
+            })
+          
+            .message('show:plant', async function(msg) {
+              self.showMap(msg.plant, {whence:'plant'})
+            })
+          
+            .message('show:floor', async function(msg) {
+              self.showMap(msg.map, {whence:'floor'})
+              self.clearRoomAssets()
+              self.unselectRoom()
+              self.map.setView(self.config.mapStart, self.config.mapStartZoom)
+              
+            })
+
+            .message('show:asset', showAssetMsg)
+            .message('hide:asset', showAssetMsg)
+            .message('load:asset', loadAssetMsg)
+            .message('set:asset', setAssetMsg)
+
+            .message('show:geofence', showGeofenceMsg)
+            .message('hide:geofence', showGeofenceMsg)
+
+          
+            .message('relate:room-asset', async function(msg) {
               self.emit({
                 srv: 'plantquest',
                 part: 'assetmap',
-                remove: entname,
-                [entname]: res.item,
+                relate: 'room-asset',
+                relation: clone(self.data.deps.pc.room)
               })
-            }
-            
-            return res
-          })
-      }       
+            })
 
-      amseneca
-        .message('show:map', async function(msg) {
-          self.showMap(msg.map, {whence:'message'})
+            .message('srv:plantquest,part:assetmap', async function(msg) {})
+
+            .message('close:assetinfo', closeAssetInfoMsg)
+            .message('close:clusterinfo', closeClusterInfoMsg)
         })
-      
-        .message('show:room', async function(msg) {
-          let room = self.data.roomMap[msg.room]
-          let roomInst = self.room.map[room.id]
-          
-          if(room) {
-            if(msg.assets) {
-              if(msg.assets) {
-                for(let assetID of msg.assets) {
-                  let asset = self.asset.map[assetID]
-                  if(asset) {
-                    asset.show({
-                      pqam: self,
-                      // stateName: asset.state,
-                      whence: 'show-room',
-                    })
-                  }
-                }
-              }
-            }
-
-            if(msg.focus) {
-              roomInst.select(room.room, { mute: true })
-            }
-          }
-          else {
-            self.log('ERROR', 'send', 'room', 'unknown-room', msg)
-          }
-          
-        })
-      
-        .message('show:plant', async function(msg) {
-          self.showMap(msg.plant, {whence:'plant'})
-        })
-      
-        .message('show:floor', async function(msg) {
-          self.showMap(msg.map, {whence:'floor'})
-          self.clearRoomAssets()
-          self.unselectRoom()
-          self.map.setView(self.config.mapStart, self.config.mapStartZoom)
-          
-        })
-
-        .message('show:asset', showAssetMsg)
-        .message('hide:asset', showAssetMsg)
-        .message('load:asset', loadAssetMsg)
-        .message('set:asset', setAssetMsg)
-
-        .message('show:geofence', showGeofenceMsg)
-        .message('hide:geofence', showGeofenceMsg)
-
-      
-        .message('relate:room-asset', async function(msg) {
-          self.emit({
-            srv: 'plantquest',
-            part: 'assetmap',
-            relate: 'room-asset',
-            relation: clone(self.data.deps.pc.room)
-          })
-        })
-
-        .message('srv:plantquest,part:assetmap', async function(msg) {})
-
-        .message('close:assetinfo', closeAssetInfoMsg)
-        .message('close:clusterinfo', closeClusterInfoMsg)
       
       await seneca.ready()
 

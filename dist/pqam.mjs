@@ -13331,7 +13331,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "7.0.0";
+const version = "7.0.1";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -13362,14 +13362,13 @@ const devDependencies = {
   "seneca-entity": "25.0.0",
   "seneca-mem-store": "8.3.0",
   serve: "^14.2.1",
-  vite: "^4.5.0"
+  vite: "^5.0.0"
 };
 const files = [
   "LICENSE",
   "README.md",
   "dist"
 ];
-const packageManager = "yarn@3.5.1";
 const Pkg = {
   name,
   version,
@@ -13383,8 +13382,7 @@ const Pkg = {
   source,
   scripts,
   devDependencies,
-  files,
-  packageManager
+  files
 };
 function commonjsRequire(path) {
   throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
@@ -25672,13 +25670,13 @@ L.RasterCoords.prototype = {
     self2.layer = {};
     self2.build = function() {
       var _a, _b;
-      const mapent = self2.data.map[0];
-      self2.config.mapBounds[0] = mapent.ph;
-      self2.config.mapBounds[1] = mapent.pw;
-      self2.config.mapImg[0] = mapent.pw;
-      self2.config.mapImg[1] = mapent.ph;
-      self2.config.mapStart[0] = mapent.psx;
-      self2.config.mapStart[1] = mapent.psy;
+      const mapent = self2.data.map[0] || {};
+      self2.config.mapBounds[0] = null != mapent.ph ? mapent.ph : self2.config.mapBounds[0];
+      self2.config.mapBounds[1] = null != mapent.pw ? mapent.pw : self2.config.mapBounds[1];
+      self2.config.mapImg[0] = null != mapent.pw ? mapent.pw : self2.config.mapImg[0];
+      self2.config.mapImg[1] = null != mapent.ph ? mapent.ph : self2.config.mapImg[1];
+      self2.config.mapStart[0] = null != mapent.psx ? mapent.psx : self2.config.mapStart[0];
+      self2.config.mapStart[1] = null != mapent.psy ? mapent.psy : self2.config.mapStart[1];
       if (self2.map) {
         self2.map.remove();
       }
@@ -26522,147 +26520,149 @@ L.RasterCoords.prototype = {
             // 'aim:web,on:assetmap,save:level',
             // 'aim:web,on:assetmap,remove:level',
           ]
-        });
-        const amseneca = seneca.fix("srv:plantquest,part:assetmap");
-        amseneca.message("get:info", function getInfo(msg) {
-          return __async(this, null, function* () {
-            return __spreadValues({}, self2.info);
-          });
-        }).message("cmd:reset", function resetMap(msg) {
-          return __async(this, null, function* () {
-            self2.clearRoomAssets();
-            self2.unselectRoom();
-            self2.closeAssetInfo();
-            self2.closeClusterInfo();
-            self2.current.assetsShownOnLevel = {};
-            self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
-          });
-        });
-        let ents = ["asset", "room", "building", "level", "geofence", "map"];
-        for (let entname of ents) {
-          amseneca.message("save:" + entname, function saveItem(msg) {
+        }).use(function pqam() {
+          const seneca2 = this;
+          const amseneca = seneca2.fix("srv:plantquest,part:assetmap");
+          amseneca.message("get:info", function getInfo(msg) {
             return __async(this, null, function* () {
-              let item = msg[entname] || msg.item;
-              item = __spreadValues(__spreadValues({}, item), {
-                project_id: self2.config.project_id,
-                plant_id: self2.config.plant_id,
-                stage: self2.config.stage
+              return __spreadValues({}, self2.info);
+            });
+          }).message("cmd:reset", function resetMap(msg) {
+            return __async(this, null, function* () {
+              self2.clearRoomAssets();
+              self2.unselectRoom();
+              self2.closeAssetInfo();
+              self2.closeClusterInfo();
+              self2.current.assetsShownOnLevel = {};
+              self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
+            });
+          });
+          let ents = ["asset", "room", "building", "level", "geofence", "map"];
+          for (let entname of ents) {
+            amseneca.message("save:" + entname, function saveItem(msg) {
+              return __async(this, null, function* () {
+                let item = msg[entname] || msg.item;
+                item = __spreadValues(__spreadValues({}, item), {
+                  project_id: self2.config.project_id,
+                  plant_id: self2.config.plant_id,
+                  stage: self2.config.stage
+                });
+                let res = yield this.post("aim:web,on:assetmap", { save: entname, item });
+                if (res.ok) {
+                  self2.emit({
+                    srv: "plantquest",
+                    part: "assetmap",
+                    save: entname,
+                    item: res.item,
+                    [entname]: res.item
+                  });
+                }
+                return res;
               });
-              let res = yield this.post("aim:web,on:assetmap", { save: entname, item });
-              if (res.ok) {
-                self2.emit({
-                  srv: "plantquest",
-                  part: "assetmap",
-                  save: entname,
-                  item: res.item,
-                  [entname]: res.item
-                });
-              }
-              return res;
+            }).message("load:" + entname, function loadItem(msg) {
+              return __async(this, null, function* () {
+                const { id: id2 } = msg;
+                let res = yield this.post("aim:web,on:assetmap", { load: entname, id: id2 });
+                if (res.ok) {
+                  self2.emit({
+                    srv: "plantquest",
+                    part: "assetmap",
+                    load: entname,
+                    [entname]: res.item
+                  });
+                }
+                return res;
+              });
+            }).message("list:" + entname, function listItem(msg) {
+              return __async(this, null, function* () {
+                let { query } = msg;
+                query = query || {
+                  project_id: self2.config.project_id,
+                  plant_id: self2.config.plant_id,
+                  stage: self2.config.stage
+                };
+                let res = yield this.post("aim:web,on:assetmap", { list: entname, query });
+                if (res.ok) {
+                  self2.emit({
+                    srv: "plantquest",
+                    part: "assetmap",
+                    list: entname,
+                    [entname]: res.list
+                  });
+                }
+                return res;
+              });
+            }).message("remove:" + entname, function removeItem(msg) {
+              return __async(this, null, function* () {
+                let { id: id2 } = msg;
+                let res = yield this.post("aim:web,on:assetmap", { remove: entname, id: id2 });
+                if (res.ok) {
+                  self2.emit({
+                    srv: "plantquest",
+                    part: "assetmap",
+                    remove: entname,
+                    [entname]: res.item
+                  });
+                }
+                return res;
+              });
             });
-          }).message("load:" + entname, function loadItem(msg) {
+          }
+          amseneca.message("show:map", function(msg) {
             return __async(this, null, function* () {
-              const { id: id2 } = msg;
-              let res = yield this.post("aim:web,on:assetmap", { load: entname, id: id2 });
-              if (res.ok) {
-                self2.emit({
-                  srv: "plantquest",
-                  part: "assetmap",
-                  load: entname,
-                  [entname]: res.item
-                });
-              }
-              return res;
+              self2.showMap(msg.map, { whence: "message" });
             });
-          }).message("list:" + entname, function listItem(msg) {
+          }).message("show:room", function(msg) {
             return __async(this, null, function* () {
-              let { query } = msg;
-              query = query || {
-                project_id: self2.config.project_id,
-                plant_id: self2.config.plant_id,
-                stage: self2.config.stage
-              };
-              let res = yield this.post("aim:web,on:assetmap", { list: entname, query });
-              if (res.ok) {
-                self2.emit({
-                  srv: "plantquest",
-                  part: "assetmap",
-                  list: entname,
-                  [entname]: res.list
-                });
-              }
-              return res;
-            });
-          }).message("remove:" + entname, function removeItem(msg) {
-            return __async(this, null, function* () {
-              let { id: id2 } = msg;
-              let res = yield this.post("aim:web,on:assetmap", { remove: entname, id: id2 });
-              if (res.ok) {
-                self2.emit({
-                  srv: "plantquest",
-                  part: "assetmap",
-                  remove: entname,
-                  [entname]: res.item
-                });
-              }
-              return res;
-            });
-          });
-        }
-        amseneca.message("show:map", function(msg) {
-          return __async(this, null, function* () {
-            self2.showMap(msg.map, { whence: "message" });
-          });
-        }).message("show:room", function(msg) {
-          return __async(this, null, function* () {
-            let room = self2.data.roomMap[msg.room];
-            let roomInst = self2.room.map[room.id];
-            if (room) {
-              if (msg.assets) {
+              let room = self2.data.roomMap[msg.room];
+              let roomInst = self2.room.map[room.id];
+              if (room) {
                 if (msg.assets) {
-                  for (let assetID of msg.assets) {
-                    let asset = self2.asset.map[assetID];
-                    if (asset) {
-                      asset.show({
-                        pqam: self2,
-                        // stateName: asset.state,
-                        whence: "show-room"
-                      });
+                  if (msg.assets) {
+                    for (let assetID of msg.assets) {
+                      let asset = self2.asset.map[assetID];
+                      if (asset) {
+                        asset.show({
+                          pqam: self2,
+                          // stateName: asset.state,
+                          whence: "show-room"
+                        });
+                      }
                     }
                   }
                 }
+                if (msg.focus) {
+                  roomInst.select(room.room, { mute: true });
+                }
+              } else {
+                self2.log("ERROR", "send", "room", "unknown-room", msg);
               }
-              if (msg.focus) {
-                roomInst.select(room.room, { mute: true });
-              }
-            } else {
-              self2.log("ERROR", "send", "room", "unknown-room", msg);
-            }
-          });
-        }).message("show:plant", function(msg) {
-          return __async(this, null, function* () {
-            self2.showMap(msg.plant, { whence: "plant" });
-          });
-        }).message("show:floor", function(msg) {
-          return __async(this, null, function* () {
-            self2.showMap(msg.map, { whence: "floor" });
-            self2.clearRoomAssets();
-            self2.unselectRoom();
-            self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
-          });
-        }).message("show:asset", showAssetMsg).message("hide:asset", showAssetMsg).message("load:asset", loadAssetMsg).message("set:asset", setAssetMsg).message("show:geofence", showGeofenceMsg).message("hide:geofence", showGeofenceMsg).message("relate:room-asset", function(msg) {
-          return __async(this, null, function* () {
-            self2.emit({
-              srv: "plantquest",
-              part: "assetmap",
-              relate: "room-asset",
-              relation: clone(self2.data.deps.pc.room)
             });
-          });
-        }).message("srv:plantquest,part:assetmap", function(msg) {
-          return __async(this, null, function* () {
-          });
-        }).message("close:assetinfo", closeAssetInfoMsg).message("close:clusterinfo", closeClusterInfoMsg);
+          }).message("show:plant", function(msg) {
+            return __async(this, null, function* () {
+              self2.showMap(msg.plant, { whence: "plant" });
+            });
+          }).message("show:floor", function(msg) {
+            return __async(this, null, function* () {
+              self2.showMap(msg.map, { whence: "floor" });
+              self2.clearRoomAssets();
+              self2.unselectRoom();
+              self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
+            });
+          }).message("show:asset", showAssetMsg).message("hide:asset", showAssetMsg).message("load:asset", loadAssetMsg).message("set:asset", setAssetMsg).message("show:geofence", showGeofenceMsg).message("hide:geofence", showGeofenceMsg).message("relate:room-asset", function(msg) {
+            return __async(this, null, function* () {
+              self2.emit({
+                srv: "plantquest",
+                part: "assetmap",
+                relate: "room-asset",
+                relation: clone(self2.data.deps.pc.room)
+              });
+            });
+          }).message("srv:plantquest,part:assetmap", function(msg) {
+            return __async(this, null, function* () {
+            });
+          }).message("close:assetinfo", closeAssetInfoMsg).message("close:clusterinfo", closeClusterInfoMsg);
+        });
         yield seneca.ready();
         function closeAssetInfoMsg(msg) {
           return __async(this, null, function* () {
