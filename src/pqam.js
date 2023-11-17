@@ -16,6 +16,7 @@ import SenecaEntity from 'seneca-entity'
 
 import './rastercoords.js'
 
+// console.log('PQAM 5')
 
 ;(function(W, D) {
   W.$L = L
@@ -69,7 +70,7 @@ import './rastercoords.js'
         mapStart: [3000, 2200],
         mapStartZoom: 2,
         mapRoomFocusZoom: 5,
-        mapMinZoom: 2,
+        mapMinZoom: 1, // 2,
         mapMaxZoom: 6,
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
@@ -246,7 +247,7 @@ import './rastercoords.js'
     }
     
     
-    self.start = function(config, ready) {
+    self.start = function(config, readyCallback) {
       if(self.current.started) {
         self.clearRoomAssets()
         self.unselectRoom()
@@ -266,7 +267,6 @@ import './rastercoords.js'
       self.closeClusterInfo()
       self.current.assetsShownOnLevel = {}
       
-      // self.config = { ...self.config, ...(config || {}) }
       self.config = Seneca.util.deep(self.config,config)
 
       self.log('start', JSON.stringify(self.config))
@@ -278,63 +278,70 @@ import './rastercoords.js'
       }
       
       async function loading() {
-        if (false === self.current.started) {
-          self.current.started = true
+      //   if (false === self.current.started) {
+      //     self.current.started = true
 
-          clearInterval(loadingInterval)
-          self.log('start','target-found',self.target)
+      //     clearInterval(loadingInterval)
+      //     self.log('start','target-found',self.target)
 
-          self.log(
-            'start','target-size',
-            'widthcss',self.config.width,
-            'heightcss',self.config.height,
-          )
+      //     self.log(
+      //       'start','target-size',
+      //       'widthcss',self.config.width,
+      //       'heightcss',self.config.height,
+      //     )
 
           let seneca = await self.getSeneca()
 
-          self.render(()=>{
-            self.log('start','render-done')
-          })
-          
+          // self.render(()=>{
+          //   self.log('start','render-done')
+          // })
+
           self.load(()=>{
             self.log('start','load-done',self.data)
-            self.showMap(self.loc.map,{
-              force: true,
-              when: 'load'
-            })
 
-            self.addBuildingControl()
-            // self.addLevelControl()
-            
-            if(self.config.update.active) {
-              self.log('start','updates',self.data)
-              self.updates()
-            }
-
-            if(ready) {
-              try {
-                ready(null, self)
-              }
-              catch(e) {
-                self.log('ERROR', 'ready', e)
-              }
-            }
+            self.render(()=>{
+              self.log('start','render-done')
               
-            self.emit({
-              srv:'plantquest',
-              part:'assetmap',
-              state: 'ready'
+              self.showMap(self.loc.map,{
+                force: true,
+                when: 'load'
+              })
+
+              self.addBuildingControl()
+              // self.addLevelControl()
+              
+              if(self.config.update.active) {
+                self.log('start','updates',self.data)
+                self.updates()
+              }
+
+              if(readyCallback) {
+                try {
+                  readyCallback(null, self)
+                }
+                catch(e) {
+                  self.log('ERROR', 'ready', e)
+                }
+              }
+              
+              self.emit({
+                srv:'plantquest',
+                part:'assetmap',
+                state: 'ready'
+              })
             })
           })
-        }
       }
 
-      const loadingInterval = setInterval(loading, 50)
+      
+      // const loadingInterval = setInterval(loading, 50)
+      setTimeout(loading,1)
     }
 
 
     self.restart = function(config, ready) {
       self.current.started = false
+      self.state.rendered = false
       self.state.dataLoaded = false
       self.start(config, ready)
     }
@@ -420,6 +427,7 @@ import './rastercoords.js'
 
         // Load entities.
         const entnames = [
+          'map',
           'building',
           'level',
           'room',
@@ -439,6 +447,11 @@ import './rastercoords.js'
               'srv:plantquest,part:assetmap',
               { list: kind, query, }
             )
+
+            // if('room' === kind) {
+            //   console.log('RES', kind, res)
+            // }
+            
             if(res && res.ok) {
               self.data[kind] = res.list
             }
@@ -507,8 +520,7 @@ import './rastercoords.js'
         })
         
 
-        // self.data.level = levels
-        self.data.maps = maps
+        self.data.maps = maps.sort((a,b) => (a.zo - b.zo))
         
         self.data.assetMap = assetMap
         self.data.roomMap = roomMap
@@ -518,7 +530,7 @@ import './rastercoords.js'
         self.state.dataLoading = false
 
         self.current.building = self.data.building[0]
-        
+
         done(self.data)
       }
 
@@ -661,7 +673,7 @@ import './rastercoords.js'
     
     self.render = function(done) {
       if(self.state.rendered) {
-        return
+        return done()
       }
 
       self.state.rendered = true
@@ -674,10 +686,9 @@ import './rastercoords.js'
       self.target = $('#plantquest-assetmap')
       if(!self.target) {
         self.log('ERROR', 'element-id', 'plantquest-assetmap', 'missing')
-        // clearInterval(loadingInterval)
-        return
+        return done()
       }
-      
+
       self.target.style.width = self.config.width
       self.target.style.height = self.config.height
 
@@ -688,9 +699,10 @@ import './rastercoords.js'
 
       // Only one map in the parent container ( target )
       if(1 <= self.target.children.length) {
-        return
+        // return done()
+        [...self.target.children].map(c=>self.target.removeChild(c))
       }
-      
+
       let root = Element('div')
       root.style.boxSizing = 'border-box'
       root.style.width = '100%'
@@ -702,13 +714,13 @@ import './rastercoords.js'
       root.innerHTML = buildContainer()
       self.target.appendChild(root)
       
-      setTimeout(()=>{
+      // setTimeout(()=>{
         self.vis.map.elem = $('#plantquest-assetmap-map')
         self.build()
         self.current.rendered = true
-        self.showMap(self.loc.map, {force:true,whence:'render'})
+        // self.showMap(self.loc.map, {force:true,whence:'render'})
         done && done()
-      }, self.domInterval)
+      // }, self.domInterval)
     }
 
     
@@ -820,13 +832,18 @@ import './rastercoords.js'
 
     
     self.build = function() {
-      let ms = {
-        mapurl: self.config.map[self.config.start.map],
-        bounds: [[0, 0], [...self.config.mapBounds]]
-      }
+      const mapent = self.data.map[0]
 
-      self.log('build', ms, L)
+      // TODO: refactor, these are inverted
+      self.config.mapBounds[0] = mapent.ph
+      self.config.mapBounds[1] = mapent.pw
+        
+      self.config.mapImg[0] = mapent.pw
+      self.config.mapImg[1] = mapent.ph
       
+      self.config.mapStart[0] = mapent.psx
+      self.config.mapStart[1] = mapent.psy
+            
       if(self.map) {
         self.map.remove()
       }
@@ -842,7 +859,8 @@ import './rastercoords.js'
       })
       
       rc = self.rc = new L.RasterCoords(self.map, self.config.mapImg)
-
+      self.map.setMaxBounds(self.rc.getMaxBounds())
+      
       new ResizeObserver(() => {
         self.map && self.map.invalidateSize()
       }).observe(self.vis.map.elem)
@@ -1302,6 +1320,12 @@ import './rastercoords.js'
     }
 
 
+    self.moveTo = function(x,y,zoom) {
+      let coords = c_asset_coords({x,y})
+      self.map.setView(coords, zoom||self.config.mapStartZoom)
+    }
+
+    
     self.setAsset = function(assetEnt) {
       try {
         let existing = self.data.assetMap[assetEnt.id]
@@ -1845,7 +1869,7 @@ import './rastercoords.js'
         self.map.setView(self.config.mapStart, self.config.mapStartZoom)
       }
 
-      
+
       self.emit({
         srv:'plantquest',
         part:'assetmap',
@@ -1934,32 +1958,32 @@ import './rastercoords.js'
           
           'aim:web',
           
-          'aim:web,on:assetmap,get:info',
+          // 'aim:web,on:assetmap,get:info',
 
-          'aim:web,on:assetmap,list:asset',
-          'aim:web,on:assetmap,load:asset',
-          'aim:web,on:assetmap,save:asset',
-          'aim:web,on:assetmap,remove:asset',
+          // 'aim:web,on:assetmap,list:asset',
+          // 'aim:web,on:assetmap,load:asset',
+          // 'aim:web,on:assetmap,save:asset',
+          // 'aim:web,on:assetmap,remove:asset',
 
-          'aim:web,on:assetmap,list:room',
-          'aim:web,on:assetmap,load:room',
-          'aim:web,on:assetmap,save:room',
-          'aim:web,on:assetmap,remove:room',
+          // 'aim:web,on:assetmap,list:room',
+          // 'aim:web,on:assetmap,load:room',
+          // 'aim:web,on:assetmap,save:room',
+          // 'aim:web,on:assetmap,remove:room',
 
-          'aim:web,on:assetmap,list:building',
-          'aim:web,on:assetmap,load:building',
-          'aim:web,on:assetmap,save:building',
-          'aim:web,on:assetmap,remove:building',
+          // 'aim:web,on:assetmap,list:building',
+          // 'aim:web,on:assetmap,load:building',
+          // 'aim:web,on:assetmap,save:building',
+          // 'aim:web,on:assetmap,remove:building',
 
-          'aim:web,on:assetmap,list:geofence',
-          'aim:web,on:assetmap,load:geofence',
-          'aim:web,on:assetmap,save:geofence',
-          'aim:web,on:assetmap,remove:geofence',
+          // 'aim:web,on:assetmap,list:geofence',
+          // 'aim:web,on:assetmap,load:geofence',
+          // 'aim:web,on:assetmap,save:geofence',
+          // 'aim:web,on:assetmap,remove:geofence',
 
-          'aim:web,on:assetmap,list:level',
-          'aim:web,on:assetmap,load:level',
-          'aim:web,on:assetmap,save:level',
-          'aim:web,on:assetmap,remove:level',
+          // 'aim:web,on:assetmap,list:level',
+          // 'aim:web,on:assetmap,load:level',
+          // 'aim:web,on:assetmap,save:level',
+          // 'aim:web,on:assetmap,remove:level',
         ]
       })
 
@@ -1980,7 +2004,7 @@ import './rastercoords.js'
         })
       
 
-      let ents = ['asset','room','building','level','geofence']
+      let ents = ['asset','room','building','level','geofence','map']
 
       for(let entname of ents) {
         amseneca
@@ -2865,16 +2889,7 @@ import './rastercoords.js'
           .setLatLng(roompos)
           .setContent(pqam.roomPopup(pqam.loc.chosen.room))
           .openOn(pqam.map)
-        
-        // pqam.map.setView(roompos,
-                         // pqam.map.getZoom())
-                         
-
-        // pqam.showRoomAssets(room.room)
-        // pqam.clearRoomAssets(room.room)
-
-        // pqam.zoomEndRender()
-        
+                
         if(!opts.mute) {
           pqam.click({select:'room', room:pqam.loc.chosen.room.room})
         }
@@ -3083,6 +3098,7 @@ import './rastercoords.js'
 
 
   function convertRoomPoly(img, poly) {
+    // console.log('CRP', img[1])
     let p = []
     for(let part of poly) {
       p.push( rc.unproject({ x: part[1], y: img[1] - part[0] }) )
