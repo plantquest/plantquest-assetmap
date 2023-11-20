@@ -27,9 +27,9 @@
     "leaflet-path-drag": "^1.8.0-beta.3",
     "leaflet-rastercoords": "1.0.5",
     "leaflet.markercluster": "1.5.3",
-    "seneca-browser": "6.3.0",
-    "seneca-entity": "25.0.0",
-    "seneca-mem-store": "8.3.0",
+    "seneca-browser": "6.4.0",
+    "seneca-entity": "25.1.0",
+    "seneca-mem-store": "8.4.0",
     "serve": "^14.2.1",
     "vite": "^5.0.0"
   },
