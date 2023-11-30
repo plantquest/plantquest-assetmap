@@ -2445,7 +2445,7 @@ import './rastercoords.js'
             if(geofence) {
               let shown = showAll || -1!=geofenceIDList.indexOf(geofenceID)
               shown = 'geofence'===msg.hide ? false : shown
-              shown = geofence.ent.map == self.loc.map ? shown : false
+              shown = (geofence.ent.map-1) == self.loc.map ? shown : false
               
               self.showGeofence(geofence, shown)
             }

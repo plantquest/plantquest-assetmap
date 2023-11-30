@@ -13331,7 +13331,7 @@ var Leaflet_Editable = Leaflet_Editable$2.exports;
 var Leaflet_EditableExports = Leaflet_Editable$2.exports;
 const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
 const name = "@plantquest/assetmap";
-const version = "7.2.0";
+const version = "7.2.1";
 const description = "PlantQuest Asset Map";
 const author = "plantquest";
 const license = "MIT";
@@ -26882,7 +26882,7 @@ L.RasterCoords.prototype = {
                 if (geofence) {
                   let shown = showAll || -1 != geofenceIDList.indexOf(geofenceID);
                   shown = "geofence" === msg.hide ? false : shown;
-                  shown = geofence.ent.map == self2.loc.map ? shown : false;
+                  shown = geofence.ent.map - 1 == self2.loc.map ? shown : false;
                   self2.showGeofence(geofence, shown);
                 } else {
                   self2.log("ERROR", "send", "geofence", "unknown-geofence", geofenceID);
