@@ -340,6 +340,7 @@ import './rastercoords.js'
 
 
     self.restart = function(config, ready) {
+      self.map = null
       self.current.started = false
       self.state.rendered = false
       self.state.dataLoaded = false
@@ -1931,6 +1932,7 @@ import './rastercoords.js'
       }
   
       let seneca = new Seneca({
+        tag: 'pqam-'+Pkg.version,
         log: { logger: 'flat', level: 'warn' },
         plugin: {
           browser: {
@@ -1941,7 +1943,7 @@ import './rastercoords.js'
           }
         },
         timeout: 44444,
-      })
+      }).fix({pqamv:Pkg.version})
       
       seneca
         .test()
@@ -2052,11 +2054,11 @@ import './rastercoords.js'
               })
             
               .message('list:'+entname, async function listItem(msg) {
-                let { query } = msg
-                query = query || {
+                let query = {
                   project_id: self.config.project_id,
                   plant_id: self.config.plant_id,
                   stage: self.config.stage,
+                  ...(msg.query||{})
                 }
 
                 let res = await this.post('aim:web,on:assetmap', { list:entname, query, } )

@@ -13335,7 +13335,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "7.1.0";
+  const version = "7.2.0";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -25312,6 +25312,7 @@ var __async = (__this, __arguments, generator) => {
         setTimeout(loading, 1);
       };
       self2.restart = function(config, ready) {
+        self2.map = null;
         self2.current.started = false;
         self2.state.rendered = false;
         self2.state.dataLoaded = false;
@@ -26483,6 +26484,7 @@ var __async = (__this, __arguments, generator) => {
             return url;
           };
           let seneca = new Seneca({
+            tag: "pqam-" + Pkg.version,
             log: { logger: "flat", level: "warn" },
             plugin: {
               browser: {
@@ -26493,7 +26495,7 @@ var __async = (__this, __arguments, generator) => {
               }
             },
             timeout: 44444
-          });
+          }).fix({ pqamv: Pkg.version });
           seneca.test().use(SenecaEntity).ready(function() {
             return __async(this, null, function* () {
               const seneca2 = this;
@@ -26580,12 +26582,11 @@ var __async = (__this, __arguments, generator) => {
                 });
               }).message("list:" + entname, function listItem(msg) {
                 return __async(this, null, function* () {
-                  let { query } = msg;
-                  query = query || {
+                  let query = __spreadValues({
                     project_id: self2.config.project_id,
                     plant_id: self2.config.plant_id,
                     stage: self2.config.stage
-                  };
+                  }, msg.query || {});
                   let res = yield this.post("aim:web,on:assetmap", { list: entname, query });
                   if (res.ok) {
                     self2.emit({
