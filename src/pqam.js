@@ -1095,7 +1095,7 @@ import './rastercoords.js'
       }
         
       if(self.config.debug.click) {
-        self.map.on('click', (mev)=>{
+        self.map && self.map.on('click', (mev)=>{
           let {xco, yco} = convert_latlng(mev.latlng)
             
           let content = ''
@@ -1124,7 +1124,6 @@ import './rastercoords.js'
 
       
       if(self.config.debug.coords) {
-      
         self.listen((msg) => {
 	  if(msg.show == 'asset') {
 	    let { asset } = msg
@@ -1143,7 +1142,7 @@ import './rastercoords.js'
 	    }
 	    self.leaflet.debugLog = createDebugLog(content)
 	    // Add the custom control to the map
-            self.map.addControl(self.leaflet.debugLog)
+            self.map && self.map.addControl(self.leaflet.debugLog)
 	  }
 	  else if(msg.event == 'click') {
 	    let meta = msg.meta || {}
@@ -1159,7 +1158,7 @@ import './rastercoords.js'
             
 	    content = JSON.stringify(asset_data)
 	    self.leaflet.debugLog = createDebugLog(content)
-            self.map.addControl(self.leaflet.debugLog)
+            self.map && self.map.addControl(self.leaflet.debugLog)
 	      
 	  }
 	  else {
@@ -1169,7 +1168,7 @@ import './rastercoords.js'
 	    }
 	    self.leaflet.debugLog = createDebugLog('DEBUG LOG')
 	      
-            self.map.addControl(self.leaflet.debugLog)
+            self.map && self.map.addControl(self.leaflet.debugLog)
 	  }
 	  
 	})
