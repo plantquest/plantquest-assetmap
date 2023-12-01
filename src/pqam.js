@@ -572,103 +572,106 @@ import './rastercoords.js'
     }
 
 
-    self.updates = function() {
-      clearInterval(self.current.updateInterval)
-      self.current.updateInterval = setInterval(async function() {
-        let query = {
-          project_id: self.config.project_id,
-          plant_id: self.config.plant_id,
-          stage: self.config.stage,
-          t_m:{$gte:(Date.now()-(2*self.config.update.interval))}
-        }
-        let res =
-            await self.seneca.post(
-              'aim:web,on:assetmap,list:asset',
-              { query, }
-            )
+    self.updateAssets = async function() {
+      let query = {
+        project_id: self.config.project_id,
+        plant_id: self.config.plant_id,
+        stage: self.config.stage,
+        t_m:{$gte:(Date.now()-(2*self.config.update.interval))}
+      }
+      let res =
+          await self.seneca.post(
+            'aim:web,on:assetmap,list:asset',
+            { query, }
+          )
 
-        if(res.ok) {
-          let updatedAssets = res.list
+      if(res.ok) {
+        let updatedAssets = res.list
 
-          for(let assetEnt of updatedAssets) {
-            try {
-              let existing = self.data.assetMap[assetEnt.id]
-              let assetInst = self.asset.map[assetEnt.id]
+        for(let assetEnt of updatedAssets) {
+          try {
+            let existing = self.data.assetMap[assetEnt.id]
+            let assetInst = self.asset.map[assetEnt.id]
+            
+            if(null == assetInst) {
+              assetInst = self.asset.map[assetEnt.id] = new Asset(assetEnt, {
+                cfg: self.config,
+                pqam: self
+              })
+            }
+            
+            
+            if(existing?.t_m < assetEnt.t_m) { // PUT
+              self.data.assetMap[assetEnt.id] = assetEnt
+              let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
+              if(-1 < index) {
+                self.data.asset[index] = assetEnt
+              }
+
+              assetInst.ent = assetEnt
+              assetInst = self.config.asset.prepare(assetInst) || assetInst
               
-              if(null == assetInst) {
-                assetInst = self.asset.map[assetEnt.id] = new Asset(assetEnt, {
-                  cfg: self.config,
-                  pqam: self
+              if(assetInst.shown) {
+                self.layer.asset.removeLayer(assetInst.label)
+                assetInst.label = null
+                assetInst.indicator.remove()
+                assetInst.indicator = null
+
+                assetInst.show({
+                  pqam: self,
+                  assetID: assetEnt.id,
+                  // stateName: assetCurrent.stateName,
+                  hide: false,
+                  blink: false ,
+                  showRoom: false,
+                  infobox: assetInst.infobox,
+                  closeinfo: false,
+                  whence: 'updatedAssets',
                 })
               }
-              
-              
-              if(existing?.t_m < assetEnt.t_m) { // PUT
-                self.data.assetMap[assetEnt.id] = assetEnt
-                let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
-                if(-1 < index) {
-                  self.data.asset[index] = assetEnt
-                }
-
-                assetInst.ent = assetEnt
-                assetInst = self.config.asset.prepare(assetInst) || assetInst
-                
-                if(assetInst.shown) {
-                  self.layer.asset.removeLayer(assetInst.label)
-                  assetInst.label = null
-                  assetInst.indicator.remove()
-                  assetInst.indicator = null
-
-                  assetInst.show({
-                    pqam: self,
-                    assetID: assetEnt.id,
-                    // stateName: assetCurrent.stateName,
-                    hide: false,
-                    blink: false ,
-                    showRoom: false,
-                    infobox: assetInst.infobox,
-                    closeinfo: false,
-                    whence: 'updatedAssets',
-                  })
-                }
-                else {
-                  delete self.current.asset[assetInst.id]
-                }
-              } else if(!existing) { // POST
-                let show = assetEnt.map-1 == self.loc.map
-                self.data.assetMap[assetEnt.id] = assetEnt
-                
-                let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
-                if(-1 < index) {
-                  self.data.asset[index] = assetEnt
-                } else {
-                  self.data.asset.push(assetEnt)
-                }
-                
-                show &&
-                  assetInst.show({
-                    pqam: self,
-                    assetID: assetEnt.id,
-                    hide: false,
-                    blink: false ,
-                    showRoom: false,
-                    infobox: false,
-                    closeinfo: false,
-                    whence: 'updatedAssets',
-                  })
-                  self.current.shownAssets.add(assetEnt.id)
-                  // TODO: full cp check
-                  self.data.deps.cp.asset = self.data.deps.cp.asset || {}
-                  self.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room }
+              else {
+                delete self.current.asset[assetInst.id]
               }
-            }
-            catch(e) {
-              self.log('ERROR', 'UPDATE', assetEnt, e)
+            } else if(!existing) { // POST
+              let show = assetEnt.map-1 == self.loc.map
+              self.data.assetMap[assetEnt.id] = assetEnt
+              
+              let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
+              if(-1 < index) {
+                self.data.asset[index] = assetEnt
+              } else {
+                self.data.asset.push(assetEnt)
+              }
+              
+              show &&
+                assetInst.show({
+                  pqam: self,
+                  assetID: assetEnt.id,
+                  hide: false,
+                  blink: false ,
+                  showRoom: false,
+                  infobox: false,
+                  closeinfo: false,
+                  whence: 'updatedAssets',
+                })
+              self.current.shownAssets.add(assetEnt.id)
+              // TODO: full cp check
+              self.data.deps.cp.asset = self.data.deps.cp.asset || {}
+              self.data.deps.cp.asset[assetEnt.id] = { room: assetEnt.room }
             }
           }
+          catch(e) {
+            self.log('ERROR', 'UPDATE', assetEnt, e)
+          }
         }
-        
-      }, self.config.update.interval)
+      }
+    }
+    
+
+    self.updates = function() {
+      clearInterval(self.current.updateInterval)
+      self.current.updateInterval =
+        setInterval(self.updateAssets, self.config.update.interval)
     }
 
     
@@ -1209,6 +1212,8 @@ import './rastercoords.js'
             },
             
             addHooks: function () {
+              markLevelSelector(index)
+              
               self.showMap(index,{
                 centerView:false,
                 startZoom:false,
@@ -1229,6 +1234,24 @@ import './rastercoords.js'
 
       self.map.addLayer(levelToolbar)
       self.current.levelControl = levelToolbar
+
+      markLevelSelector(0)
+      
+      function markLevelSelector(index) {
+        let marked = false
+        let selectors = document.querySelectorAll('ul.plantquest-tool-level li')
+        for(let sI = 0; sI < selectors.length; sI++) {
+          let selector = selectors[sI]
+          selector.classList.remove('plantquest-tool-select-level-active')
+          if(index === sI) {
+            selector.classList.add('plantquest-tool-select-level-active')
+            marked = true
+          }
+        }
+        if(!marked && 0 < selectors.length) {
+          selectors[0].classList.add('plantquest-tool-select-level-active')
+        }
+      }
     }
     
 
@@ -1252,7 +1275,8 @@ import './rastercoords.js'
 
           let selectors = []
 
-          let buildings = [...self.data.building].sort((a,b)=>a.name>b.name?1:a.name<b.name?-1:0)
+          // let buildings = [...self.data.building].sort((a,b)=>a.name>b.name?1:a.name<b.name?-1:0)
+          let buildings = [...self.data.building].sort((a,b)=>a.order>b.order?1:a.order<b.order?-1:0)
           
           buildings.forEach((building,index)=>{
             let li = L.DomUtil.create('li')
@@ -1277,18 +1301,29 @@ import './rastercoords.js'
               })
               self.map.setView(coords,self.config.mapMinZoom+1)
               self.addLevelControl()
-
-              for(let selector of selectors) {
-                selector.classList.remove('plantquest-tool-select-building-active')
-                if(building.id ===
-                   selector.getAttribute('data-plantquest-building')) {
-                  selector.classList.add('plantquest-tool-select-building-active')
-                }
-              }
+              markBuildingSelector(selectors,building)
             })
           })
 
           div.appendChild(ul)
+
+          markBuildingSelector(selectors)
+          
+          function markBuildingSelector(selectors,building) {
+            let marked = false
+            for(let selector of selectors) {
+              selector.classList.remove('plantquest-tool-select-building-active')
+              if(building && building.id ===
+                 selector.getAttribute('data-plantquest-building')) {
+                selector.classList.add('plantquest-tool-select-building-active')
+                marked = true
+              }
+            }
+            
+            // if(!marked && 0 < selectors.length) {
+            //   selectors[0].classList.add('plantquest-tool-select-building-active')
+            // }
+          }
           
           return div
         },
@@ -2143,7 +2178,8 @@ import './rastercoords.js'
             .message('hide:asset', showAssetMsg)
             .message('load:asset', loadAssetMsg)
             .message('set:asset', setAssetMsg)
-
+            .message('update:assets', updateAssetsMsg)
+          
             .message('show:geofence', showGeofenceMsg)
             .message('hide:geofence', showGeofenceMsg)
 
@@ -2173,6 +2209,11 @@ import './rastercoords.js'
       
       async function closeClusterInfoMsg(msg) {
         self.closeClusterInfo()
+      }
+
+
+      async function updateAssetsMsg(msg) {
+        self.updateAssets()
       }
 
       
@@ -3602,6 +3643,11 @@ div.plantquest-assetmap-asset-state-alarm {
 .plantquest-tool-select-building-active a {
   background-color:#CCC !important;
 }
+
+.plantquest-tool-select-level-active a {
+  background-color:#CCC !important;
+}
+
 
 .plantquest-font-s0 {
   font-size: 4pt;
