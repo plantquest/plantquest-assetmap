@@ -110,3 +110,5 @@ package-lock.json
 *.old
 *.bak
 
+# exclude keys in generated example code, etc
+dist

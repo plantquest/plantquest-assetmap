@@ -85,7 +85,7 @@ const TILES = import.meta.env.VITE_PLANTQUEST_ASSETMAP_TILES || 'NONE'
   }
 
   let pqam = window.PlantQuestAssetMap.make('demo')
-  pqam.start(options, ()=>{})
+  // pqam.start(options, ()=>{})
 </script>
 
 <template>

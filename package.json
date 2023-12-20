@@ -10,7 +10,7 @@
   "types": "plantquest-assetmap.d.ts",
   "source": "src/pqam.js",
   "scripts": {
-    "dev": "vite",
+    "x-dev": "vite",
     "build": "vite build",
     "watch": "vite build -w",
     "xpreview": "vite preview",
