@@ -1,5 +1,11 @@
+import Path from 'path'
+import { defineConfig } from 'vite'
 
-module.exports = {
+const geofenceDisplayPath = Path.resolve(__dirname, '../leaflet-plugins/GeofenceDisplay/')
+// console.log(geofenceDisplayPath)
+
+//module.exports = {
+export default defineConfig({
   build: {
     minify: false,
     target: 'es6',
@@ -11,9 +17,15 @@ module.exports = {
     emptyOutDir: false,
     rollupOptions: {
       treeshake: false,
+      logLevel: 'debug',
     },
+    // resolve: {
+    //   alias: {
+    //     '@plantquest/geofence-display': geofenceDisplayPath,
+    //   }
+    // },
   },
-}
+})
 
 
 

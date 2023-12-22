@@ -85,12 +85,18 @@ const TILES = import.meta.env.VITE_PLANTQUEST_ASSETMAP_TILES || 'NONE'
   }
 
   let pqam = window.PlantQuestAssetMap.make('demo')
-  // pqam.start(options, ()=>{})
+  pqam.start({}, function () {
+    console.log('READY', this)
+    this.seneca.post('srv:plantquest,part:assetmap,show:map')
+  })
 </script>
 
 <template>
-<div style="height:500px;width:800px; background-color:red;" >
-  <div id="plantquest-assetmap"></div>  
+<div >
+  <div
+    style="height:500px;width:800px; background-color:red;"
+    id="plantquest-assetmap"
+    ></div>  
 </div>
 </template>
 

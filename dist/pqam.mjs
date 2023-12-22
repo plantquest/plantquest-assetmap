@@ -79,8 +79,8 @@ function getAugmentedNamespace(n) {
 }
 var leafletSrc$1 = { exports: {} };
 /* @preserve
- * Leaflet 1.8.0, a JS library for interactive maps. https://leafletjs.com
- * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade
+ * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
+ * (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade
  */
 var leafletSrc = leafletSrc$1.exports;
 var hasRequiredLeafletSrc;
@@ -93,7 +93,7 @@ function requireLeafletSrc() {
       true ? factory(exports) : false ? (void 0)(["exports"], factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, factory(global2.leaflet = {}));
     })(commonjsGlobal, function(exports2) {
       "use strict";
-      var version2 = "1.8.0";
+      var version2 = "1.9.4";
       function extend(dest) {
         var i, j, len, src;
         for (j = 1, len = arguments.length; j < len; j++) {
@@ -394,27 +394,24 @@ function requireLeafletSrc() {
           return this;
         },
         // attach listener (without syntactic sugar now)
-        _on: function(type, fn, context) {
+        _on: function(type, fn, context, _once) {
           if (typeof fn !== "function") {
             console.warn("wrong listener type: " + typeof fn);
             return;
           }
-          this._events = this._events || {};
-          var typeListeners = this._events[type];
-          if (!typeListeners) {
-            typeListeners = [];
-            this._events[type] = typeListeners;
+          if (this._listens(type, fn, context) !== false) {
+            return;
           }
           if (context === this) {
             context = void 0;
           }
-          var newListener = { fn, ctx: context }, listeners = typeListeners;
-          for (var i = 0, len = listeners.length; i < len; i++) {
-            if (listeners[i].fn === fn && listeners[i].ctx === context) {
-              return;
-            }
+          var newListener = { fn, ctx: context };
+          if (_once) {
+            newListener.once = true;
           }
-          listeners.push(newListener);
+          this._events = this._events || {};
+          this._events[type] = this._events[type] || [];
+          this._events[type].push(newListener);
         },
         _off: function(type, fn, context) {
           var listeners, i, len;
@@ -434,28 +431,19 @@ function requireLeafletSrc() {
             delete this._events[type];
             return;
           }
-          if (context === this) {
-            context = void 0;
-          }
           if (typeof fn !== "function") {
             console.warn("wrong listener type: " + typeof fn);
             return;
           }
-          for (i = 0, len = listeners.length; i < len; i++) {
-            var l = listeners[i];
-            if (l.ctx !== context) {
-              continue;
+          var index3 = this._listens(type, fn, context);
+          if (index3 !== false) {
+            var listener = listeners[index3];
+            if (this._firingCount) {
+              listener.fn = falseFn;
+              this._events[type] = listeners = listeners.slice();
             }
-            if (l.fn === fn) {
-              if (this._firingCount) {
-                l.fn = falseFn;
-                this._events[type] = listeners = listeners.slice();
-              }
-              listeners.splice(i, 1);
-              return;
-            }
+            listeners.splice(index3, 1);
           }
-          console.warn("listener not found");
         },
         // @method fire(type: String, data?: Object, propagate?: Boolean): this
         // Fires an event of the specified type. You can optionally provide a data
@@ -476,7 +464,11 @@ function requireLeafletSrc() {
               this._firingCount = this._firingCount + 1 || 1;
               for (var i = 0, len = listeners.length; i < len; i++) {
                 var l = listeners[i];
-                l.fn.call(l.ctx || this, event);
+                var fn = l.fn;
+                if (l.once) {
+                  this.off(type, fn, l.ctx);
+                }
+                fn.call(l.ctx || this, event);
               }
               this._firingCount--;
             }
@@ -487,21 +479,49 @@ function requireLeafletSrc() {
           return this;
         },
         // @method listens(type: String, propagate?: Boolean): Boolean
+        // @method listens(type: String, fn: Function, context?: Object, propagate?: Boolean): Boolean
         // Returns `true` if a particular event type has any listeners attached to it.
         // The verification can optionally be propagated, it will return `true` if parents have the listener attached to it.
-        listens: function(type, propagate) {
+        listens: function(type, fn, context, propagate) {
           if (typeof type !== "string") {
             console.warn('"string" type argument expected');
           }
+          var _fn = fn;
+          if (typeof fn !== "function") {
+            propagate = !!fn;
+            _fn = void 0;
+            context = void 0;
+          }
           var listeners = this._events && this._events[type];
           if (listeners && listeners.length) {
-            return true;
+            if (this._listens(type, _fn, context) !== false) {
+              return true;
+            }
           }
           if (propagate) {
             for (var id in this._eventParents) {
-              if (this._eventParents[id].listens(type, propagate)) {
+              if (this._eventParents[id].listens(type, fn, context, propagate)) {
                 return true;
               }
+            }
+          }
+          return false;
+        },
+        // returns the index (number) or false
+        _listens: function(type, fn, context) {
+          if (!this._events) {
+            return false;
+          }
+          var listeners = this._events[type] || [];
+          if (!fn) {
+            return !!listeners.length;
+          }
+          if (context === this) {
+            context = void 0;
+          }
+          for (var i = 0, len = listeners.length; i < len; i++) {
+            if (listeners[i].fn === fn && listeners[i].ctx === context) {
+              return i;
             }
           }
           return false;
@@ -511,14 +531,15 @@ function requireLeafletSrc() {
         once: function(types2, fn, context) {
           if (typeof types2 === "object") {
             for (var type in types2) {
-              this.once(type, types2[type], fn);
+              this._on(type, types2[type], fn, true);
             }
-            return this;
+          } else {
+            types2 = splitWords(types2);
+            for (var i = 0, len = types2.length; i < len; i++) {
+              this._on(types2[i], fn, context, true);
+            }
           }
-          var handler = bind(function() {
-            this.off(types2, fn, context).off(types2, handler, context);
-          }, this);
-          return this.on(types2, fn, context).on(types2, handler, context);
+          return this;
         },
         // @method addEventParent(obj: Evented): this
         // Adds an event parent - an `Evented` that will receive propagated events
@@ -709,23 +730,39 @@ function requireLeafletSrc() {
       Bounds.prototype = {
         // @method extend(point: Point): this
         // Extends the bounds to contain the given point.
-        extend: function(point) {
-          point = toPoint(point);
-          if (!this.min && !this.max) {
-            this.min = point.clone();
-            this.max = point.clone();
+        // @alternative
+        // @method extend(otherBounds: Bounds): this
+        // Extend the bounds to contain the given bounds
+        extend: function(obj) {
+          var min2, max2;
+          if (!obj) {
+            return this;
+          }
+          if (obj instanceof Point || typeof obj[0] === "number" || "x" in obj) {
+            min2 = max2 = toPoint(obj);
           } else {
-            this.min.x = Math.min(point.x, this.min.x);
-            this.max.x = Math.max(point.x, this.max.x);
-            this.min.y = Math.min(point.y, this.min.y);
-            this.max.y = Math.max(point.y, this.max.y);
+            obj = toBounds(obj);
+            min2 = obj.min;
+            max2 = obj.max;
+            if (!min2 || !max2) {
+              return this;
+            }
+          }
+          if (!this.min && !this.max) {
+            this.min = min2.clone();
+            this.max = max2.clone();
+          } else {
+            this.min.x = Math.min(min2.x, this.min.x);
+            this.max.x = Math.max(max2.x, this.max.x);
+            this.min.y = Math.min(min2.y, this.min.y);
+            this.max.y = Math.max(max2.y, this.max.y);
           }
           return this;
         },
         // @method getCenter(round?: Boolean): Point
         // Returns the center point of the bounds.
         getCenter: function(round) {
-          return new Point(
+          return toPoint(
             (this.min.x + this.max.x) / 2,
             (this.min.y + this.max.y) / 2,
             round
@@ -734,12 +771,12 @@ function requireLeafletSrc() {
         // @method getBottomLeft(): Point
         // Returns the bottom-left point of the bounds.
         getBottomLeft: function() {
-          return new Point(this.min.x, this.max.y);
+          return toPoint(this.min.x, this.max.y);
         },
         // @method getTopRight(): Point
         // Returns the top-right point of the bounds.
         getTopRight: function() {
-          return new Point(this.max.x, this.min.y);
+          return toPoint(this.max.x, this.min.y);
         },
         // @method getTopLeft(): Point
         // Returns the top-left point of the bounds (i.e. [`this.min`](#bounds-min)).
@@ -792,8 +829,30 @@ function requireLeafletSrc() {
           var min = this.min, max = this.max, min2 = bounds.min, max2 = bounds.max, xOverlaps = max2.x > min.x && min2.x < max.x, yOverlaps = max2.y > min.y && min2.y < max.y;
           return xOverlaps && yOverlaps;
         },
+        // @method isValid(): Boolean
+        // Returns `true` if the bounds are properly initialized.
         isValid: function() {
           return !!(this.min && this.max);
+        },
+        // @method pad(bufferRatio: Number): Bounds
+        // Returns bounds created by extending or retracting the current bounds by a given ratio in each direction.
+        // For example, a ratio of 0.5 extends the bounds by 50% in each direction.
+        // Negative values will retract the bounds.
+        pad: function(bufferRatio) {
+          var min = this.min, max = this.max, heightBuffer = Math.abs(min.x - max.x) * bufferRatio, widthBuffer = Math.abs(min.y - max.y) * bufferRatio;
+          return toBounds(
+            toPoint(min.x - heightBuffer, min.y - widthBuffer),
+            toPoint(max.x + heightBuffer, max.y + widthBuffer)
+          );
+        },
+        // @method equals(otherBounds: Bounds): Boolean
+        // Returns `true` if the rectangle is equivalent to the given bounds.
+        equals: function(bounds) {
+          if (!bounds) {
+            return false;
+          }
+          bounds = toBounds(bounds);
+          return this.min.equals(bounds.getTopLeft()) && this.max.equals(bounds.getBottomRight());
         }
       };
       function toBounds(a, b) {
@@ -1288,6 +1347,8 @@ function requireLeafletSrc() {
           return false;
         }
       }();
+      var mac = navigator.platform.indexOf("Mac") === 0;
+      var linux = navigator.platform.indexOf("Linux") === 0;
       function userAgentContains(str) {
         return navigator.userAgent.toLowerCase().indexOf(str) >= 0;
       }
@@ -1324,7 +1385,9 @@ function requireLeafletSrc() {
         canvas: canvas$1,
         svg: svg$1,
         vml,
-        inlineSvg
+        inlineSvg,
+        mac,
+        linux
       };
       var POINTER_DOWN = Browser.msPointer ? "MSPointerDown" : "pointerdown";
       var POINTER_MOVE = Browser.msPointer ? "MSPointerMove" : "pointermove";
@@ -1350,7 +1413,7 @@ function requireLeafletSrc() {
         }
         if (!handle[type]) {
           console.warn("wrong event specified:", type);
-          return L.Util.falseFn;
+          return falseFn;
         }
         handler = handle[type].bind(this, handler);
         obj.addEventListener(pEvent[type], handler, false);
@@ -1423,6 +1486,14 @@ function requireLeafletSrc() {
             return;
           }
           if (e.pointerType === "mouse" || e.sourceCapabilities && !e.sourceCapabilities.firesTouchEvents) {
+            return;
+          }
+          var path = getPropagationPath(e);
+          if (path.some(function(el) {
+            return el instanceof HTMLLabelElement && el.attributes.for;
+          }) && !path.some(function(el) {
+            return el instanceof HTMLInputElement || el instanceof HTMLSelectElement;
+          })) {
             return;
           }
           var now = Date.now();
@@ -1626,15 +1697,15 @@ function requireLeafletSrc() {
         }
         restoreOutline();
         _outlineElement = element;
-        _outlineStyle = element.style.outline;
-        element.style.outline = "none";
+        _outlineStyle = element.style.outlineStyle;
+        element.style.outlineStyle = "none";
         on(window, "keydown", restoreOutline);
       }
       function restoreOutline() {
         if (!_outlineElement) {
           return;
         }
-        _outlineElement.style.outline = _outlineStyle;
+        _outlineElement.style.outlineStyle = _outlineStyle;
         _outlineElement = void 0;
         _outlineStyle = void 0;
         off(window, "keydown", restoreOutline);
@@ -1819,6 +1890,18 @@ function requireLeafletSrc() {
         stopPropagation(e);
         return this;
       }
+      function getPropagationPath(ev) {
+        if (ev.composedPath) {
+          return ev.composedPath();
+        }
+        var path = [];
+        var el = ev.target;
+        while (el) {
+          path.push(el);
+          el = el.parentNode;
+        }
+        return path;
+      }
       function getMousePosition(e, container) {
         if (!container) {
           return new Point(e.clientX, e.clientY);
@@ -1831,7 +1914,7 @@ function requireLeafletSrc() {
           (e.clientY - offset.top) / scale2.y - container.clientTop
         );
       }
-      var wheelPxFactor = Browser.win && Browser.chrome ? 2 * window.devicePixelRatio : Browser.gecko ? window.devicePixelRatio : 1;
+      var wheelPxFactor = Browser.linux && Browser.chrome ? window.devicePixelRatio : Browser.mac ? window.devicePixelRatio * 3 : window.devicePixelRatio > 0 ? 2 * window.devicePixelRatio : 1;
       function getWheelDelta(e) {
         return Browser.edge ? e.wheelDeltaY / 2 : (
           // Don't trust window-geometry-based delta
@@ -1882,6 +1965,7 @@ function requireLeafletSrc() {
         disableClickPropagation,
         preventDefault,
         stop,
+        getPropagationPath,
         getMousePosition,
         getWheelDelta,
         isExternalTarget,
@@ -2069,7 +2153,7 @@ function requireLeafletSrc() {
               return this;
             }
           }
-          this._resetView(center, zoom2);
+          this._resetView(center, zoom2, options.pan && options.pan.noMoveStart);
           return this;
         },
         // @method setZoom(zoom: Number, options?: Zoom/pan options): this
@@ -2240,11 +2324,12 @@ function requireLeafletSrc() {
         // Restricts the map view to the given bounds (see the [maxBounds](#map-maxbounds) option).
         setMaxBounds: function(bounds) {
           bounds = toLatLngBounds(bounds);
+          if (this.listens("moveend", this._panInsideMaxBounds)) {
+            this.off("moveend", this._panInsideMaxBounds);
+          }
           if (!bounds.isValid()) {
             this.options.maxBounds = null;
-            return this.off("moveend", this._panInsideMaxBounds);
-          } else if (this.options.maxBounds) {
-            this.off("moveend", this._panInsideMaxBounds);
+            return this;
           }
           this.options.maxBounds = bounds;
           if (this._loaded) {
@@ -2523,7 +2608,7 @@ function requireLeafletSrc() {
         getCenter: function() {
           this._checkIfLoaded();
           if (this._lastCenter && !this._moved()) {
-            return this._lastCenter;
+            return this._lastCenter.clone();
           }
           return this.layerPointToLatLng(this._getCenterLayerPoint());
         },
@@ -2747,7 +2832,7 @@ function requireLeafletSrc() {
           this._fadeAnimated = this.options.fadeAnimation && Browser.any3d;
           addClass(container, "leaflet-container" + (Browser.touch ? " leaflet-touch" : "") + (Browser.retina ? " leaflet-retina" : "") + (Browser.ielt9 ? " leaflet-oldie" : "") + (Browser.safari ? " leaflet-safari" : "") + (this._fadeAnimated ? " leaflet-fade-anim" : ""));
           var position = getStyle(container, "position");
-          if (position !== "absolute" && position !== "relative" && position !== "fixed") {
+          if (position !== "absolute" && position !== "relative" && position !== "fixed" && position !== "sticky") {
             container.style.position = "relative";
           }
           this._initPanes();
@@ -2773,14 +2858,14 @@ function requireLeafletSrc() {
         },
         // private methods that modify map state
         // @section Map state change events
-        _resetView: function(center, zoom2) {
+        _resetView: function(center, zoom2, noMoveStart) {
           setPosition(this._mapPane, new Point(0, 0));
           var loading = !this._loaded;
           this._loaded = true;
           zoom2 = this._limitZoom(zoom2);
           this.fire("viewprereset");
           var zoomChanged = this._zoom !== zoom2;
-          this._moveStart(zoomChanged, false)._move(center, zoom2)._moveEnd(zoomChanged);
+          this._moveStart(zoomChanged, noMoveStart)._move(center, zoom2)._moveEnd(zoomChanged);
           this.fire("viewreset");
           if (loading) {
             this.fire("load");
@@ -2903,7 +2988,7 @@ function requireLeafletSrc() {
           return targets;
         },
         _isClickDisabled: function(el) {
-          while (el !== this._container) {
+          while (el && el !== this._container) {
             if (el["_leaflet_disable_click"]) {
               return true;
             }
@@ -3026,7 +3111,7 @@ function requireLeafletSrc() {
             return center;
           }
           var centerPoint = this.project(center, zoom2), viewHalf = this.getSize().divideBy(2), viewBounds = new Bounds(centerPoint.subtract(viewHalf), centerPoint.add(viewHalf)), offset = this._getBoundsOffset(viewBounds, bounds, zoom2);
-          if (offset.round().equals([0, 0])) {
+          if (Math.abs(offset.x) <= 1 && Math.abs(offset.y) <= 1) {
             return center;
           }
           return this.unproject(centerPoint.add(offset), zoom2);
@@ -3115,7 +3200,7 @@ function requireLeafletSrc() {
             return false;
           }
           requestAnimFrame(function() {
-            this._moveStart(true, false)._animateZoom(center, zoom2, true);
+            this._moveStart(true, options.noMoveStart || false)._animateZoom(center, zoom2, true);
           }, this);
           return true;
         },
@@ -3304,6 +3389,7 @@ function requireLeafletSrc() {
           this._layers = [];
           this._lastZIndex = 0;
           this._handlingClick = false;
+          this._preventClick = false;
           for (var i in baseLayers) {
             this._addLayer(baseLayers[i], i);
           }
@@ -3383,13 +3469,7 @@ function requireLeafletSrc() {
           if (collapsed) {
             this._map.on("click", this.collapse, this);
             on(container, {
-              mouseenter: function() {
-                on(section, "click", preventDefault);
-                this.expand();
-                setTimeout(function() {
-                  off(section, "click", preventDefault);
-                });
-              },
+              mouseenter: this._expandSafely,
               mouseleave: this.collapse
             }, this);
           }
@@ -3397,8 +3477,18 @@ function requireLeafletSrc() {
           link.href = "#";
           link.title = "Layers";
           link.setAttribute("role", "button");
-          on(link, "click", preventDefault);
-          on(link, "focus", this.expand, this);
+          on(link, {
+            keydown: function(e) {
+              if (e.keyCode === 13) {
+                this._expandSafely();
+              }
+            },
+            // Certain screen readers intercept the key event and instead send a click event
+            click: function(e) {
+              preventDefault(e);
+              this._expandSafely();
+            }
+          }, this);
           if (!collapsed) {
             this.expand();
           }
@@ -3498,6 +3588,9 @@ function requireLeafletSrc() {
           return label;
         },
         _onInputClick: function() {
+          if (this._preventClick) {
+            return;
+          }
           var inputs = this._layerControlInputs, input, layer;
           var addedLayers = [], removedLayers = [];
           this._handlingClick = true;
@@ -3536,6 +3629,17 @@ function requireLeafletSrc() {
             this.expand();
           }
           return this;
+        },
+        _expandSafely: function() {
+          var section = this._section;
+          this._preventClick = true;
+          on(section, "click", preventDefault);
+          this.expand();
+          var that = this;
+          setTimeout(function() {
+            off(section, "click", preventDefault);
+            that._preventClick = false;
+          });
         }
       });
       var layers = function(baseLayers, overlays, options) {
@@ -3722,7 +3826,7 @@ function requireLeafletSrc() {
       var scale = function(options) {
         return new Scale(options);
       };
-      var ukrainianFlag = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8"><path fill="#4C7BE1" d="M0 0h12v4H0z"/><path fill="#FFD500" d="M0 4h12v3H0z"/><path fill="#E0BC00" d="M0 7h12v1H0z"/></svg>';
+      var ukrainianFlag = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag"><path fill="#4C7BE1" d="M0 0h12v4H0z"/><path fill="#FFD500" d="M0 4h12v3H0z"/><path fill="#E0BC00" d="M0 7h12v1H0z"/></svg>';
       var Attribution = Control.extend({
         // @section
         // @aka Control.Attribution options
@@ -3768,7 +3872,7 @@ function requireLeafletSrc() {
           return this;
         },
         // @method addAttribution(text: String): this
-        // Adds an attribution text (e.g. `'Vector data &copy; Mapbox'`).
+        // Adds an attribution text (e.g. `'&copy; OpenStreetMap contributors'`).
         addAttribution: function(text) {
           if (!text) {
             return this;
@@ -4002,16 +4106,101 @@ function requireLeafletSrc() {
           off(document, "mouseup touchend touchcancel", this._onUp, this);
           enableImageDrag();
           enableTextSelection();
-          if (this._moved && this._moving) {
+          var fireDragend = this._moved && this._moving;
+          this._moving = false;
+          Draggable._dragging = false;
+          if (fireDragend) {
             this.fire("dragend", {
               noInertia,
               distance: this._newPos.distanceTo(this._startPos)
             });
           }
-          this._moving = false;
-          Draggable._dragging = false;
         }
       });
+      function clipPolygon(points, bounds, round) {
+        var clippedPoints, edges = [1, 4, 2, 8], i, j, k, a, b, len, edge2, p;
+        for (i = 0, len = points.length; i < len; i++) {
+          points[i]._code = _getBitCode(points[i], bounds);
+        }
+        for (k = 0; k < 4; k++) {
+          edge2 = edges[k];
+          clippedPoints = [];
+          for (i = 0, len = points.length, j = len - 1; i < len; j = i++) {
+            a = points[i];
+            b = points[j];
+            if (!(a._code & edge2)) {
+              if (b._code & edge2) {
+                p = _getEdgeIntersection(b, a, edge2, bounds, round);
+                p._code = _getBitCode(p, bounds);
+                clippedPoints.push(p);
+              }
+              clippedPoints.push(a);
+            } else if (!(b._code & edge2)) {
+              p = _getEdgeIntersection(b, a, edge2, bounds, round);
+              p._code = _getBitCode(p, bounds);
+              clippedPoints.push(p);
+            }
+          }
+          points = clippedPoints;
+        }
+        return points;
+      }
+      function polygonCenter(latlngs, crs) {
+        var i, j, p1, p2, f, area, x, y, center;
+        if (!latlngs || latlngs.length === 0) {
+          throw new Error("latlngs not passed");
+        }
+        if (!isFlat(latlngs)) {
+          console.warn("latlngs are not flat! Only the first ring will be used");
+          latlngs = latlngs[0];
+        }
+        var centroidLatLng = toLatLng([0, 0]);
+        var bounds = toLatLngBounds(latlngs);
+        var areaBounds = bounds.getNorthWest().distanceTo(bounds.getSouthWest()) * bounds.getNorthEast().distanceTo(bounds.getNorthWest());
+        if (areaBounds < 1700) {
+          centroidLatLng = centroid(latlngs);
+        }
+        var len = latlngs.length;
+        var points = [];
+        for (i = 0; i < len; i++) {
+          var latlng = toLatLng(latlngs[i]);
+          points.push(crs.project(toLatLng([latlng.lat - centroidLatLng.lat, latlng.lng - centroidLatLng.lng])));
+        }
+        area = x = y = 0;
+        for (i = 0, j = len - 1; i < len; j = i++) {
+          p1 = points[i];
+          p2 = points[j];
+          f = p1.y * p2.x - p2.y * p1.x;
+          x += (p1.x + p2.x) * f;
+          y += (p1.y + p2.y) * f;
+          area += f * 3;
+        }
+        if (area === 0) {
+          center = points[0];
+        } else {
+          center = [x / area, y / area];
+        }
+        var latlngCenter = crs.unproject(toPoint(center));
+        return toLatLng([latlngCenter.lat + centroidLatLng.lat, latlngCenter.lng + centroidLatLng.lng]);
+      }
+      function centroid(coords) {
+        var latSum = 0;
+        var lngSum = 0;
+        var len = 0;
+        for (var i = 0; i < coords.length; i++) {
+          var latlng = toLatLng(coords[i]);
+          latSum += latlng.lat;
+          lngSum += latlng.lng;
+          len++;
+        }
+        return toLatLng([latSum / len, lngSum / len]);
+      }
+      var PolyUtil = {
+        __proto__: null,
+        clipPolygon,
+        polygonCenter,
+        centroid
+      };
       function simplify(points, tolerance) {
         if (!tolerance || !points.length) {
           return points.slice();
@@ -4148,6 +4337,51 @@ function requireLeafletSrc() {
         console.warn("Deprecated use of _flat, please use L.LineUtil.isFlat instead.");
         return isFlat(latlngs);
       }
+      function polylineCenter(latlngs, crs) {
+        var i, halfDist, segDist, dist, p1, p2, ratio, center;
+        if (!latlngs || latlngs.length === 0) {
+          throw new Error("latlngs not passed");
+        }
+        if (!isFlat(latlngs)) {
+          console.warn("latlngs are not flat! Only the first ring will be used");
+          latlngs = latlngs[0];
+        }
+        var centroidLatLng = toLatLng([0, 0]);
+        var bounds = toLatLngBounds(latlngs);
+        var areaBounds = bounds.getNorthWest().distanceTo(bounds.getSouthWest()) * bounds.getNorthEast().distanceTo(bounds.getNorthWest());
+        if (areaBounds < 1700) {
+          centroidLatLng = centroid(latlngs);
+        }
+        var len = latlngs.length;
+        var points = [];
+        for (i = 0; i < len; i++) {
+          var latlng = toLatLng(latlngs[i]);
+          points.push(crs.project(toLatLng([latlng.lat - centroidLatLng.lat, latlng.lng - centroidLatLng.lng])));
+        }
+        for (i = 0, halfDist = 0; i < len - 1; i++) {
+          halfDist += points[i].distanceTo(points[i + 1]) / 2;
+        }
+        if (halfDist === 0) {
+          center = points[0];
+        } else {
+          for (i = 0, dist = 0; i < len - 1; i++) {
+            p1 = points[i];
+            p2 = points[i + 1];
+            segDist = p1.distanceTo(p2);
+            dist += segDist;
+            if (dist > halfDist) {
+              ratio = (dist - halfDist) / segDist;
+              center = [
+                p2.x - ratio * (p2.x - p1.x),
+                p2.y - ratio * (p2.y - p1.y)
+              ];
+              break;
+            }
+          }
+        }
+        var latlngCenter = crs.unproject(toPoint(center));
+        return toLatLng([latlngCenter.lat + centroidLatLng.lat, latlngCenter.lng + centroidLatLng.lng]);
+      }
       var LineUtil = {
         __proto__: null,
         simplify,
@@ -4158,39 +4392,8 @@ function requireLeafletSrc() {
         _getBitCode,
         _sqClosestPointOnSegment,
         isFlat,
-        _flat
-      };
-      function clipPolygon(points, bounds, round) {
-        var clippedPoints, edges = [1, 4, 2, 8], i, j, k, a, b, len, edge2, p;
-        for (i = 0, len = points.length; i < len; i++) {
-          points[i]._code = _getBitCode(points[i], bounds);
-        }
-        for (k = 0; k < 4; k++) {
-          edge2 = edges[k];
-          clippedPoints = [];
-          for (i = 0, len = points.length, j = len - 1; i < len; j = i++) {
-            a = points[i];
-            b = points[j];
-            if (!(a._code & edge2)) {
-              if (b._code & edge2) {
-                p = _getEdgeIntersection(b, a, edge2, bounds, round);
-                p._code = _getBitCode(p, bounds);
-                clippedPoints.push(p);
-              }
-              clippedPoints.push(a);
-            } else if (!(b._code & edge2)) {
-              p = _getEdgeIntersection(b, a, edge2, bounds, round);
-              p._code = _getBitCode(p, bounds);
-              clippedPoints.push(p);
-            }
-          }
-          points = clippedPoints;
-        }
-        return points;
-      }
-      var PolyUtil = {
-        __proto__: null,
-        clipPolygon
+        _flat,
+        polylineCenter
       };
       var LonLat = {
         project: function(latlng) {
@@ -5402,29 +5605,7 @@ function requireLeafletSrc() {
           if (!this._map) {
             throw new Error("Must add layer to map before using getCenter()");
           }
-          var i, halfDist, segDist, dist, p1, p2, ratio, points = this._rings[0], len = points.length;
-          if (!len) {
-            return null;
-          }
-          for (i = 0, halfDist = 0; i < len - 1; i++) {
-            halfDist += points[i].distanceTo(points[i + 1]) / 2;
-          }
-          if (halfDist === 0) {
-            return this._map.layerPointToLatLng(points[0]);
-          }
-          for (i = 0, dist = 0; i < len - 1; i++) {
-            p1 = points[i];
-            p2 = points[i + 1];
-            segDist = p1.distanceTo(p2);
-            dist += segDist;
-            if (dist > halfDist) {
-              ratio = (dist - halfDist) / segDist;
-              return this._map.layerPointToLatLng([
-                p2.x - ratio * (p2.x - p1.x),
-                p2.y - ratio * (p2.y - p1.y)
-              ]);
-            }
-          }
+          return polylineCenter(this._defaultShape(), this._map.options.crs);
         },
         // @method getBounds(): LatLngBounds
         // Returns the `LatLngBounds` of the path.
@@ -5574,29 +5755,13 @@ function requireLeafletSrc() {
         isEmpty: function() {
           return !this._latlngs.length || !this._latlngs[0].length;
         },
+        // @method getCenter(): LatLng
+        // Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the Polygon.
         getCenter: function() {
           if (!this._map) {
             throw new Error("Must add layer to map before using getCenter()");
           }
-          var i, j, p1, p2, f, area, x, y, center, points = this._rings[0], len = points.length;
-          if (!len) {
-            return null;
-          }
-          area = x = y = 0;
-          for (i = 0, j = len - 1; i < len; j = i++) {
-            p1 = points[i];
-            p2 = points[j];
-            f = p1.y * p2.x - p2.y * p1.x;
-            x += (p1.x + p2.x) * f;
-            y += (p1.y + p2.y) * f;
-            area += f * 3;
-          }
-          if (area === 0) {
-            center = points[0];
-          } else {
-            center = [x / area, y / area];
-          }
-          return this._map.layerPointToLatLng(center);
+          return polygonCenter(this._defaultShape(), this._map.options.crs);
         },
         _convertLatLngs: function(latlngs) {
           var result = Polyline.prototype._convertLatLngs.call(this, latlngs), len = result.length;
@@ -5795,13 +5960,21 @@ function requireLeafletSrc() {
             return new Polygon(latlngs, options);
           case "GeometryCollection":
             for (i = 0, len = geometry.geometries.length; i < len; i++) {
-              var layer = geometryToLayer({
+              var geoLayer = geometryToLayer({
                 geometry: geometry.geometries[i],
                 type: "Feature",
                 properties: geojson.properties
               }, options);
-              if (layer) {
-                layers2.push(layer);
+              if (geoLayer) {
+                layers2.push(geoLayer);
+              }
+            }
+            return new FeatureGroup(layers2);
+          case "FeatureCollection":
+            for (i = 0, len = geometry.features.length; i < len; i++) {
+              var featureLayer = geometryToLayer(geometry.features[i], options);
+              if (featureLayer) {
+                layers2.push(featureLayer);
               }
             }
             return new FeatureGroup(layers2);
@@ -5830,10 +6003,10 @@ function requireLeafletSrc() {
       function latLngsToCoords(latlngs, levelsDeep, closed, precision) {
         var coords = [];
         for (var i = 0, len = latlngs.length; i < len; i++) {
-          coords.push(levelsDeep ? latLngsToCoords(latlngs[i], levelsDeep - 1, closed, precision) : latLngToCoords(latlngs[i], precision));
+          coords.push(levelsDeep ? latLngsToCoords(latlngs[i], isFlat(latlngs[i]) ? 0 : levelsDeep - 1, closed, precision) : latLngToCoords(latlngs[i], precision));
         }
-        if (!levelsDeep && closed) {
-          coords.push(coords[0]);
+        if (!levelsDeep && closed && coords.length > 0) {
+          coords.push(coords[0].slice());
         }
         return coords;
       }
@@ -6232,11 +6405,23 @@ function requireLeafletSrc() {
           className: "",
           // @option pane: String = undefined
           // `Map pane` where the overlay will be added.
-          pane: void 0
+          pane: void 0,
+          // @option content: String|HTMLElement|Function = ''
+          // Sets the HTML content of the overlay while initializing. If a function is passed the source layer will be
+          // passed to the function. The function should return a `String` or `HTMLElement` to be used in the overlay.
+          content: ""
         },
         initialize: function(options, source2) {
-          setOptions(this, options);
-          this._source = source2;
+          if (options && (options instanceof LatLng || isArray(options))) {
+            this._latlng = toLatLng(options);
+            setOptions(this, source2);
+          } else {
+            setOptions(this, options);
+            this._source = source2;
+          }
+          if (this.options.content) {
+            this._content = this.options.content;
+          }
         },
         // @method openOn(map: Map): this
         // Adds the overlay to the map.
@@ -6501,6 +6686,8 @@ function requireLeafletSrc() {
           // @option maxHeight: Number = null
           // If set, creates a scrollable container of the given height
           // inside a popup if its content exceeds it.
+          // The scrollable container can be styled using the
+          // `leaflet-popup-scrolled` CSS class selector.
           maxHeight: null,
           // @option autoPan: Boolean = true
           // Set it to `false` if you don't want the map to do panning animation
@@ -6599,7 +6786,10 @@ function requireLeafletSrc() {
             closeButton.setAttribute("aria-label", "Close popup");
             closeButton.href = "#close";
             closeButton.innerHTML = '<span aria-hidden="true">&#215;</span>';
-            on(closeButton, "click", this.close, this);
+            on(closeButton, "click", function(ev) {
+              preventDefault(ev);
+              this.close();
+            }, this);
           }
         },
         _updateLayout: function() {
@@ -6625,12 +6815,16 @@ function requireLeafletSrc() {
           var pos = this._map._latLngToNewLayerPoint(this._latlng, e.zoom, e.center), anchor = this._getAnchor();
           setPosition(this._container, pos.add(anchor));
         },
-        _adjustPan: function(e) {
+        _adjustPan: function() {
           if (!this.options.autoPan) {
             return;
           }
           if (this._map._panAnim) {
             this._map._panAnim.stop();
+          }
+          if (this._autopanning) {
+            this._autopanning = false;
+            return;
           }
           var map = this._map, marginBottom = parseInt(getStyle(this._container, "marginBottom"), 10) || 0, containerHeight = this._container.offsetHeight + marginBottom, containerWidth = this._containerWidth, layerPos = new Point(this._containerLeft, -containerHeight - this._containerBottom);
           layerPos._add(getPosition(this._container));
@@ -6648,7 +6842,10 @@ function requireLeafletSrc() {
             dy = containerPos.y - paddingTL.y;
           }
           if (dx || dy) {
-            map.fire("autopanstart").panBy([dx, dy], { animate: e && e.type === "moveend" });
+            if (this.options.keepInView) {
+              this._autopanning = true;
+            }
+            map.fire("autopanstart").panBy([dx, dy]);
           }
         },
         _getAnchor: function() {
@@ -6717,8 +6914,13 @@ function requireLeafletSrc() {
         // @method openPopup(latlng?: LatLng): this
         // Opens the bound popup at the specified `latlng` or at the default popup anchor if no `latlng` is passed.
         openPopup: function(latlng) {
-          if (this._popup && this._popup._prepareOpen(latlng)) {
-            this._popup.openOn(this._map);
+          if (this._popup) {
+            if (!(this instanceof FeatureGroup)) {
+              this._popup._source = this;
+            }
+            if (this._popup._prepareOpen(latlng || this._latlng)) {
+              this._popup.openOn(this._map);
+            }
           }
           return this;
         },
@@ -6835,6 +7037,8 @@ function requireLeafletSrc() {
         _initLayout: function() {
           var prefix = "leaflet-tooltip", className = prefix + " " + (this.options.className || "") + " leaflet-zoom-" + (this._zoomAnimated ? "animated" : "hide");
           this._contentNode = this._container = create$1("div", className);
+          this._container.setAttribute("role", "tooltip");
+          this._container.setAttribute("id", "leaflet-tooltip-" + stamp(this));
         },
         _updateLayout: function() {
         },
@@ -6950,6 +7154,11 @@ function requireLeafletSrc() {
             events.mouseover = this._openTooltip;
             events.mouseout = this.closeTooltip;
             events.click = this._openTooltip;
+            if (this._map) {
+              this._addFocusListeners();
+            } else {
+              events.add = this._addFocusListeners;
+            }
           } else {
             events.add = this._openTooltip;
           }
@@ -6962,8 +7171,18 @@ function requireLeafletSrc() {
         // @method openTooltip(latlng?: LatLng): this
         // Opens the bound tooltip at the specified `latlng` or at the default tooltip anchor if no `latlng` is passed.
         openTooltip: function(latlng) {
-          if (this._tooltip && this._tooltip._prepareOpen(latlng)) {
-            this._tooltip.openOn(this._map);
+          if (this._tooltip) {
+            if (!(this instanceof FeatureGroup)) {
+              this._tooltip._source = this;
+            }
+            if (this._tooltip._prepareOpen(latlng)) {
+              this._tooltip.openOn(this._map);
+              if (this.getElement) {
+                this._setAriaDescribedByOnLayer(this);
+              } else if (this.eachLayer) {
+                this.eachLayer(this._setAriaDescribedByOnLayer, this);
+              }
+            }
           }
           return this;
         },
@@ -7000,8 +7219,40 @@ function requireLeafletSrc() {
         getTooltip: function() {
           return this._tooltip;
         },
+        _addFocusListeners: function() {
+          if (this.getElement) {
+            this._addFocusListenersOnLayer(this);
+          } else if (this.eachLayer) {
+            this.eachLayer(this._addFocusListenersOnLayer, this);
+          }
+        },
+        _addFocusListenersOnLayer: function(layer) {
+          var el = typeof layer.getElement === "function" && layer.getElement();
+          if (el) {
+            on(el, "focus", function() {
+              this._tooltip._source = layer;
+              this.openTooltip();
+            }, this);
+            on(el, "blur", this.closeTooltip, this);
+          }
+        },
+        _setAriaDescribedByOnLayer: function(layer) {
+          var el = typeof layer.getElement === "function" && layer.getElement();
+          if (el) {
+            el.setAttribute("aria-describedby", this._tooltip._container.id);
+          }
+        },
         _openTooltip: function(e) {
-          if (!this._tooltip || !this._map || this._map.dragging && this._map.dragging.moving()) {
+          if (!this._tooltip || !this._map) {
+            return;
+          }
+          if (this._map.dragging && this._map.dragging.moving() && !this._openOnceFlag) {
+            this._openOnceFlag = true;
+            var that = this;
+            this._map.once("moveend", function() {
+              that._openOnceFlag = false;
+              that._openTooltip(e);
+            });
             return;
           }
           this._tooltip._source = e.layer || e.target;
@@ -7748,12 +7999,16 @@ function requireLeafletSrc() {
             options.tileSize = Math.floor(options.tileSize / 2);
             if (!options.zoomReverse) {
               options.zoomOffset++;
-              options.maxZoom--;
+              options.maxZoom = Math.max(options.minZoom, options.maxZoom - 1);
             } else {
               options.zoomOffset--;
-              options.minZoom++;
+              options.minZoom = Math.min(options.maxZoom, options.minZoom + 1);
             }
             options.minZoom = Math.max(0, options.minZoom);
+          } else if (!options.zoomReverse) {
+            options.maxZoom = Math.max(options.minZoom, options.maxZoom);
+          } else {
+            options.minZoom = Math.min(options.maxZoom, options.minZoom);
           }
           if (typeof options.subdomains === "string") {
             options.subdomains = options.subdomains.split("");
@@ -7789,7 +8044,6 @@ function requireLeafletSrc() {
             tile.referrerPolicy = this.options.referrerPolicy;
           }
           tile.alt = "";
-          tile.setAttribute("role", "presentation");
           tile.src = this.getTileUrl(coords);
           return tile;
         },
@@ -7975,9 +8229,7 @@ function requireLeafletSrc() {
         onAdd: function() {
           if (!this._container) {
             this._initContainer();
-            if (this._zoomAnimated) {
-              addClass(this._container, "leaflet-zoom-animated");
-            }
+            addClass(this._container, "leaflet-zoom-animated");
           }
           this.getPane().appendChild(this._container);
           this._update();
@@ -9054,9 +9306,14 @@ function requireLeafletSrc() {
               if (e.shiftKey) {
                 offset = toPoint(offset).multiplyBy(3);
               }
-              map.panBy(offset);
               if (map.options.maxBounds) {
-                map.panInsideBounds(map.options.maxBounds);
+                offset = map._limitOffset(toPoint(offset), map.options.maxBounds);
+              }
+              if (map.options.worldCopyJump) {
+                var newLatLng = map.wrapLatLng(map.unproject(map.project(map.getCenter()).add(offset)));
+                map.panTo(newLatLng);
+              } else {
+                map.panBy(offset);
               }
             }
           } else if (key in this._zoomKeys) {
@@ -9263,7 +9520,7 @@ function requireLeafletSrc() {
             this._moved = true;
           }
           cancelAnimFrame(this._animRequest);
-          var moveFn = bind(map._move, map, this._center, this._zoom, { pinch: true, round: false });
+          var moveFn = bind(map._move, map, this._center, this._zoom, { pinch: true, round: false }, void 0);
           this._animRequest = requestAnimFrame(moveFn, this, true);
           preventDefault(e);
         },
@@ -13353,7 +13610,7 @@ const scripts = {
   "repo-publish-quick": "npm run build && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
 };
 const devDependencies = {
-  leaflet: "1.8.0",
+  leaflet: "1.9.4",
   "leaflet-editable": "1.2.0",
   "leaflet-path-drag": "^1.8.0-beta.3",
   "leaflet-rastercoords": "1.0.5",
@@ -25396,9 +25653,20 @@ function LeafletSetup(options) {
   let $Element = document2.createElement.bind(document2);
   let target = null;
   let map = null;
+  seneca.fix("srv:plantquest,part:assetmap").message("show:map", msgShowMap);
+  function msgShowMap(msg) {
+    return __async(this, null, function* () {
+      let url = "https://plantquest-demo01-map01.s3.eu-west-1.amazonaws.com/tiles/pqd-pq01-m01-013/{z}/{x}/{y}.png";
+      let tileLayer = L.tileLayer(url);
+      tileLayer.addTo(map);
+      map.setView([50.154377, 2154.375], 2);
+      return {
+        ok: true
+      };
+    });
+  }
   seneca.prepare(function() {
     return __async(this, null, function* () {
-      console.log("PREPARE MAP HTML");
       target = $(options.target);
       if (null == target) {
         seneca.fail("plantquest-target-element-missing", {
@@ -25420,17 +25688,19 @@ function LeafletSetup(options) {
       rootElement.appendChild(mapElement);
       target.appendChild(rootElement);
       map = L.map("plantquest-assetmap-map", {
-        crs: L.CRS.Simple,
-        scrollWheelZoom: false,
-        doubleClickZoom: false,
-        attributionControl: false,
-        editable: true
+        // crs: L.CRS.Simple,
+        // scrollWheelZoom: false,
+        // doubleClickZoom: false,
+        // attributionControl: false,
+        // editable: true,
+        minZoom: 2
       });
+      console.log("LeafletSetup", "prepare", map);
     });
   });
   return {
     exports: {
-      map
+      getMap: () => map
     }
   };
 }
@@ -25438,6 +25708,695 @@ LeafletSetup.defaults = {
   target: "#plantquest-assetmap",
   document: "undefined" == document ? {} : document
 };
+var gubu_min$2 = { exports: {} };
+var gubu_min = gubu_min$2.exports;
+(function(module2, exports) {
+  !function(e) {
+    if (true)
+      module2.exports = e();
+    else if (false)
+      (void 0)([], e);
+    else {
+      ("undefined" != typeof window ? window : "undefined" != typeof commonjsGlobal ? commonjsGlobal : "undefined" != typeof self ? self : this).Gubu = e();
+    }
+  }(function() {
+    var e = {}, t = {};
+    Object.defineProperty(t, "__esModule", { value: true }), t.Gubu = void 0;
+    const n = Symbol.for("gubu$"), l = { gubu$: n, v$: "6.0.1" }, r = Symbol.for("gubu$nil"), i = /^[A-Z]/, o = "gubu", s = "name", u = "nan", a = "never", c = "number", f = "required", p = "array", h = "function", v = "object", d = "string", g = "boolean", m = "undefined", y = "any", b = "list", x = "instance", $ = "null", I = "type", k = "closed", j = "shape", w = "check", O = "Object", N = "Array", S = "Function", V = "Value", R = "Above", A = "All", D = "Below", E = "Max", C = "Min", G = "Len", B = "One", T = "Some", M = " for property ", L2 = '"$PATH"', F = '"$VALUE"', P = (e2) => Object.keys(e2), z = (e2, t2, n2) => Object.defineProperty(e2, t2, n2), q = (e2) => Array.isArray(e2), W = (e2) => JSON.parse(e2), _ = (e2, t2) => JSON.stringify(e2, t2);
+    class J {
+      constructor(e2, t2, n2, l2) {
+        this.match = false, this.dI = 0, this.nI = 2, this.cI = -1, this.pI = 0, this.sI = -1, this.valType = a, this.isRoot = false, this.key = "", this.type = a, this.stop = true, this.nextSibling = true, this.fromDefault = false, this.ignoreVal = void 0, this.curerr = [], this.err = [], this.parents = [], this.keys = [], this.path = [], this.root = e2, this.vals = [e2, -1], this.node = t2, this.nodes = [t2, -1], this.ctx = n2 || {}, this.match = !!l2;
+      }
+      next() {
+        this.stop = false, this.fromDefault = false, this.ignoreVal = void 0, this.isRoot = 0 === this.pI, this.check = void 0;
+        let e2 = this.nodes[this.pI];
+        for (; +e2; )
+          this.dI--, this.ctx.log && -1 < this.dI && this.ctx.log("e" + (q(this.parents[this.pI]) ? "a" : "o"), this), this.pI = +e2, e2 = this.nodes[this.pI];
+        e2 ? (this.node = e2, this.updateVal(this.vals[this.pI]), this.key = this.keys[this.pI], this.cI = this.pI, this.sI = this.pI + 1, this.parent = this.parents[this.pI], this.nextSibling = true, this.type = this.node.t, this.path[this.dI] = this.key, this.oval = this.val, this.curerr.length = 0) : this.stop = true;
+      }
+      updateVal(e2) {
+        this.val = e2, this.valType = typeof this.val, c === this.valType && isNaN(this.val) && (this.valType = u), this.isRoot && !this.match && (this.root = this.val);
+      }
+    }
+    class H extends TypeError {
+      constructor(e2, t2, n2, l2) {
+        var r2;
+        super((t2 = null == t2 ? "" : t2 + ": ") + n2.map((e3) => e3.t).join("\n")), this.gubu = true, this.name = "GubuError", this.code = e2, this.prefix = t2, this.desc = () => ({ name: "GubuError", code: e2, err: n2, ctx: l2 }), this.stack = null === (r2 = this.stack) || void 0 === r2 ? void 0 : r2.replace(/.*\/gubu\/gubu\.[tj]s.*\n/g, ""), this.props = n2.map((e3) => {
+          var t3;
+          return { path: e3.p, what: e3.w, type: null === (t3 = e3.n) || void 0 === t3 ? void 0 : t3.t, value: e3.v };
+        });
+      }
+      toJSON() {
+        return Object.assign(Object.assign({}, this), { err: this.desc().err, name: this.name, message: this.message });
+      }
+    }
+    const U = { String: true, Number: true, Boolean: true, Object: true, Array: true, Function: true, Symbol: true, BigInt: true }, K = { string: "", number: 0, boolean: false, object: {}, array: [], symbol: Symbol(""), bigint: BigInt(0), null: null };
+    function Z(e2, t2, o2) {
+      var s2, a2, f2, g2;
+      if (Q === e2)
+        e2 = void 0;
+      else if (null != e2 && (null === (s2 = e2.$) || void 0 === s2 ? void 0 : s2.gubu$)) {
+        if (n === e2.$.gubu$)
+          return e2.d = null == t2 ? e2.d : t2, e2;
+        if (true === e2.$.gubu$) {
+          let l2 = Object.assign({}, e2);
+          return l2.$ = Object.assign(Object.assign({ v$: "6.0.1" }, l2.$), { gubu$: n }), l2.v = null != l2.v && v === typeof l2.v ? Object.assign({}, l2.v) : l2.v, l2.t = l2.t || typeof l2.v, h === l2.t && U[l2.v.name] && (l2.t = l2.v.name.toLowerCase(), l2.v = Me(K[l2.t]), l2.f = l2.v), l2.r = !!l2.r, l2.p = !!l2.p, l2.d = null == t2 ? null == l2.d ? -1 : l2.d : t2, l2.b = l2.b || [], l2.a = l2.a || [], l2.u = l2.u || {}, l2.m = l2.m || o2 || {}, l2;
+        }
+      }
+      let b2 = null === e2 ? $ : typeof e2;
+      b2 = m === b2 ? y : b2;
+      let I2 = e2, k2 = I2, j2 = r, w2 = false, N2 = {}, V2 = [], R2 = [];
+      if (v === b2)
+        k2 = void 0, q(I2) ? (b2 = p, 1 === I2.length && (j2 = I2[0], I2 = [])) : null != I2 && Function !== I2.constructor && Object !== I2.constructor && null != I2.constructor ? (b2 = x, N2.n = I2.constructor.name, N2.i = I2.constructor, k2 = I2) : 0 === P(I2).length && (j2 = oe());
+      else if (h === b2)
+        if (U[e2.name])
+          b2 = e2.name.toLowerCase(), w2 = true, I2 = Me(K[b2]), k2 = I2, O === e2.name && (j2 = oe());
+        else if (I2.gubu === l || true === (null === (a2 = I2.$) || void 0 === a2 ? void 0 : a2.gubu)) {
+          let e3 = I2.node ? I2.node() : I2;
+          b2 = e3.t, I2 = e3.v, k2 = I2, w2 = e3.r, N2 = Object.assign({}, e3.u), V2 = [...e3.a], R2 = [...e3.b];
+        } else
+          S === I2.constructor.name && i.test(I2.name) && (b2 = x, w2 = true, N2.n = null === (g2 = null === (f2 = I2.prototype) || void 0 === f2 ? void 0 : f2.constructor) || void 0 === g2 ? void 0 : g2.name, N2.i = I2);
+      else
+        c === b2 && isNaN(I2) ? b2 = u : d === b2 && "" === I2 && (N2.empty = true);
+      let A2 = null == I2 || v !== b2 && p !== b2 ? I2 : Object.assign({}, I2);
+      return { $: l, t: b2, v: A2, f: k2, n: null != A2 && v === typeof A2 ? P(A2).length : 0, c: j2, r: w2, p: false, d: null == t2 ? -1 : t2, k: [], e: true, u: N2, a: V2, b: R2, m: o2 || {} };
+    }
+    function Q(t2, i2) {
+      const o2 = null == i2 ? {} : i2;
+      o2.name = null == o2.name ? "G" + ("" + Math.random()).substring(2, 8) : "" + o2.name, o2.prefix = null == o2.prefix ? void 0 : o2.prefix;
+      let s2 = o2.meta = o2.meta || {};
+      s2.active = true === s2.active || false, s2.suffix = d == typeof s2.suffix ? s2.suffix : "$$";
+      let u2 = o2.keyexpr = o2.keyexpr || {};
+      u2.active = false !== u2.active;
+      let c2 = Z(t2, 0);
+      function h2(e2, t3, n2) {
+        let l2 = new J(e2, c2, t3, n2);
+        for (; l2.next(), !l2.stop; ) {
+          let t4 = l2.node, n3 = false, i3 = false;
+          if (0 < t4.b.length)
+            for (let e3 = 0; e3 < t4.b.length; e3++) {
+              let r2 = Y(t4.b[e3], l2);
+              t4 = l2.node, void 0 !== r2.done && (n3 = r2.done), i3 = i3 || !!r2.fatal;
+            }
+          if (!n3) {
+            let n4 = true, i4 = void 0 === l2.val;
+            if (a === l2.type)
+              l2.curerr.push(Ge(a, l2, 1070));
+            else if (v === l2.type) {
+              let e3;
+              if (t4.r && i4 ? (l2.ignoreVal = true, l2.curerr.push(Ge(f, l2, 1010))) : i4 || null !== l2.val && v === l2.valType && !q(l2.val) ? !t4.p && i4 && void 0 !== t4.f ? (l2.updateVal(t4.f), l2.fromDefault = true, e3 = l2.val, n4 = false) : t4.p && i4 || (l2.updateVal(l2.val || (l2.fromDefault = true, {})), e3 = l2.val) : (l2.curerr.push(Ge(I, l2, 1020)), e3 = q(l2.val) ? l2.val : {}), n4 && (e3 = null == e3 && false === l2.ctx.err ? {} : e3, null != e3)) {
+                l2.ctx.log && l2.ctx.log("so", l2);
+                let n5 = false, i5 = P(t4.v), o4 = l2.nI;
+                if (0 < i5.length) {
+                  n5 = true, l2.pI = o4;
+                  for (let n6 = 0; n6 < i5.length; n6++) {
+                    let r2, o5 = i5[n6];
+                    if (s2.active && o5.endsWith(s2.suffix)) {
+                      if (r2 = { short: "" }, d === typeof t4.v[o5] ? r2.short = t4.v[o5] : r2 = Object.assign(Object.assign({}, r2), t4.v[o5]), delete t4.v[o5], n6++, i5.length <= n6)
+                        break;
+                      if (i5[n6] !== o5.substring(0, o5.length - s2.suffix.length))
+                        throw new Error("Invalid meta key: " + o5);
+                      o5 = i5[n6];
+                    }
+                    let a3 = o5, c3 = t4.v[o5];
+                    if (u2.active) {
+                      let e4 = /^\s*("(\\.|[^"\\])*"|[^\s]+):\s*(.*?)\s*$/.exec(o5);
+                      e4 && (a3 = e4[1], c3 = X({ src: e4[3], val: c3 }), delete t4.v[o5]);
+                    }
+                    let f2 = Z(c3, 1 + l2.dI, r2);
+                    t4.v[a3] = f2, t4.k.includes(a3) || t4.k.push(a3), l2.nodes[l2.nI] = f2, l2.vals[l2.nI] = e3[a3], l2.parents[l2.nI] = e3, l2.keys[l2.nI] = a3, l2.nI++;
+                  }
+                }
+                let a2 = P(e3).filter((e4) => void 0 === t4.v[e4]);
+                if (0 < a2.length)
+                  if (r === t4.c)
+                    l2.ignoreVal = true, l2.curerr.push(Ge(k, l2, 1100, void 0, { k: a2 }));
+                  else {
+                    n5 = true, l2.pI = o4;
+                    for (let n6 of a2) {
+                      let r2 = t4.c = Z(t4.c, 1 + l2.dI);
+                      l2.nodes[l2.nI] = r2, l2.vals[l2.nI] = e3[n6], l2.parents[l2.nI] = e3, l2.keys[l2.nI] = n6, l2.nI++;
+                    }
+                  }
+                n5 ? (l2.dI++, l2.nodes[l2.nI] = l2.sI, l2.parents[l2.nI] = e3, l2.nextSibling = false, l2.nI++) : l2.ctx.log && l2.ctx.log("eo", l2);
+              }
+            } else if (p === l2.type)
+              if (t4.r && i4)
+                l2.ignoreVal = true, l2.curerr.push(Ge(f, l2, 1030));
+              else if (i4 || q(l2.val)) {
+                if (!t4.p && i4 && void 0 !== t4.f)
+                  l2.updateVal(t4.f), l2.fromDefault = true;
+                else if (!t4.p || null != l2.val) {
+                  l2.updateVal(l2.val || (l2.fromDefault = true, []));
+                  let n5 = r !== t4.c, i5 = 0 < l2.val.length, o4 = P(t4.v).filter((e3) => !isNaN(+e3)), s3 = 0 < o4.length;
+                  if (l2.ctx.log && l2.ctx.log("sa", l2), i5 || s3) {
+                    l2.pI = l2.nI;
+                    let e3 = 0;
+                    if (s3)
+                      if (o4.length < l2.val.length && !n5)
+                        l2.ignoreVal = true, l2.curerr.push(Ge(k, l2, 1090, void 0, { k: o4.length }));
+                      else
+                        for (; e3 < o4.length; e3++) {
+                          let n6 = t4.v[e3] = Z(t4.v[e3], 1 + l2.dI);
+                          l2.nodes[l2.nI] = n6, l2.vals[l2.nI] = l2.val[e3], l2.parents[l2.nI] = l2.val, l2.keys[l2.nI] = "" + e3, l2.nI++;
+                        }
+                    if (n5 && i5) {
+                      let n6 = t4.c = Z(t4.c, 1 + l2.dI);
+                      for (; e3 < l2.val.length; e3++)
+                        l2.nodes[l2.nI] = n6, l2.vals[l2.nI] = l2.val[e3], l2.parents[l2.nI] = l2.val, l2.keys[l2.nI] = "" + e3, l2.nI++;
+                    }
+                    l2.ignoreVal || (l2.dI++, l2.nodes[l2.nI] = l2.sI, l2.parents[l2.nI] = l2.val, l2.nextSibling = false, l2.nI++);
+                  } else
+                    l2.ctx.log && n5 && null == e2 && l2.ctx.log("kv", Object.assign(Object.assign({}, l2), { key: 0, val: t4.c })), l2.ctx.log && l2.ctx.log("ea", l2);
+                }
+              } else
+                l2.curerr.push(Ge(I, l2, 1040));
+            else if (y === l2.type || b === l2.type || void 0 === l2.val || l2.type === l2.valType || x === l2.type && t4.u.i && l2.val instanceof t4.u.i || $ === l2.type && null === l2.val)
+              if (void 0 === l2.val) {
+                let e3 = l2.path[l2.dI];
+                !t4.r || m === l2.type && l2.parent.hasOwnProperty(e3) ? void 0 !== t4.f && !t4.p || m === l2.type ? (l2.updateVal(t4.f), l2.fromDefault = true) : y === l2.type && (l2.ignoreVal = void 0 === l2.ignoreVal || l2.ignoreVal) : (l2.ignoreVal = true, l2.curerr.push(Ge(f, l2, 1060))), l2.ctx.log && l2.ctx.log("kv", l2);
+              } else
+                d !== l2.type || "" !== l2.val || t4.u.empty || l2.curerr.push(Ge(f, l2, 1080)), l2.ctx.log && l2.ctx.log("kv", l2);
+            else
+              l2.curerr.push(Ge(I, l2, 1050));
+          }
+          if (0 < t4.a.length)
+            for (let e3 = 0; e3 < t4.a.length; e3++) {
+              let r2 = Y(t4.a[e3], l2);
+              t4 = l2.node, void 0 !== r2.done && (n3 = r2.done), i3 = i3 || !!r2.fatal;
+            }
+          let o3 = l2.node.p ? false !== l2.ignoreVal : !!l2.ignoreVal;
+          !l2.match && null != l2.parent && !n3 && !o3 && (l2.parent[l2.key] = l2.val), l2.nextSibling && (l2.pI = l2.sI), (l2.node.e || i3) && l2.err.push(...l2.curerr);
+        }
+        if (0 < l2.err.length) {
+          if (q(l2.ctx.err))
+            l2.ctx.err.push(...l2.err);
+          else if (!l2.match && false !== l2.ctx.err)
+            throw new H(j, o2.prefix, l2.err, l2.ctx);
+        }
+        return l2.match ? 0 === l2.err.length : l2.root;
+      }
+      function g2(e2, t3) {
+        return h2(e2, t3, false);
+      }
+      g2.valid = function(e2, t3) {
+        let n2 = t3 || {};
+        return n2.err = n2.err || [], h2(e2, n2, false), 0 === n2.err.length;
+      }, g2.match = (e2, t3) => h2(e2, t3 = t3 || {}, true), g2.error = (e2, t3) => {
+        let n2 = t3 || {};
+        return n2.err = n2.err || [], h2(e2, n2, false), n2.err;
+      }, g2.spec = () => (g2(void 0, { err: false }), W(Te(c2, (e2, t3) => n === t3 || t3, false, true))), g2.node = () => (g2.spec(), c2);
+      let w2 = "";
+      return g2.toString = () => (w2 = ne("" === w2 ? Te(c2 && c2.$ && (n === c2.$.gubu$ || true === c2.$.gubu$) ? c2.v : c2) : w2), `[Gubu ${o2.name} ${w2}]`), e.inspect && e.inspect.custom && (g2[e.inspect.custom] = g2.toString), g2.gubu = l, g2.spec(), g2;
+    }
+    function X(e2) {
+      let t2 = false;
+      if (null == e2.tokens) {
+        t2 = true, e2.tokens = [];
+        let n3 = /\s*,?\s*([)(\.]|"(\\.|[^"\\])*"|\/(\\.|[^\/\\])*\/[a-z]?|[^)(,\s]+)\s*/g, l3 = null;
+        for (; l3 = n3.exec(e2.src); )
+          e2.tokens.push(l3[1]);
+      }
+      e2.i = e2.i || 0;
+      let n2 = e2.tokens[e2.i], l2 = Fe[n2];
+      if (")" === e2.tokens[e2.i])
+        return e2.i++, e2.val;
+      e2.i++;
+      let r2 = { Number, String, Boolean };
+      if (null == l2)
+        try {
+          return r2[n2] || (m === n2 ? void 0 : "NaN" === n2 ? NaN : n2.match(/^\/.+\/$/) ? new RegExp(n2.substring(1, n2.length - 1)) : W(n2));
+        } catch (s2) {
+          throw new SyntaxError(`Gubu: unexpected token ${n2} in builder expression ${e2.src}`);
+        }
+      "(" === e2.tokens[e2.i] && e2.i++;
+      let i2 = [], o2 = null;
+      for (; null != (o2 = e2.tokens[e2.i]) && ")" !== o2; ) {
+        let t3 = X(e2);
+        i2.push(t3);
+      }
+      return e2.i++, e2.val = l2.call(e2.val, ...i2), "." === e2.tokens[e2.i] ? (e2.i++, X(e2)) : t2 && e2.i < e2.tokens.length ? X(e2) : e2.val;
+    }
+    function Y(e2, t2) {
+      var n2;
+      let l2, r2 = {}, i2 = false;
+      try {
+        i2 = !(void 0 !== t2.val || !(null === (n2 = e2.gubu$) || void 0 === n2 ? void 0 : n2.Check)) || (t2.check = e2, e2(t2.val, r2, t2));
+      } catch (s2) {
+        l2 = s2;
+      }
+      let o2 = q(r2.err) ? 0 < r2.err.length : null != r2.err;
+      if (!i2 || o2) {
+        if (void 0 === t2.val && (t2.node.p || !t2.node.r) && true !== r2.done)
+          return delete r2.err, r2;
+        let n3 = r2.why || w, i3 = ee(t2);
+        if (d === typeof r2.err)
+          t2.curerr.push(Ce(t2, r2.err));
+        else if (v === typeof r2.err)
+          t2.curerr.push(...[r2.err].flat().filter((e3) => null != e3).map((e3) => (e3.p = null == e3.p ? i3 : e3.p, e3.m = null == e3.m ? 2010 : e3.m, e3)));
+        else {
+          let r3 = e2.name;
+          null != r3 && "" != r3 || (r3 = ne(e2.toString().replace(/[ \t\r\n]+/g, " "))), t2.curerr.push(Ge(n3, t2, 1045, void 0, { thrown: l2 }, r3));
+        }
+        r2.done = null == r2.done || r2.done;
+      }
+      return r2.hasOwnProperty("uval") ? (t2.updateVal(r2.uval), t2.ignoreVal = false) : void 0 === r2.val || Number.isNaN(r2.val) || (t2.updateVal(r2.val), t2.ignoreVal = false), void 0 !== r2.node && (t2.node = r2.node), void 0 !== r2.type && (t2.type = r2.type), r2;
+    }
+    function ee(e2) {
+      return e2.path.slice(1, e2.dI + 1).filter((e3) => null != e3).join(".");
+    }
+    function te(e2) {
+      return c === typeof e2 ? e2 : c === typeof (null == e2 ? void 0 : e2.length) ? e2.length : null != e2 && v === typeof e2 ? P(e2).length : NaN;
+    }
+    function ne(e2, t2) {
+      let n2 = String(e2), l2 = null == t2 || isNaN(t2) ? 30 : t2 < 0 ? 0 : ~~t2, r2 = null == e2 ? 0 : n2.length, i2 = null == e2 ? "" : n2.substring(0, r2);
+      return i2 = l2 < r2 ? i2.substring(0, l2 - 3) + "..." : i2, i2.substring(0, l2);
+    }
+    const le = function(e2) {
+      let t2 = Ee(this, e2);
+      return t2.r = true, t2.p = false, void 0 === e2 && 1 === arguments.length && (t2.t = m, t2.v = void 0), t2;
+    }, re = function(e2) {
+      let t2 = Ee(this, e2);
+      return t2.c = oe(), t2;
+    }, ie = function(e2) {
+      let t2 = Ee(this, e2);
+      return t2.r = false, void 0 === e2 && 1 === arguments.length && (t2.t = m, t2.v = void 0), t2;
+    }, oe = function(e2) {
+      let t2 = Ee(this, e2);
+      return t2.t = y, void 0 !== e2 && (t2.v = e2, t2.f = e2), t2;
+    }, se = function(e2, t2) {
+      let n2 = Ee(this, t2);
+      return n2.z = e2, n2;
+    }, ue = function(e2) {
+      let t2 = Ee(this, e2);
+      return t2.r = false, t2.p = true, t2;
+    }, ae = function(e2) {
+      let t2 = Ee(this, e2);
+      return t2.r = false, t2.p = true, t2.e = false, t2.a.push(function(e3, t3, n2) {
+        return 0 < n2.curerr.length && (t3.uval = void 0, t3.done = false), true;
+      }), t2;
+    }, ce = function(e2) {
+      let t2 = Ee(this);
+      return t2.t = h, t2.v = e2, t2.f = e2, t2;
+    }, fe = function(e2, t2) {
+      let n2 = Ee(this, void 0 === t2 ? e2 : t2);
+      return n2.r = false, n2.f = e2, h === typeof e2 && U[e2.name] && (n2.t = e2.name.toLowerCase(), n2.f = Me(K[n2.t])), n2.p = false, n2;
+    }, pe = function(e2) {
+      let t2 = Ee(this, e2);
+      return t2.u.empty = true, t2;
+    }, he = function(e2) {
+      let t2 = Ee(this, e2);
+      return t2.t = a, t2;
+    }, ve = function(e2, t2) {
+      let n2 = Ee(this), l2 = c === typeof e2;
+      n2.t = d, l2 && null == t2 && (n2 = Z([]));
+      let r2 = null;
+      return h === typeof e2 && (r2 = e2, n2 = oe()), n2.b.push(function(n3, i2, o2) {
+        if (r2)
+          i2.val = r2(o2.path, o2);
+        else if (l2) {
+          let n4 = e2;
+          i2.val = o2.path.slice(o2.path.length - 1 - (0 <= n4 ? n4 : 0), o2.path.length - 1 + (0 <= n4 ? 0 : 1)), d === typeof t2 && (i2.val = i2.val.join(t2));
+        } else
+          null == e2 && (i2.val = o2.path[o2.path.length - 2]);
+        return true;
+      }), n2;
+    }, de = function(...e2) {
+      let t2 = Ee();
+      t2.t = b, t2.r = true;
+      let n2 = e2.map((e3) => Pe(e3));
+      return t2.u.list = e2, t2.b.push(function(t3, l2, r2) {
+        let i2 = true;
+        for (let e3 of n2) {
+          let n3 = Object.assign(Object.assign({}, r2.ctx), { err: [] });
+          e3(t3, n3), 0 < n3.err.length && (i2 = false);
+        }
+        return i2 || (l2.why = A, l2.err = [Ce(r2, V + " " + F + M + L2 + " does not satisfy all of: " + e2.map((e3) => Te(e3, null, true)).join(", "))]), i2;
+      }), t2;
+    }, ge = function(...e2) {
+      let t2 = Ee();
+      t2.t = b, t2.r = true;
+      let n2 = e2.map((e3) => Pe(e3));
+      return t2.u.list = e2, t2.b.push(function(t3, l2, r2) {
+        let i2 = false;
+        for (let e3 of n2) {
+          let n3 = Object.assign(Object.assign({}, r2.ctx), { err: [] }), o2 = e3.match(t3, n3);
+          o2 && (l2.val = e3(t3, n3)), i2 || (i2 = o2);
+        }
+        return i2 || (l2.why = T, l2.err = [Ce(r2, V + " " + F + M + L2 + " does not satisfy any of: " + e2.map((e3) => Te(e3, null, true)).join(", "))]), i2;
+      }), t2;
+    }, me = function(...e2) {
+      let t2 = Ee();
+      t2.t = b, t2.r = true;
+      let n2 = e2.map((e3) => Pe(e3));
+      return t2.u.list = e2, t2.b.push(function(t3, l2, r2) {
+        let i2 = 0;
+        for (let e3 of n2) {
+          let n3 = Object.assign(Object.assign({}, r2.ctx), { err: [] });
+          if (e3.match(t3, n3)) {
+            i2++, l2.val = e3(t3, n3);
+            break;
+          }
+        }
+        return 1 !== i2 && (l2.why = B, l2.err = [Ce(r2, V + " " + F + M + L2 + " does not satisfy one of: " + e2.map((e3) => Te(e3, null, true)).join(", "))]), true;
+      }), t2;
+    }, ye = function(...e2) {
+      let t2 = Ee();
+      return t2.b.push(function(t3, n2, l2) {
+        for (let r2 = 0; r2 < e2.length; r2++)
+          if (t3 === e2[r2])
+            return true;
+        return n2.err = Ce(l2, V + " " + F + M + L2 + " must be exactly one of: " + l2.node.s + "."), n2.done = true, false;
+      }), t2.s = e2.map((e3) => Te(e3, null, true)).join(", "), t2;
+    }, be = function(e2, t2) {
+      let n2 = Ee(this, t2);
+      return n2.b.push(e2), n2;
+    }, xe = function(e2, t2) {
+      let n2 = Ee(this, t2);
+      return n2.a.push(e2), n2;
+    }, $e = function(e2, t2) {
+      let n2 = Ee(this, t2);
+      if (h === typeof e2) {
+        let t3 = e2;
+        t3.gubu$ = t3.gubu$ || {}, t3.gubu$.Check = true, n2.b.push(e2), n2.s = (null == n2.s ? "" : n2.s + ";") + Te(e2, null, true), n2.r = true;
+      } else if (v === typeof e2) {
+        if (Object.prototype.toString.call(e2).includes("RegExp")) {
+          let t3 = (t4) => null != t4 && !Number.isNaN(t4) && !!String(t4).match(e2);
+          z(t3, s, { value: String(e2) }), z(t3, "gubu$", { value: { Check: true } }), n2.b.push(t3), n2.s = Te(e2), n2.r = true;
+        }
+      } else
+        d === typeof e2 && (n2.t = e2, n2.r = true);
+      return n2;
+    }, Ie = function(e2) {
+      let t2 = Ee(this, e2);
+      return p === t2.t && r !== t2.c && 0 === t2.n ? (t2.v = [t2.c], t2.c = r) : t2.c = r, t2;
+    }, ke = function(e2, t2) {
+      let n2 = Ee(this, t2), l2 = d === typeof e2 ? e2 : (v === typeof e2 && e2 || {}).name;
+      return null != l2 && "" != l2 && n2.b.push(function(e3, t3, n3) {
+        return (n3.ctx.ref = n3.ctx.ref || {})[l2] = n3.node, true;
+      }), n2;
+    }, je = function(e2, t2) {
+      let n2 = Ee(this, t2), l2 = v === typeof e2 && e2 || {}, r2 = d === typeof e2 ? e2 : l2.name, i2 = !!l2.fill;
+      return null != r2 && "" != r2 && n2.b.push(function(e3, t3, n3) {
+        if (void 0 !== e3 || i2) {
+          let e4 = n3.ctx.ref = n3.ctx.ref || {};
+          if (void 0 !== e4[r2]) {
+            let n4 = Object.assign({}, e4[r2]);
+            n4.t = n4.t || a, t3.node = n4, t3.type = n4.t;
+          }
+        }
+        return true;
+      }), n2;
+    }, we = function(e2, t2) {
+      let n2 = Ee(this, t2), l2 = v === typeof e2 && e2 || {}, r2 = d === typeof e2 ? e2 : l2.name, i2 = g === typeof l2.keep ? l2.keep : void 0, o2 = q(l2.claim) ? l2.claim : [];
+      if (null != r2 && "" != r2) {
+        let e3 = (e4, t4, n3) => {
+          if (void 0 === e4 && 0 < o2.length) {
+            n3.ctx.Rename = n3.ctx.Rename || {}, n3.ctx.Rename.fromDefault = n3.ctx.Rename.fromDefault || {};
+            for (let e5 of o2) {
+              let l3 = n3.ctx.Rename.fromDefault[e5] || {};
+              if (void 0 !== n3.parent[e5] && !l3.yes) {
+                t4.val = n3.parent[e5], n3.match || (n3.parent[r2] = t4.val), t4.node = l3.node;
+                for (let e6 = 0; e6 < n3.err.length; e6++)
+                  n3.err[e6].k === l3.key && (n3.err.splice(e6, 1), e6--);
+                if (i2) {
+                  let t5 = n3.cI + 1;
+                  n3.nodes.splice(t5, 0, Z(l3.dval)), n3.vals.splice(t5, 0, void 0), n3.parents.splice(t5, 0, n3.parent), n3.keys.splice(t5, 0, e5), n3.nI++, n3.pI++;
+                } else
+                  delete n3.parent[e5];
+                break;
+              }
+            }
+            void 0 === t4.val && (t4.val = n3.node.v);
+          }
+          return true;
+        };
+        z(e3, s, { value: "Rename:" + r2 }), n2.b.push(e3);
+        let t3 = (e4, t4, n3) => (n3.parent[r2] = e4, n3.match || i2 || n3.key === r2 || q(n3.parent) && false !== i2 || (delete n3.parent[n3.key], t4.done = true), n3.ctx.Rename = n3.ctx.Rename || {}, n3.ctx.Rename.fromDefault = n3.ctx.Rename.fromDefault || {}, n3.ctx.Rename.fromDefault[r2] = { yes: n3.fromDefault, key: n3.key, dval: n3.node.v, node: n3.node }, true);
+        z(t3, s, { value: "Rename:" + r2 }), n2.a.push(t3);
+      }
+      return n2;
+    }, Oe = function(e2, t2) {
+      let n2 = Ee(this, t2);
+      return n2.b.push(function(t3, n3, l2) {
+        let r2 = te(t3);
+        if (e2 <= r2)
+          return true;
+        l2.checkargs = { min: 1 };
+        let i2 = c === typeof t3 ? "" : "length ";
+        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must be a minimum ${i2}of ${e2} (was ${r2}).`), false;
+      }), n2.s = C + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
+    }, Ne = function(e2, t2) {
+      let n2 = Ee(this, t2);
+      return n2.b.push(function(t3, n3, l2) {
+        let r2 = te(t3);
+        if (r2 <= e2)
+          return true;
+        let i2 = c === typeof t3 ? "" : "length ";
+        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must be a maximum ${i2}of ${e2} (was ${r2}).`), false;
+      }), n2.s = E + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
+    }, Se = function(e2, t2) {
+      let n2 = Ee(this, t2);
+      return n2.b.push(function(t3, n3, l2) {
+        let r2 = te(t3);
+        if (e2 < r2)
+          return true;
+        let i2 = c === typeof t3 ? "be" : "have length";
+        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must ${i2} above ${e2} (was ${r2}).`), false;
+      }), n2.s = R + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
+    }, Ve = function(e2, t2) {
+      let n2 = Ee(this, t2);
+      return n2.b.push(function(t3, n3, l2) {
+        let r2 = te(t3);
+        if (r2 < e2)
+          return true;
+        let i2 = c === typeof t3 ? "be" : "have length";
+        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must ${i2} below ${e2} (was ${r2}).`), false;
+      }), n2.s = D + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
+    }, Re = function(e2, t2) {
+      let n2 = Ee(this, t2 || oe());
+      return n2.b.push(function(t3, n3, l2) {
+        let r2 = te(t3);
+        if (e2 === r2)
+          return true;
+        let i2 = c === typeof t3 ? "" : " in length";
+        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must be exactly ${e2}${i2} (was ${r2}).`), false;
+      }), n2.s = G + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
+    }, Ae = function(e2, t2) {
+      let n2 = Ee(this, t2 || {});
+      return n2.c = Z(e2), n2;
+    }, De = function(e2, t2) {
+      let n2 = Ee(this, t2 || []);
+      return n2.t = "array", n2.c = Z(e2), n2.m = n2.m || {}, n2.m.rest = true, n2;
+    };
+    function Ee(e2, t2) {
+      let n2 = Z(null == e2 || e2.window === e2 || e2.global === e2 ? t2 : e2);
+      return Object.assign(n2, { Above: Se, After: xe, Any: oe, Before: be, Below: Ve, Check: $e, Child: Ae, Closed: Ie, Define: ke, Empty: pe, Exact: ye, Fault: se, Ignore: ae, Len: Re, Max: Ne, Min: Oe, Never: he, Open: re, Refer: je, Rename: we, Required: le, Skip: ue, Rest: De });
+    }
+    function Ce(e2, t2, n2, l2) {
+      return Ge(n2 || w, e2, 4e3, t2, l2);
+    }
+    function Ge(e2, t2, n2, l2, r2, i2) {
+      var o2;
+      let s2 = { k: t2.key, n: t2.node, v: t2.val, p: ee(t2), w: e2, c: (null === (o2 = t2.check) || void 0 === o2 ? void 0 : o2.name) || "none", a: t2.checkargs || {}, m: n2, t: "", u: r2 || {} }, u2 = ne((void 0 === t2.val ? m : Te(t2.val)).replace(/"/g, ""));
+      if (null == (l2 = l2 || t2.node.z) || "" === l2) {
+        let n3 = u2.startsWith("[") ? p : u2.startsWith("{") ? v : null == t2.val || c === typeof t2.val && isNaN(t2.val) ? "value" : typeof t2.val, l3 = u2.startsWith("[") || q(t2.parents[t2.pI]) ? "index" : "property", o3 = "is", h2 = null == r2 ? void 0 : r2.k;
+        h2 = q(h2) ? (l3 = 1 < h2.length ? (o3 = "are", "properties") : l3, h2.join(", ")) : h2, s2.t = "Validation failed for " + (0 < s2.p.length ? `${l3} "${s2.p}" with ` : "") + `${n3} "${u2}" because ` + (I === e2 ? x === t2.node.t ? `the ${n3} is not an instance of ${t2.node.u.n}` : `the ${n3} is not of type ${t2.node.t}` : f === e2 ? "" === t2.val ? "an empty string is not allowed" : `the ${n3} is required` : "closed" === e2 ? `the ${l3} "${h2}" ${o3} not allowed` : a === e2 ? "no value is allowed" : `check "${null == i2 ? e2 : i2}" failed`) + (s2.u.thrown ? " (threw: " + s2.u.thrown.message + ")" : ".");
+      } else
+        s2.t = l2.replace(/\$VALUE/g, u2).replace(/\$PATH/g, s2.p);
+      return s2;
+    }
+    function Be(e2) {
+      return null != e2.s && "" !== e2.s ? e2.s : e2.r || void 0 === e2.v ? e2.t : e2.v;
+    }
+    function Te(e2, t2, l2, r2) {
+      let i2;
+      r2 || !e2 || !e2.$ || n !== e2.$.gubu$ && true !== e2.$.gubu$ || (e2 = Be(e2));
+      try {
+        i2 = _(e2, (e3, l3) => {
+          var i3, o2;
+          if (t2 && (l3 = t2(e3, l3)), null != l3 && v === typeof l3 && l3.constructor && O !== l3.constructor.name && N !== l3.constructor.name)
+            l3 = h === typeof l3.toString ? l3.toString() : l3.constructor.name;
+          else if (h === typeof l3)
+            l3 = h === typeof Q[l3.name] && isNaN(+e3) ? void 0 : null != l3.name && "" !== l3.name ? l3.name : ne(l3.toString().replace(/[ \t\r\n]+/g, " "));
+          else if ("bigint" == typeof l3)
+            l3 = String(l3.toString());
+          else {
+            if (Number.isNaN(l3))
+              return "NaN";
+            true === r2 || true !== (null === (i3 = null == l3 ? void 0 : l3.$) || void 0 === i3 ? void 0 : i3.gubu$) && n !== (null === (o2 = null == l3 ? void 0 : l3.$) || void 0 === o2 ? void 0 : o2.gubu$) || (l3 = Be(l3));
+          }
+          return l3;
+        }), i2 = String(i2);
+      } catch (o2) {
+        i2 = _(String(e2));
+      }
+      return true === l2 && (i2 = i2.replace(/^"/, "").replace(/"$/, "")), i2;
+    }
+    function Me(e2) {
+      return null == e2 || v !== typeof e2 ? e2 : W(_(e2));
+    }
+    const Le = (e2) => Z(Object.assign(Object.assign({}, e2), { $: { gubu$: true } })), Fe = { Above: Se, After: xe, All: de, Any: oe, Before: be, Below: Ve, Check: $e, Child: Ae, Closed: Ie, Default: fe, Define: ke, Empty: pe, Exact: ye, Fault: se, Func: ce, Ignore: ae, Key: ve, Len: Re, Max: Ne, Min: Oe, Never: he, One: me, Open: re, Optional: ie, Refer: je, Rename: we, Required: le, Skip: ue, Some: ge, Rest: De };
+    if (m !== typeof window)
+      for (let We in Fe)
+        z(Fe[We], s, { value: We });
+    Object.assign(Q, Object.assign(Object.assign(Object.assign({ Gubu: Q }, Fe), Object.entries(Fe).reduce((e2, t2) => (e2["G" + t2[0]] = t2[1], e2), {})), { isShape: (e2) => e2 && l === e2.gubu, G$: Le, buildize: Ee, makeErr: Ce, stringify: Te, truncate: ne, nodize: Z, expr: X, MakeArgu: ze })), z(Q, s, { value: o });
+    const Pe = Q;
+    t.Gubu = Pe;
+    function ze(e2) {
+      return function(t2, n2, l2) {
+        let r2 = false;
+        d === typeof t2 && (r2 = true, l2 = n2, n2 = t2);
+        const i2 = Pe(l2 = l2 || n2, { prefix: e2 + (n2 = d === typeof n2 ? " (" + n2 + ")" : "") }), o2 = i2.node(), s2 = o2.k;
+        let u2 = t2, a2 = {}, c2 = 0, f2 = 0;
+        for (; c2 < s2.length; c2++) {
+          let e3 = o2.v[s2[c2]];
+          e3.p && (e3 = o2.v[s2[c2]] = ((t3) => xe(function(e4, n3, l3) {
+            if (0 < l3.curerr.length) {
+              f2++;
+              for (let e5 = s2.length - 1; e5 > t3; e5--)
+                o2.v[s2[e5]].m.rest ? a2[s2[e5]].splice(o2.v[s2[e5]].m.rest_pos + t3 - e5, 0, a2[s2[e5 - 1]]) : (l3.vals[l3.pI + e5 - t3] = l3.vals[l3.pI + e5 - t3 - 1], a2[s2[e5]] = a2[s2[e5 - 1]]);
+              n3.uval = void 0, n3.done = false;
+            }
+            return true;
+          }, e3))(c2), e3.e = false), c2 !== s2.length - 1 || o2.v[s2[c2]].m.rest || (o2.v[s2[c2]] = xe(function(e4, t3, n3) {
+            return !(s2.length - f2 < u2.length && (0 === n3.curerr.length && (t3.err = `Too many arguments for type signature (was ${u2.length}, expected ${s2.length - f2})`), t3.fatal = true, 1));
+          }, o2.v[s2[c2]]));
+        }
+        function p2(e3) {
+          for (let t3 = 0; t3 < s2.length; t3++) {
+            let n3 = o2.v[s2[t3]];
+            n3.m.rest ? (a2[s2[t3]] = [...e3].slice(t3), n3.m.rest_pos = a2[s2[t3]].length) : a2[s2[t3]] = e3[t3];
+          }
+          return a2;
+        }
+        return r2 ? function(e3) {
+          return u2 = e3, a2 = {}, c2 = 0, f2 = 0, i2(p2(e3));
+        } : i2(p2(t2));
+      };
+    }
+    const { Gubu: qe } = t;
+    return qe;
+  });
+})(gubu_min$2, gubu_min$2.exports);
+var gubu_minExports = gubu_min$2.exports;
+const gubu_min$1 = /* @__PURE__ */ getDefaultExportFromCjs(gubu_minExports);
+const PlantquestGeofenceDisplay = L$1.Layer.extend({
+  initialize: function(rawOptions) {
+    console.log("rawOptions IN", rawOptions);
+    L$1.Util.setOptions(this, rawOptions);
+    console.log("rawOptions SET", this.options);
+    this._state = {
+      zindex: 0,
+      geofenceByID: {}
+    };
+  },
+  onAdd: function(map) {
+    let self2 = this;
+    map.createPane("geofence");
+    let geofencePane = map.getPane("geofence");
+    geofencePane.style.zIndex = 230;
+    map.createPane("geofenceLabel");
+    let geofenceLabelPane = map.getPane("geofenceLabel");
+    geofenceLabelPane.style.zIndex = 235;
+    self2.options.debug && console.log("GeofenceDisplay onAdd function called.");
+    self2.options.debug && console.log(
+      "Local geofence variable before add:",
+      self2._state.geofenceByID
+    );
+    self2.options.geofences.forEach((geo) => {
+      let geofence = new Geofence(geo, {
+        map,
+        cfg: self2.options.pqam.config
+      });
+      self2._state.geofenceByID[geo.id] = geofence;
+      self2.showGeofence(geofence, true);
+    });
+    self2.options.debug && console.log(
+      "Local geofence variable after add:",
+      self2._state.geofenceByID
+    );
+  },
+  onRemove: function(_map) {
+    let self2 = this;
+    self2.options.debug && console.log("GeofenceDisplay onRemove function called.");
+    self2.options.debug && console.log(
+      "Local geofence variable before remove:",
+      self2._state.geofenceByID
+    );
+    self2.clearGeofences();
+    self2.options.debug && console.log(
+      "Local geofence variable after remove:",
+      self2._state.geofenceByID
+    );
+  },
+  events() {
+    return {
+      setGeofences: () => {
+      }
+    };
+  },
+  showGeofence: function(geofence, show) {
+    if (null == geofence) {
+      return;
+    }
+    show = !!show;
+    if (true === show) {
+      geofence.show();
+    } else if (false === show) {
+      geofence.hide();
+    }
+  },
+  clearGeofences: function() {
+    let self2 = this;
+    for (let geofenceID in self2._state.geofenceByID) {
+      let geofence = self2._state.geofenceByID[geofenceID];
+      delete self2._state.geofenceByID[geofenceID];
+      if (geofence && geofence.hide) {
+        geofence.hide();
+      }
+    }
+  }
+});
+class Geofence {
+  constructor(ent, ctx) {
+    __publicField(this, "ent", null);
+    __publicField(this, "ctx", null);
+    __publicField(this, "poly", null);
+    this.ent = ent;
+    this.ctx = ctx;
+    this.poly = L$1.polygon(ent.latlngs, {
+      pane: "geofence",
+      color: this.ctx.cfg.geofence.colour
+    });
+  }
+  show() {
+    let self2 = this;
+    if (self2.ctx.cfg.geofence.click.active) {
+      self2.poly.on("click", self2.onClick.bind(self2));
+    }
+    let tooltip = L$1.tooltip({
+      pane: "geofenceLabel",
+      permanent: true,
+      direction: "bottom",
+      opacity: 0.8,
+      className: "polygon-labels"
+    });
+    self2.poly.bindTooltip(tooltip);
+    tooltip.setContent(
+      `<div class="leaflet-zoom-animated plantquest-geofence-label ">${self2.ent.title}</div>`
+    );
+    self2.poly.addTo(self2.ctx.map);
+  }
+  hide() {
+    let self2 = this;
+    self2.poly && self2.poly.remove();
+  }
+  onClick(event) {
+    console.log("onClick", event);
+  }
+}
+Object.defineProperty(PlantquestGeofenceDisplay, "name", { value: "PlantquestGeofenceDisplay" });
 console.log("PQAM INIT 8");
 (function(W, D) {
   W.$L = L$1;
@@ -25449,8 +26408,9 @@ console.log("PQAM INIT 8");
     constructor(id) {
       __publicField(this, "id", null);
       __publicField(this, "options", {});
+      __publicField(this, "seneca", null);
       this.id = id;
-      const seneca = this.seneca = Seneca({
+      this.seneca = this.seneca = Seneca({
         tag: "pqam-" + Pkg.version,
         // TODO: make this work!
         test: true,
@@ -25465,13 +26425,74 @@ console.log("PQAM INIT 8");
         },
         timeout: 44444
       });
-      seneca.fix({ pqamv: Pkg.version }).test().use(SenecaEntity).use(LeafletSetup, {});
+      this.seneca.error(console.log).test();
+      this.seneca.use(SenecaEntity).use(LeafletSetup, {});
+      this.use(PlantquestGeofenceDisplay, {
+        debug: true,
+        geofences: [
+          {
+            id: "buildingA",
+            title: "Building A",
+            latlngs: [
+              [52.7, 2086],
+              [52.7, 2115.7],
+              [47.4, 2115.7],
+              [47.4, 2086]
+            ]
+          },
+          {
+            id: "buildingB",
+            title: "Building B",
+            latlngs: [
+              [60.6, 2235],
+              [60.6, 2255.3],
+              [58.3, 2255.3],
+              [58.3, 2252],
+              [56.1, 2252],
+              [56.1, 2235]
+            ]
+          },
+          {
+            id: "buildingC",
+            title: "Building C",
+            latlngs: [
+              [3.4, 2155.6],
+              [3.4, 2172.5],
+              [-3.4, 2172.5],
+              [-3.4, 2155.6]
+            ]
+          }
+        ],
+        pqam: { config: { geofence: { click: { active: true }, color: "#f3f" } } }
+      });
+      this.seneca.message("srv:plantquest,part:assetmap,start:instance", function(msg) {
+        return __async(this, null, function* () {
+          yield this.post("srv:plantquest,part:assetmap,show:map", {
+            // specify map
+          });
+        });
+      });
     }
     start(options, ready) {
       this.options = options;
-      ready();
+      this.seneca.act("srv:plantquest,part:assetmap,start:instance", (...args) => {
+        ready && ready.call(this, ...args);
+      });
     }
     use(plugin, options) {
+      let pluginDefine = function(options2) {
+        const seneca = this;
+        seneca.prepare(function() {
+          return __async(this, null, function* () {
+            yield new Promise((r) => setTimeout(r, 555));
+            let map = this.export("LeafletSetup/getMap")();
+            const plugin2 = new PlantquestGeofenceDisplay(options2);
+            plugin2.addTo(map);
+          });
+        });
+      };
+      Object.defineProperty(pluginDefine, "name", { value: plugin.name });
+      this.seneca.use(pluginDefine, options);
     }
   }
   const top = {

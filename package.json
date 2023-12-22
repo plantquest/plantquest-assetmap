@@ -22,7 +22,7 @@
     "repo-publish-quick": "npm run build && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
   },
   "devDependencies": {
-    "leaflet": "1.8.0",
+    "leaflet": "1.9.4",
     "leaflet-editable": "1.2.0",
     "leaflet-path-drag": "^1.8.0-beta.3",
     "leaflet-rastercoords": "1.0.5",

@@ -14,9 +14,29 @@ function LeafletSetup(options) {
   let target = null
   let map = null
 
+
+  seneca
+    .fix('srv:plantquest,part:assetmap')
+    .message('show:map', msgShowMap)
+
+
+  async function msgShowMap(msg) {
+    let url = 'https://plantquest-demo01-map01.s3.eu-west-1.amazonaws.com/tiles/pqd-pq01-m01-013/{z}/{x}/{y}.png'
+    let tileLayer = L.tileLayer(url)
+    tileLayer.addTo(map)
+
+    map.setView([50.154377, 2154.375], 2)
+    
+    // console.log('LeafletSetup', 'showMap', map, tileLayer)
+    
+    return {
+      ok: true
+    }
+  }
+  
   
   seneca.prepare(async function() {
-    console.log('PREPARE MAP HTML')
+    // console.log('PREPARE MAP HTML')
 
     target = $(options.target)
     if(null == target) {
@@ -45,19 +65,21 @@ function LeafletSetup(options) {
     target.appendChild(rootElement)
 
     map = L.map('plantquest-assetmap-map', {
-      crs: L.CRS.Simple,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      attributionControl: false,
-      editable: true,
+      // crs: L.CRS.Simple,
+      // scrollWheelZoom: false,
+      // doubleClickZoom: false,
+      // attributionControl: false,
+      // editable: true,
+      minZoom: 2,
     })
-    
+
+    console.log('LeafletSetup','prepare',map)
   })
   
 
   return {
     exports: {
-      map
+      getMap: ()=>map
     }
   }
 }

@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@plantquest/assetmap': Path.resolve(__dirname, '../..')
+      '@plantquest/assetmap': Path.resolve(__dirname, '../..'),
     }
   },
   server: {
