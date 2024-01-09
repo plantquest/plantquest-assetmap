@@ -26492,6 +26492,7 @@ div.plantquest-assetmap-asset-state-alarm {
               let map = this.export("LeafletSetup/getMap")();
               const plugin2 = new PlantquestGeofenceDisplay(options2);
               plugin2.addTo(map);
+              const events = plugin2.events();
             });
           });
         };
