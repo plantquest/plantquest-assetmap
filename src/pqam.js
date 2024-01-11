@@ -1267,32 +1267,30 @@ import './rastercoords.js'
           let div = L.DomUtil.create('div')
           div.classList.add('leaflet-control', 'custom-dropdown')
 
-          let dropdownSelected = L.DomUtil.create('div', 'dropdown-selected', div);
+          let buildingSelection = L.DomUtil.create('div', 'building-selected', div)
 
-          dropdownSelected.textContent = 'Building'
+          buildingSelection.textContent = 'Building'
 
-          L.DomUtil.create('div', 'dropdown-arrow', dropdownSelected);
+          L.DomUtil.create('div', 'dropdown-arrow', buildingSelection);
 
-          let dropdownOptions = L.DomUtil.create('div', 'dropdown-options', div)
-          dropdownOptions.style.display = 'none'
+          let buildingSelectionOptions = L.DomUtil.create('div', 'dropdown-options', div)
+          buildingSelectionOptions.style.display = 'none'
 
-          let buildings = [...self.data.building].sort((a, b) =>
-            a.order > b.order ? 1 : -1
-          )
+          let buildings = [...self.data.building].sort((a,b)=>a.order>b.order?1:a.order<b.order?-1:0)
 
           buildings.forEach((building) => {
             let dropdownOption = L.DomUtil.create(
               'div',
               'dropdown-option',
-              dropdownOptions
+              buildingSelectionOptions
             )
             dropdownOption.textContent = building.name.replace('Building ', '')
             dropdownOption.onclick = function () {
-              dropdownSelected.textContent = building.name.replace(
+              buildingSelection.textContent = building.name.replace(
                 'Building ',
                 ''
               )
-              dropdownOptions.style.display = 'none'
+              buildingSelectionOptions.style.display = 'none'
 
               self.current.building = building
               let coords = c_asset_coords({
@@ -1304,18 +1302,18 @@ import './rastercoords.js'
             }
           })
 
-          dropdownSelected.onclick = function () {
-            dropdownOptions.style.display =
-              dropdownOptions.style.display === 'none' ? 'block' : 'none'
+          buildingSelection.onclick = function () {
+            buildingSelectionOptions.style.display =
+              buildingSelectionOptions.style.display === 'none' ? 'block' : 'none'
           }
 
-          dropdownSelected.onclick = function () {
-            const isOpen = dropdownOptions.style.display === 'block'
-            dropdownOptions.style.display = isOpen ? 'none' : 'block'
+          buildingSelection.onclick = function () {
+            const isOpen = buildingSelectionOptions.style.display === 'block'
+            buildingSelectionOptions.style.display = isOpen ? 'none' : 'block'
             if (isOpen) {
-              dropdownSelected.classList.remove('open')
+              buildingSelection.classList.remove('open')
             } else {
-              dropdownSelected.classList.add('open')
+              buildingSelection.classList.add('open')
             }
           }
 
@@ -3448,7 +3446,7 @@ import './rastercoords.js'
   width: 100px;
 }
 
-.dropdown-selected {
+.building-selected {
   background-color: #fff;
   height: 30px;
   line-height: 20px;
@@ -3465,7 +3463,7 @@ import './rastercoords.js'
   border-radius: 4px;
 }
 
-.dropdown-selected::after {
+.building-selected::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -3476,7 +3474,7 @@ import './rastercoords.js'
   border-top: 5px solid #000;
 }
 
-.dropdown-selected.open::after {
+.building-selected.open::after {
   border-top: none;
   border-bottom: 5px solid #000;
 }
@@ -3515,7 +3513,7 @@ import './rastercoords.js'
   pointer-events: none;
 }
 
-.dropdown-selected.open .dropdown-arrow {
+.building-selected.open .dropdown-arrow {
   border-top: none;
   border-bottom: 5px solid #000;
 }
