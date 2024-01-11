@@ -27656,23 +27656,23 @@ L.RasterCoords.prototype = {
 }
 
 .custom-dropdown {
-  position: relative; /* Needed for absolute positioning of arrow */
-  width: 100px; /* Set width */
+  position: relative;
+  width: 100px;
 }
 
 .dropdown-selected {
-  background-color: #fff; /* Light grey background */
-  height: 30px; /* Set height */
-  line-height: 20px; /* Center text vertically */
+  background-color: #fff;
+  height: 30px;
+  line-height: 20px;
   color: #0078a8;
   font: 12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif;
-  position: relative; /* For positioning the arrow */
-  cursor: pointer; /* Change cursor to indicate it's clickable */
-  box-sizing: border-box; /* Include padding in height calculation */
-  overflow: hidden; /* Prevent text from overflowing */
-  white-space: nowrap; /* Prevent text wrapping */
-  text-overflow: ellipsis; /* Add ellipsis for overflowed text */
-  padding: 5px 30px 5px 20px; /* Adjust padding to make room for arrow */
+  position: relative; 
+  cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 5px 30px 5px 20px;
   border: 2px solid rgba(0,0,0,.4);
   border-radius: 4px;
 }
@@ -27681,39 +27681,39 @@ L.RasterCoords.prototype = {
   content: '';
   position: absolute;
   top: 50%;
-  right: 10px; /* Adjust right positioning of arrow */
+  right: 10px;
   transform: translateY(-50%);
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 5px solid #000; /* Arrow color */
+  border-top: 5px solid #000;
 }
 
 .dropdown-selected.open::after {
   border-top: none;
-  border-bottom: 5px solid #000; /* Change arrow direction when open */
+  border-bottom: 5px solid #000;
 }
 
 .dropdown-options {
-  display: none; /* Initially hidden */
+  display: none;
   position: absolute;
-  top: 100%; /* Position right below the selected item */
+  top: 100%;
   left: 1.5px;
   right: 0;
-  background-color: #fff; /* Background of options */
-  border: 1px solid #ddd; /* Border around options */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add a shadow for depth */
-  z-index: 1000; /* Ensure it's above other elements */
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
 }
 
 .dropdown-option {
-  padding: 3px; /* Padding inside each option */
-  cursor: pointer; /* Change cursor to indicate it's clickable */
+  padding: 3px;
+  cursor: pointer;
   color: #0078a8;
   border-bottom: 1px solid #ccc;
 }
 
 .dropdown-option:hover {
-  background-color: #ccc; /* Background color on hover */
+  background-color: #ccc;
 }
 
 .dropdown-arrow {
@@ -27723,19 +27723,18 @@ L.RasterCoords.prototype = {
   transform: translateY(-50%);
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 5px solid #000; /* Arrow color */
+  border-top: 5px solid #000;
   pointer-events: none;
 }
 
 .dropdown-selected.open .dropdown-arrow {
   border-top: none;
-  border-bottom: 5px solid #000; /* Flip arrow when open */
+  border-bottom: 5px solid #000;
 }
 
 ul.leaflet-control-toolbar > li {
   margin: 0px;
 }
-
 
 .control-panel {
   position: absolute;
