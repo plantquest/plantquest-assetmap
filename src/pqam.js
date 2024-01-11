@@ -1266,64 +1266,34 @@ import './rastercoords.js'
         onAdd: function(map) {
           let div = L.DomUtil.create('div')
           div.classList.add('leaflet-control')
-          
-          let ul = L.DomUtil.create('ul')
-          ul.classList.add('leaflet-control-toolbar')
-          ul.classList.add('leaflet-toolbar-0')
-          ul.classList.add('plantquest-tool-building')
-
-          let selectors = []
-
-          // let buildings = [...self.data.building].sort((a,b)=>a.name>b.name?1:a.name<b.name?-1:0)
+    
+          let select = L.DomUtil.create('select')
+          select.classList.add('leaflet-control-dropdown')
+    
           let buildings = [...self.data.building].sort((a,b)=>a.order>b.order?1:a.order<b.order?-1:0)
-          
-          buildings.forEach((building,index)=>{
-            let li = L.DomUtil.create('li')
-            li.classList.add('plantquest-tool-select-building')
-            li.setAttribute('data-plantquest-building',building.id)
-
-            let a = L.DomUtil.create('a')
-            a.classList.add('leaflet-toolbar-icon')
-            a.setAttribute('href','#')
-            a.innerText = building.name.replace('Building ','')
-
-            li.appendChild(a)
-            ul.appendChild(li)
-
-            selectors.push(li)
-            
-            li.addEventListener('click', ()=>{
-              self.current.building = building
-              let coords = c_asset_coords({
-                x: building.center[0],
-                y: building.center[1]
-              })
-              self.map.setView(coords,self.config.mapMinZoom+1)
-              self.addLevelControl()
-              markBuildingSelector(selectors,building)
-            })
+    
+          buildings.forEach((building) => {
+            let option = L.DomUtil.create('option')
+            option.value = building.id
+            option.text = building.name.replace('Building ', '')
+            select.appendChild(option)
           })
-
-          div.appendChild(ul)
-
-          markBuildingSelector(selectors)
-          
-          function markBuildingSelector(selectors,building) {
-            let marked = false
-            for(let selector of selectors) {
-              selector.classList.remove('plantquest-tool-select-building-active')
-              if(building && building.id ===
-                 selector.getAttribute('data-plantquest-building')) {
-                selector.classList.add('plantquest-tool-select-building-active')
-                marked = true
-              }
+    
+          div.appendChild(select)
+    
+          select.addEventListener('change', () => {
+            let selectedBuilding = buildings.find(b => b.id === select.value)
+            if (selectedBuilding) {
+              self.current.building = selectedBuilding
+              let coords = c_asset_coords({
+                x: selectedBuilding.center[0],
+                y: selectedBuilding.center[1]
+              })
+              self.map.setView(coords, self.config.mapMinZoom+1)
+              self.addLevelControl()
             }
-            
-            // if(!marked && 0 < selectors.length) {
-            //   selectors[0].classList.add('plantquest-tool-select-building-active')
-            // }
-          }
-          
+          })
+    
           return div
         },
 
@@ -3443,6 +3413,18 @@ import './rastercoords.js'
 
 .leaflet-toolbar-0>li>.leaflet-toolbar-icon {
   width: 80px;
+}
+
+.leaflet-control-dropdown {
+  width: 100px;
+  height: 30px;
+  background-color: white;
+  color: #0078a8;
+  font: 12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif;
+  text-align: center;
+  padding: 0 4px;
+  border-radius: 4px;
+  border: 2px solid rgba(0,0,0,.4);
 }
 
 ul.leaflet-control-toolbar > li {
