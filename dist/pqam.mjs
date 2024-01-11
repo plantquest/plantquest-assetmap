@@ -25984,27 +25984,25 @@ L.RasterCoords.prototype = {
         onAdd: function(map) {
           let div = L$1.DomUtil.create("div");
           div.classList.add("leaflet-control", "custom-dropdown");
-          let dropdownSelected = L$1.DomUtil.create("div", "dropdown-selected", div);
-          dropdownSelected.textContent = "Building";
-          L$1.DomUtil.create("div", "dropdown-arrow", dropdownSelected);
-          let dropdownOptions = L$1.DomUtil.create("div", "dropdown-options", div);
-          dropdownOptions.style.display = "none";
-          let buildings = [...self2.data.building].sort(
-            (a, b) => a.order > b.order ? 1 : -1
-          );
+          let buildingSelection = L$1.DomUtil.create("div", "building-selected", div);
+          buildingSelection.textContent = "Building";
+          L$1.DomUtil.create("div", "dropdown-arrow", buildingSelection);
+          let buildingSelectionOptions = L$1.DomUtil.create("div", "dropdown-options", div);
+          buildingSelectionOptions.style.display = "none";
+          let buildings = [...self2.data.building].sort((a, b) => a.order > b.order ? 1 : a.order < b.order ? -1 : 0);
           buildings.forEach((building) => {
             let dropdownOption = L$1.DomUtil.create(
               "div",
               "dropdown-option",
-              dropdownOptions
+              buildingSelectionOptions
             );
             dropdownOption.textContent = building.name.replace("Building ", "");
             dropdownOption.onclick = function() {
-              dropdownSelected.textContent = building.name.replace(
+              buildingSelection.textContent = building.name.replace(
                 "Building ",
                 ""
               );
-              dropdownOptions.style.display = "none";
+              buildingSelectionOptions.style.display = "none";
               self2.current.building = building;
               let coords = c_asset_coords({
                 x: building.center[0],
@@ -26014,16 +26012,16 @@ L.RasterCoords.prototype = {
               self2.addLevelControl();
             };
           });
-          dropdownSelected.onclick = function() {
-            dropdownOptions.style.display = dropdownOptions.style.display === "none" ? "block" : "none";
+          buildingSelection.onclick = function() {
+            buildingSelectionOptions.style.display = buildingSelectionOptions.style.display === "none" ? "block" : "none";
           };
-          dropdownSelected.onclick = function() {
-            const isOpen = dropdownOptions.style.display === "block";
-            dropdownOptions.style.display = isOpen ? "none" : "block";
+          buildingSelection.onclick = function() {
+            const isOpen = buildingSelectionOptions.style.display === "block";
+            buildingSelectionOptions.style.display = isOpen ? "none" : "block";
             if (isOpen) {
-              dropdownSelected.classList.remove("open");
+              buildingSelection.classList.remove("open");
             } else {
-              dropdownSelected.classList.add("open");
+              buildingSelection.classList.add("open");
             }
           };
           return div;
@@ -27660,7 +27658,7 @@ L.RasterCoords.prototype = {
   width: 100px;
 }
 
-.dropdown-selected {
+.building-selected {
   background-color: #fff;
   height: 30px;
   line-height: 20px;
@@ -27677,7 +27675,7 @@ L.RasterCoords.prototype = {
   border-radius: 4px;
 }
 
-.dropdown-selected::after {
+.building-selected::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -27688,7 +27686,7 @@ L.RasterCoords.prototype = {
   border-top: 5px solid #000;
 }
 
-.dropdown-selected.open::after {
+.building-selected.open::after {
   border-top: none;
   border-bottom: 5px solid #000;
 }
@@ -27727,7 +27725,7 @@ L.RasterCoords.prototype = {
   pointer-events: none;
 }
 
-.dropdown-selected.open .dropdown-arrow {
+.building-selected.open .dropdown-arrow {
   border-top: none;
   border-bottom: 5px solid #000;
 }
