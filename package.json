@@ -31,7 +31,7 @@
     "seneca-entity": "25.1.0",
     "seneca-mem-store": "8.4.0",
     "serve": "^14.2.1",
-    "vite": "^5.0.0"
+    "vite": "^5.0.11"
   },
   "files": [
     "LICENSE",
