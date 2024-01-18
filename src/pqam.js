@@ -1299,6 +1299,14 @@ import './rastercoords.js'
               })
               self.map.setView(coords, self.config.mapMinZoom + 1)
               self.addLevelControl()
+              self.emit({
+                srv:'plantquest',
+                part:'assetmap',
+                select:'building',
+                building,
+                // level: self.data.level[self.loc.map],
+              })
+              
             }
           })
 
@@ -1308,6 +1316,7 @@ import './rastercoords.js'
           }
 
           buildingSelection.onclick = function () {
+            
             const isOpen = buildingSelectionOptions.style.display === 'block'
             buildingSelectionOptions.style.display = isOpen ? 'none' : 'block'
             if (isOpen) {
@@ -1897,7 +1906,8 @@ import './rastercoords.js'
 
       }
       else {
-        self.map.setView(self.config.mapStart, self.config.mapStartZoom)
+        centerView && 
+          self.map.setView(self.config.mapStart, self.config.mapStartZoom)
       }
 
 
@@ -2124,7 +2134,7 @@ import './rastercoords.js'
 
           amseneca
             .message('show:map', async function(msg) {
-              self.showMap(msg.map, {whence:'message'})
+              self.showMap(msg.map, { ...msg, whence:'message' })
             })
           
             .message('show:room', async function(msg) {
