@@ -99,9 +99,9 @@ const PlantquestGeofenceDisplay = L.Layer.extend({
 
   events() {
     return {
-      setGeofences: ()=>{
-        
-      }
+      list: (event)=>{
+        console.log('GF', event)
+      },
     }
   },
 

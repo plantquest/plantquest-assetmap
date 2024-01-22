@@ -85,6 +85,18 @@ const TILES = import.meta.env.VITE_PLANTQUEST_ASSETMAP_TILES || 'NONE'
   }
 
   let pqam = window.PlantQuestAssetMap.make('demo')
+
+
+  pqam.use(function FakeData(options) {
+    const seneca = options.seneca
+    console.log('SENECA MSGS', seneca.instance.list())
+
+    seneca.instance.add('srv:plantquest,part:assetmap,list:geofence', function(msg, reply) {
+      reply({ok:true,list:[{id:'gf0'},{id:'gf1'}]})
+    })
+  }, {})
+
+  
   pqam.start({}, function () {
     console.log('READY', this)
     this.seneca.post('srv:plantquest,part:assetmap,show:map')

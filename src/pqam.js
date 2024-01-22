@@ -72,6 +72,12 @@ console.log('PQAM INIT 8')
       this
         .use(PlantquestGeofenceDisplay, {
           debug: true,
+          seneca: {
+            events: {
+              'list:geofence': 'list'
+            }
+          },
+          
           geofences: [
             {
               id: 'buildingA',
@@ -127,7 +133,7 @@ console.log('PQAM INIT 8')
       })
     }
 
-    use(plugin, options) {
+    use(LeafletPlugin, options) {
 
       let pluginDefine = function(options) {
         const seneca = this
@@ -135,17 +141,43 @@ console.log('PQAM INIT 8')
         seneca.prepare(async function() {
           await new Promise((r)=>setTimeout(r,555))
 
+          // Provide Seneca for custom plugins
+          options.seneca = options.seneca || {}
+          options.seneca.instance = seneca
+          const plugin = new LeafletPlugin(options)
+
           let map = this.export('LeafletSetup/getMap')()
-          const plugin = new PlantquestGeofenceDisplay(options)
-          plugin.addTo(map)
-
-
-          const events = plugin.events()
-          // seneca.message('...', )
+          if(plugin.addTo) {
+            plugin.addTo(map)
+          }
+          
+          // Connect LeafletPlugin events to Seneca messages
+          if(plugin.events) {
+            const events = plugin.events()
+            console.log('PLUGIN EVENTS', plugin.name, events, options.seneca?.events)
+            Object.entries(options.seneca?.events||{}).map(entry=>{
+              const eventPattern = entry[0]
+              const eventName = entry[1]
+              
+              console.log('PLUGIN MSG SUB', eventPattern, eventName)
+              
+              seneca.sub(
+                'srv:plantquest,part:assetmap,out$:true',
+                seneca.util.Jsonic(eventPattern),
+                function(msg, out, meta) {
+                  // TODO: handle errors
+                  // console.log('ARGS', arguments)
+                  const eventCallback = events[eventName]
+                  // if(error) return events[eventName]({ok:false,error})
+                  return eventCallback(out)
+                }
+              )
+            })
+          }
         })        
       }
 
-      Object.defineProperty(pluginDefine, 'name', {value:plugin.name})
+      Object.defineProperty(pluginDefine, 'name', {value:LeafletPlugin.name})
 
       this.seneca.use(pluginDefine, options)
     }

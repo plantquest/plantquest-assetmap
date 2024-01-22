@@ -13615,11 +13615,11 @@ const devDependencies = {
   "leaflet-path-drag": "^1.8.0-beta.3",
   "leaflet-rastercoords": "1.0.5",
   "leaflet.markercluster": "1.5.3",
-  "seneca-browser": "6.4.0",
-  "seneca-entity": "25.1.0",
+  "seneca-browser": "7.1.0",
+  "seneca-entity": "25.1.3",
   "seneca-mem-store": "8.4.0",
   serve: "^14.2.1",
-  vite: "^5.0.0"
+  vite: "^5.0.12"
 };
 const files = [
   "LICENSE",
@@ -20935,7 +20935,7 @@ var senecaBrowser = senecaBrowser$1.exports;
     }, { "./common": 114, "./meta": 119, "gubu": 67 }], 111: [function(require2, module4, exports3) {
       "use strict";
       Object.defineProperty(exports3, "__esModule", { value: true }), exports3.addActions = void 0;
-      const legacy_1 = require2("./legacy"), Common = require2("./common");
+      const legacy_1 = require2("./legacy");
       function addActions(t) {
         t.stats = make_action_seneca_stats(t.private$), t.add("sys:seneca,on:point", on_point), t.add({ role: "seneca", cmd: "ping" }, cmd_ping), t.add({ role: "seneca", cmd: "stats" }, t.stats), t.add({ role: "seneca", cmd: "close" }, action_seneca_close), t.add({ role: "seneca", info: "fatal" }, action_seneca_fatal), t.add({ role: "seneca", get: "options" }, action_options_get);
       }
@@ -20954,18 +20954,18 @@ var senecaBrowser = senecaBrowser$1.exports;
       function make_action_seneca_stats(t) {
         return function(a, e) {
           var n;
-          (a = a || {}, t.stats.actmap[a.pattern]) ? (n = t.stats.actmap[a.pattern]).time = t.timestats.calculate(a.pattern) : ((n = Object.assign({}, t.stats)).now = /* @__PURE__ */ new Date(), n.uptime = n.now - n.start, n.now = new Date(n.now).toISOString(), n.start = new Date(n.start).toISOString(), null == a.summary || Common.boolify(a.summary) ? n.actmap = void 0 : Object.keys(t.stats.actmap).forEach((a2) => {
+          (a = a || {}, t.stats.actmap[a.pattern]) ? (n = t.stats.actmap[a.pattern]).time = t.timestats.calculate(a.pattern) : ((n = Object.assign({}, t.stats)).now = /* @__PURE__ */ new Date(), n.uptime = n.now - n.start, n.now = new Date(n.now).toISOString(), n.start = new Date(n.start).toISOString(), null == a.summary || true === a.summary ? n.actmap = void 0 : Object.keys(t.stats.actmap).forEach((a2) => {
             t.stats.actmap[a2].time = t.timestats.calculate(a2);
           }));
           return e && e(n), n;
         };
       }
       function action_options_get(t, a) {
-        var e = this.options(), n = t.base || null, s = n ? e[n] || {} : e, o = t.key ? s[t.key] : s;
-        a(legacy_1.Legacy.copydata(o));
+        var e = this.options(), n = t.base || null, s = n ? e[n] || {} : e, c = t.key ? s[t.key] : s;
+        a(legacy_1.Legacy.copydata(c));
       }
       exports3.addActions = addActions;
-    }, { "./common": 114, "./legacy": 117 }], 112: [function(require2, module4, exports3) {
+    }, { "./legacy": 117 }], 112: [function(require2, module4, exports3) {
       (function(setImmediate) {
         (function() {
           "use strict";
@@ -21356,8 +21356,11 @@ var senecaBrowser = senecaBrowser$1.exports;
           var __importDefault = this && this.__importDefault || function(t) {
             return t && t.__esModule ? t : { default: t };
           };
-          Object.defineProperty(exports3, "__esModule", { value: true }), exports3.TRACE_ACTION = exports3.TRACE_SYNC = exports3.TRACE_END = exports3.TRACE_START = exports3.TRACE_VERSION = exports3.TRACE_TAG = exports3.TRACE_INSTANCE = exports3.TRACE_ID = exports3.TRACE_PATTERN = exports3.jsonic_stringify = exports3.msgstr = exports3.error = exports3.inspect = exports3.tagnid = exports3.print = exports3.history = exports3.make_trace_desc = exports3.make_callpoint = exports3.autoincr = exports3.resolve_option = exports3.make_standard_err_log_entry = exports3.make_standard_act_log_entry = exports3.makedie = exports3.each = exports3.deep = exports3.clean = exports3.noop = exports3.pincanon = exports3.pattern = exports3.parse_jsonic = exports3.boolify = exports3.make_plugin_key = exports3.wrap_error = exports3.stringify = exports3.promiser = void 0;
+          Object.defineProperty(exports3, "__esModule", { value: true }), exports3.TRACE_ACTION = exports3.TRACE_SYNC = exports3.TRACE_END = exports3.TRACE_START = exports3.TRACE_VERSION = exports3.TRACE_TAG = exports3.TRACE_INSTANCE = exports3.TRACE_ID = exports3.TRACE_PATTERN = exports3.jsonic_stringify = exports3.msgstr = exports3.error = exports3.inspect = exports3.tagnid = exports3.print = exports3.history = exports3.make_trace_desc = exports3.make_callpoint = exports3.autoincr = exports3.resolve_option = exports3.make_standard_err_log_entry = exports3.make_standard_act_log_entry = exports3.makedie = exports3.each = exports3.deep = exports3.clean = exports3.noop = exports3.pincanon = exports3.pattern = exports3.parse_jsonic = exports3.make_plugin_key = exports3.wrap_error = exports3.stringify = exports3.promiser = exports3.pins = void 0;
           const util_1 = __importDefault(require2("util")), fast_safe_stringify_1 = __importDefault(require2("fast-safe-stringify")), jsonic_next_1 = __importDefault(require2("@jsonic/jsonic-next")), nid_1 = __importDefault(require2("nid")), Eraro = require2("eraro"), DefaultsDeep = require2("lodash.defaultsdeep"), { Print } = require2("./print"), errors_1 = __importDefault(require2("./errors")), error = exports3.error = exports3.eraro = Eraro({ package: "seneca", msgmap: errors_1.default, override: true });
+          function pins(t) {
+            return (Array.isArray(t) ? t : [t]).reduce((t2, e) => (t2.push("string" == typeof e ? e.split(";").map((t3) => (0, jsonic_next_1.default)(t3)) : e), t2), []).filter((t2) => null != t2).flat();
+          }
           function promiser(t, e) {
             return e = "function" == typeof t && null == e ? t : e.bind(t), new Promise((t2, r) => {
               e((e2, n) => e2 ? r(e2) : t2(n));
@@ -21382,14 +21385,7 @@ var senecaBrowser = senecaBrowser$1.exports;
               throw error("bad_plugin_tag", { tag: n });
             return r + (n ? "$" + n : "");
           }
-          function boolify(t) {
-            try {
-              return !!JSON.parse(t);
-            } catch (t2) {
-              return false;
-            }
-          }
-          exports3.error = error, exports3.promiser = promiser, exports3.stringify = stringify, exports3.wrap_error = wrap_error, exports3.make_plugin_key = make_plugin_key, exports3.boolify = boolify;
+          exports3.error = error, exports3.pins = pins, exports3.promiser = promiser, exports3.stringify = stringify, exports3.wrap_error = wrap_error, exports3.make_plugin_key = make_plugin_key;
           const tagnid = (0, nid_1.default)({ length: 3, alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ" });
           function parse_jsonic(t, e) {
             e = e || "bad_jsonic";
@@ -21451,9 +21447,9 @@ var senecaBrowser = senecaBrowser$1.exports;
                   n2 ? i.error.identify(n2) || (n2 = new Error("string" == typeof n2 ? n2 : inspect(n2))) : n2 = new Error("unknown"), n2.fatal$ = true;
                   let r2 = { kind: e.txt || "fatal", level: e.level || "fatal", plugin: e.plugin, tag: e.tag, id: e.id, code: n2.code || "fatal", notice: n2.message, err: n2, callpoint: e.callpoint && e.callpoint() };
                   t.log.fatal(r2);
-                  let c = n2.stack || "";
-                  c = c.substring(c.indexOf("\n") + 5).replace(/\n\s+/g, "\n               ");
-                  let p = "pid=" + process.pid + ", arch=" + process.arch + ", platform=" + process.platform + (a ? ", path=" + process.execPath : "") + ", argv=" + inspect(process.argv).replace(/\n/g, "") + (a && l ? ", env=" + inspect(process.env).replace(/\n/g, "") : ""), u = /* @__PURE__ */ new Date(), _ = null, f = "\n\n=== SENECA FATAL ERROR ===\nMESSAGE   :::  " + n2.message + "\nCODE      :::  " + n2.code + "\nINSTANCE  :::  " + t.toString() + "\nDETAILS   :::  " + inspect(a ? n2.details : (_ = clean(n2.details) || {}, delete _.instance, _), { depth: i.debug.print.depth }).replace(/\n/g, "\n               ") + "\nSTACK     :::  " + c + "\nWHEN      :::  " + u.toISOString() + ", " + u.getTime() + "\nLOG       :::  " + jsonic_stringify2(r2) + "\nNODE      :::  " + process.version + ", " + process.title + (a ? ", " + inspect(process.versions).replace(/\s+/g, " ") + ", " + inspect(process.features).replace(/\s+/g, " ") + ", " + inspect(process.moduleLoadList).replace(/\s+/g, " ") : "") + "\nPROCESS   :::  " + p + "\nFOLDER    :::  " + process.env.PWD;
+                  let p = n2.stack || "";
+                  p = p.substring(p.indexOf("\n") + 5).replace(/\n\s+/g, "\n               ");
+                  let c = "pid=" + process.pid + ", arch=" + process.arch + ", platform=" + process.platform + (a ? ", path=" + process.execPath : "") + ", argv=" + inspect(process.argv).replace(/\n/g, "") + (a && l ? ", env=" + inspect(process.env).replace(/\n/g, "") : ""), u = /* @__PURE__ */ new Date(), _ = null, f = "\n\n=== SENECA FATAL ERROR ===\nMESSAGE   :::  " + n2.message + "\nCODE      :::  " + n2.code + "\nINSTANCE  :::  " + t.toString() + "\nDETAILS   :::  " + inspect(a ? n2.details : (_ = clean(n2.details) || {}, delete _.instance, _), { depth: i.debug.print.depth }).replace(/\n/g, "\n               ") + "\nSTACK     :::  " + p + "\nWHEN      :::  " + u.toISOString() + ", " + u.getTime() + "\nLOG       :::  " + jsonic_stringify2(r2) + "\nNODE      :::  " + process.version + ", " + process.title + (a ? ", " + inspect(process.versions).replace(/\s+/g, " ") + ", " + inspect(process.features).replace(/\s+/g, " ") + ", " + inspect(process.moduleLoadList).replace(/\s+/g, " ") : "") + "\nPROCESS   :::  " + c + "\nFOLDER    :::  " + process.env.PWD;
                   if (i.errhandler && i.errhandler.call(t, n2), t.flags.closed)
                     return;
                   if (o || (t.act("role:seneca,info:fatal,closing$:true", { err: n2 }), t.close(function(e2) {
@@ -21536,8 +21532,8 @@ var senecaBrowser = senecaBrowser$1.exports;
                   l = l && !e.omit[n2];
                   let a2 = jsonic_strify2(t[n2], e, r);
                   if (null != a2 && l) {
-                    var c = n2.match(/^[a-zA-Z0-9_$]+$/) ? n2 : JSON.stringify(n2);
-                    i.push(c + ":" + a2), s++;
+                    var p = n2.match(/^[a-zA-Z0-9_$]+$/) ? n2 : JSON.stringify(n2);
+                    i.push(p + ":" + a2), s++;
                   }
                 }
               }
@@ -21551,9 +21547,9 @@ var senecaBrowser = senecaBrowser$1.exports;
                 }
               return "[" + i.join(",") + "]";
             }
-            var p = t.toString();
+            var c = t.toString();
             return (~` "'\r
-	,}]`.indexOf(p[0]) || !~p.match(/,}]/) || ~" \r\n	".indexOf(p[p.length - 1])) && (p = "'" + p.replace(/'/g, "\\'") + "'"), p;
+	,}]`.indexOf(c[0]) || !~c.match(/,}]/) || ~" \r\n	".indexOf(c[c.length - 1])) && (c = "'" + c.replace(/'/g, "\\'") + "'"), c;
           }
           function jsonic_stringify2(t, e) {
             try {
@@ -22017,65 +22013,75 @@ var senecaBrowser = senecaBrowser$1.exports;
             return e && e.__esModule ? e : { default: e };
           };
           Object.defineProperty(exports3, "__esModule", { value: true }), exports3.resolve_options = void 0;
-          const fs_1 = __importDefault(require2("fs")), path_1 = __importDefault(require2("path")), Eraro = require2("eraro"), Jsonic = require2("@jsonic/jsonic-next"), Minimist = require2("minimist"), { Gubu } = require2("gubu"), Common = require2("./common"), error = Eraro({ package: "seneca", msgmap: ERRMSGMAP() });
-          function resolve_options(e, o, r) {
-            let t = Gubu(o);
-            var n, i = { argv: {}, env: {}, default_file: {}, loaded: {} }, a = {};
-            function s(e2, o2, r2) {
-              var t2, n2, s2 = r2.from;
-              "string" == typeof r2 && (s2 = r2, r2 = {}), "string" == typeof s2 && (i.loaded = l(s2));
-              var u = Minimist((r2 && r2.debug && r2.debug.argv || process.argv).slice(2)), c = r2 && r2.debug && r2.debug.env || process.env;
+          const fs_1 = __importDefault(require2("fs")), path_1 = __importDefault(require2("path")), Eraro = require2("eraro"), Jsonic = require2("@jsonic/jsonic-next"), Minimist = require2("minimist"), { Gubu } = require2("gubu"), common_1 = require2("./common"), error = Eraro({ package: "seneca", msgmap: ERRMSGMAP() });
+          function resolve_options(e, o, t) {
+            let r = Gubu(o);
+            const n = { argv: {}, env: {}, default_file: {}, loaded: {} };
+            let i, s = {};
+            function a(e2, o2, t2) {
+              var r2, i2;
+              let a2 = t2.from;
+              "string" == typeof t2 && (a2 = t2, t2 = {}), "string" == typeof a2 && (n.loaded = l(a2));
+              const c = Minimist((t2 && t2.debug && t2.debug.argv || process.argv).slice(2)), u = t2 && t2.debug && t2.debug.env || process.env;
               if (fs_1.default.existsSync && fs_1.default.existsSync("./options.seneca.js"))
                 throw error("inverted_file_name", { from: "./options.seneca.js", module: e2 });
               try {
-                i.default_file = e2.require && e2.require("./seneca.options.js");
+                n.default_file = e2.require && e2.require("./seneca.options.js");
               } catch (o3) {
                 if ("MODULE_NOT_FOUND" !== o3.code) {
-                  var f = { errmsg: o3.message, from: "./seneca.options.js", module: e2 };
-                  throw error(o3, "require_default_options", f);
+                  const t3 = { errmsg: o3.message, from: "./seneca.options.js", module: e2 };
+                  throw error(o3, "require_default_options", t3);
                 }
               }
-              c.SENECA_OPTIONS && (i.env = Common.deep({}, i.env, Jsonic(c.SENECA_OPTIONS))), c.SENECA_TEST && (i.env.test = Common.boolify(c.SENECA_TEST)), c.SENECA_QUIET && (i.env.quiet = Common.boolify(c.SENECA_QUIET)), u.seneca && (u.seneca.options && "object" == typeof u.seneca.options ? i.argv = u.seneca.options : "string" == typeof u.seneca.options && ("print" === u.seneca.options ? i.argv = { debug: { print: { options: true } } } : i.argv = Jsonic(u.seneca.options)), "string" == typeof i.argv.from && (i.argv = Common.deep(l(i.argv.from), i.argv)), boolifyDeep(i.argv), null != u.seneca.tag && (i.argv.tag = "" + u.seneca.tag), u.seneca.log && (i.argv.log = i.argv.log || {}, function(e3, o3) {
-                var r3 = Array.isArray(e3) ? e3[0] : e3;
-                if ("string" == typeof r3)
+              u.SENECA_OPTIONS && (n.env = (0, common_1.deep)({}, n.env, Jsonic(u.SENECA_OPTIONS))), u.SENECA_TEST && (n.env.test = boolify(u.SENECA_TEST)), u.SENECA_QUIET && (n.env.quiet = boolify(u.SENECA_QUIET)), c.seneca && (c.seneca.options && "object" == typeof c.seneca.options ? n.argv = c.seneca.options : "string" == typeof c.seneca.options && ("print" === c.seneca.options ? n.argv = { debug: { print: { options: true } } } : n.argv = Jsonic(c.seneca.options)), "string" == typeof n.argv.from && (n.argv = (0, common_1.deep)(l(n.argv.from), n.argv)), boolifyDeep(n.argv), null != c.seneca.tag && (n.argv.tag = "" + c.seneca.tag), c.seneca.log && (n.argv.log = n.argv.log || {}, function(e3, o3) {
+                const t3 = Array.isArray(e3) ? e3[0] : e3;
+                if ("string" == typeof t3)
                   try {
-                    o3.log = Jsonic(r3);
+                    o3.log = Jsonic(t3);
                   } catch (e4) {
-                    o3.log = r3;
+                    o3.log = t3;
                   }
-                else if (r3 && "object" == typeof r3) {
+                else if (t3 && "object" == typeof t3) {
                   o3.log = {};
-                  var t3 = Object.keys(r3.level || r3);
-                  t3.length > 0 && (o3.log = { level: t3[0] });
+                  const e4 = Object.keys(t3.level || t3);
+                  e4.length > 0 && (o3.log = { level: e4[0] });
                 }
-              }(u.seneca.log, i.argv)), u.seneca.test && (i.argv.test = u.seneca.test), u.seneca.quiet && (i.argv.quiet = u.seneca.quiet));
-              var g = {};
-              false === r2.legacy ? g.legacy = { actdef: false, action_signature: false, error: false, error_codes: false, fail: false, logging: false, meta: false, transport: false, timeout_string: false, rules: false, options: false } : true === r2.legacy && (g.legacy = {});
-              const p = false !== (null === (t2 = r2.valid) || void 0 === t2 ? void 0 : t2.active) && false !== (null === (n2 = r2.valid) || void 0 === n2 ? void 0 : n2.option);
-              var d = Common.deep(p ? {} : o2(), i.default_file, a, i.loaded, r2, g, i.env, i.argv);
-              return p && (d = o2(d)), d.log = d.log || d.logger || d.logging || {}, d.legacy.logging = Common.boolify(d.legacy.logging), d;
+              }(c.seneca.log, n.argv)), c.seneca.test && (n.argv.test = c.seneca.test), c.seneca.quiet && (n.argv.quiet = c.seneca.quiet));
+              const f = {};
+              false === t2.legacy ? f.legacy = { actdef: false, action_signature: false, error: false, error_codes: false, fail: false, logging: false, meta: false, transport: false, timeout_string: false, rules: false, options: false } : true === t2.legacy && (f.legacy = {});
+              const g = false !== (null === (r2 = t2.valid) || void 0 === r2 ? void 0 : r2.active) && false !== (null === (i2 = t2.valid) || void 0 === i2 ? void 0 : i2.option);
+              let p = (0, common_1.deep)(g ? {} : o2(), n.default_file, s, n.loaded, t2, f, n.env, n.argv);
+              return g && (p = o2(p)), p.log = p.log || p.logger || p.logging || {}, p.legacy.logging = boolify(p.legacy.logging), p;
             }
             function l(e2) {
-              var o2 = {}, r2 = path_1.default.basename(e2) !== e2 ? e2 : path_1.default.join(process.cwd(), e2);
-              if (r2.match(/\.json$/i)) {
-                var t2 = fs_1.default.readFileSync && fs_1.default.readFileSync(r2).toString() || "";
-                o2 = Jsonic(t2);
-              } else if (r2.match(/\.js$/i))
+              let o2 = {};
+              const t2 = path_1.default.basename(e2) !== e2 ? e2 : path_1.default.join(process.cwd(), e2);
+              if (t2.match(/\.json$/i)) {
+                const e3 = fs_1.default.readFileSync && fs_1.default.readFileSync(t2).toString() || "";
+                o2 = Jsonic(e3);
+              } else if (t2.match(/\.js$/i))
                 try {
-                  o2 = n.require(r2);
+                  o2 = i.require(t2);
                 } catch (e3) {
                   if ("MODULE_NOT_FOUND" !== e3.code)
-                    throw error(e3, "require_options", { from: r2, module: n });
+                    throw error(e3, "require_options", { from: t2, module: i });
                 }
               return o2;
             }
-            return n = r.module && r.module.require ? r.module : e.parent && e.parent.require ? e.parent : e, delete (a = s(n, t, r)).module, { set: function(e2) {
+            return i = t.module && t.module.require ? t.module : e.parent && e.parent.require ? e.parent : e, delete (s = a(i, r, t)).module, { set: function(e2) {
               if (null == e2)
                 throw error("no_options");
-              return a = "string" == typeof e2 ? s(n, t, e2) : e2.reload$ ? s(n, t, e2) : Common.deep(a, e2);
+              return s = "string" == typeof e2 ? a(i, r, e2) : e2.reload$ ? a(i, r, e2) : (0, common_1.deep)(s, e2);
             }, get: function() {
-              return a;
+              return s;
             } };
+          }
+          function boolify(e) {
+            try {
+              return !!JSON.parse(e);
+            } catch (e2) {
+              return false;
+            }
           }
           function boolifyDeep(e) {
             return Object.keys(e).forEach(function(o) {
@@ -23113,7 +23119,7 @@ var senecaBrowser = senecaBrowser$1.exports;
       module4.exports = {
         "name": "seneca",
         "description": "A Microservices Framework for Node.js",
-        "version": "4.0.0-t.2.p.5",
+        "version": "4.0.0-t.2.p.6",
         "license": "MIT",
         "homepage": "http://senecajs.org",
         "keywords": [
@@ -23241,7 +23247,7 @@ var senecaBrowser = senecaBrowser$1.exports;
           Object.defineProperty(exports3, "__esModule", { value: true });
           const Events = require2("events"), Util = require2("util"), GateExecutor = require2("gate-executor"), Jsonic = require2("@jsonic/jsonic-next"), UsePlugin = require2("use-plugin"), nid_1 = __importDefault(require2("nid")), patrun_1 = require2("patrun"), Stats = require2("rolling-stats"), { Ordu } = require2("ordu"), Eraro = require2("eraro"), gubu_1 = require2("gubu"), Common = require2("./lib/common"), { make_logging } = require2("./lib/logging"), { API } = require2("./lib/api"), { make_ready } = require2("./lib/ready"), Act = require2("./lib/act"), Add = require2("./lib/add"), Sub = require2("./lib/sub"), prior_1 = require2("./lib/prior"), plugin_1 = require2("./lib/plugin"), inward_1 = require2("./lib/inward"), outward_1 = require2("./lib/outward"), { Legacy } = require2("./lib/legacy"), { resolve_options } = require2("./lib/options"), { Print } = require2("./lib/print"), { addActions } = require2("./lib/actions"), { transport } = require2("./lib/transport"), package_json_1 = __importDefault(require2("./package.json")), { error, deep } = Common, { One, Any, Skip, Open } = gubu_1.Gubu, option_defaults = { tag: "-", timeout: 22222, idlen: 12, didlen: 4, id$: Skip(String), default_plugins: Open({}), test: false, quiet: false, log: Any(make_logging().default_logspec), logger: One(Function, Object, String, null), death_delay: 11111, deathdelay: 11111, close_delay: 22222, errhandler: Skip(One(Function, null)), from: Skip(String), module: Skip(), error: { capture: {}, identify: (e) => e instanceof Error }, valid: { active: true, message: true, option: true, plugin: true }, debug: { fragile: false, undead: false, print: { options: false, fatal: "summary", env: false, err: false, depth: 2 }, act_caller: false, short_logs: false, callpoint: false, deprecation: true, argv: One([], null), env: One({}, null), datalen: 111 }, strict: { result: true, fixedargs: true, add: false, find: true, maxloop: 11, exports: false }, history: { active: true, prune: true, interval: 100 }, trace: { act: One(Function, false), stack: false, unknown: One(String, true), invalid: false }, stats: { size: 1024, interval: 6e4, running: false }, plugin: {}, plugins: One({}, [], null), system: { exit: (...e) => {
             process.exit(...e);
-          }, close_signals: { SIGHUP: false, SIGTERM: false, SIGINT: false, SIGBREAK: false }, plugin: { load_once: false }, action: { add: true } }, internal: Open({ print: { log: One(Function, null), err: One(Function, null) } }), status: { interval: 6e4, running: false }, transport: Open({ port: 10101, host: Skip(String), path: Skip(String), protocol: Skip(String) }), limits: { maxparents: 33 }, events: {}, legacy: One(Boolean, { actdef: false, action_signature: false, error: true, error_codes: false, fail: false, logging: false, meta: false, transport: true, timeout_string: true, rules: false, options: true, top_plugins: false }), order: { add: { debug: false }, inward: { debug: false }, outward: { debug: false }, use: { debug: false } }, prior: { direct: false }, reload$: Skip(Boolean) }, seneca_util = { Eraro, Jsonic, Nid: nid_1.default, Patrun: patrun_1.Patrun, Gex: patrun_1.Gex, Gubu: gubu_1.Gubu, clean: Common.clean, pattern: Common.pattern, print: Common.print, error, deep: Common.deep, deepextend: Common.deep, parsepattern: Common.parsePattern, pincanon: Common.pincanon, router: function() {
+          }, close_signals: { SIGHUP: false, SIGTERM: false, SIGINT: false, SIGBREAK: false }, plugin: { load_once: false }, action: { add: true } }, internal: Open({ print: { log: One(Function, null), err: One(Function, null) } }), status: { interval: 6e4, running: false }, transport: Open({ port: 10101, host: Skip(String), path: Skip(String), protocol: Skip(String) }), limits: { maxparents: 33 }, events: {}, legacy: One(Boolean, { actdef: false, action_signature: false, error: true, error_codes: false, fail: false, logging: false, meta: false, transport: true, timeout_string: true, rules: false, options: true, top_plugins: false }), order: { add: { debug: false }, inward: { debug: false }, outward: { debug: false }, use: { debug: false } }, prior: { direct: false }, reload$: Skip(Boolean) }, seneca_util = { Eraro, Jsonic, Nid: nid_1.default, Patrun: patrun_1.Patrun, Gex: patrun_1.Gex, Gubu: gubu_1.Gubu, pins: Common.pins, clean: Common.clean, pattern: Common.pattern, print: Common.print, error, deep: Common.deep, deepextend: Common.deep, parsepattern: Common.parsePattern, pincanon: Common.pincanon, router: function() {
             return (0, patrun_1.Patrun)();
           }, resolve_option: Common.resolve_option, flatten: Legacy.flatten }, intern2 = { util: seneca_util };
           function Seneca2() {
@@ -23943,7 +23949,7 @@ var senecaBrowser = senecaBrowser$1.exports;
           let SenecaExport = function(e, t) {
             (e = e || {}).legacy = e.legacy || false;
             let n = SenecaModule(e, t);
-            function i(e2) {
+            function r(e2) {
               return __async(this, null, function* () {
                 let t2 = Object.keys(e2);
                 for (let n2 of t2) {
@@ -23954,23 +23960,28 @@ var senecaBrowser = senecaBrowser$1.exports;
               });
             }
             return n.use(SenecaPromisify), n.use({ name: "browser", init: function(e2) {
-              e2.endpoint = e2.endpoint || "/seneca", e2.fetch = e2.fetch || {}, e2.headers = e2.headers || {}, this.add("role:transport,hook:client,type:browser", function(n2, r) {
+              e2.endpoint = e2.endpoint || "/seneca", e2.fetch = e2.fetch || {}, e2.headers = e2.headers || {}, this.add("role:transport,hook:client,type:browser", function(n2, i) {
                 let a = this;
-                r({ send: function(n3, r2, c) {
+                i({ send: function(n3, i2, s) {
                   return __async(this, null, function* () {
-                    let l = __spreadProps(__spreadValues({ method: "post" }, e2.fetch), { mode: "cors", cache: "no-cache", headers: yield i(__spreadValues(__spreadValues({ "Content-Type": "application/json" }, e2.fetch.headers), e2.headers)), body: o.stringifyJSON(o.externalize_msg(a, n3, c)) }), s = e2.endpoint;
-                    if ("function" == typeof s)
-                      s = s.call(a, n3, l, c);
+                    let l = __spreadProps(__spreadValues({ method: "post" }, e2.fetch), { mode: "cors", cache: "no-cache", headers: yield r(__spreadValues(__spreadValues({ "Content-Type": "application/json" }, e2.fetch.headers), e2.headers)), body: o.stringifyJSON(o.externalize_msg(a, n3, s)) }), c = e2.endpoint;
+                    if ("function" == typeof c)
+                      c = c.call(a, n3, l, s);
                     else if (t2) {
                       let e3 = t2.find(n3);
-                      e3 && (s = null != e3.endpoint ? e3.endpoint : (null == e3.prefix ? "" : "function" == typeof e3.prefix ? e3.prefix.call(a, n3, l, c) : e3.prefix) + s + (null == e3.suffix ? "" : "function" == typeof e3.suffix ? e3.suffix.call(a, n3, l, c) : e3.suffix));
+                      e3 && (c = null != e3.endpoint ? e3.endpoint : (null == e3.prefix ? "" : "function" == typeof e3.prefix ? e3.prefix.call(a, n3, l, s) : e3.prefix) + c + (null == e3.suffix ? "" : "function" == typeof e3.suffix ? e3.suffix.call(a, n3, l, s) : e3.suffix));
                     }
-                    fetch(s, l).then(function(e3) {
-                      return e3.ok ? e3.json() : r2(new Error(JSON.stringify(e3)));
+                    fetch(c, l).then(function(e3) {
+                      try {
+                        let t3 = e3.json();
+                        return t3;
+                      } catch (t3) {
+                        return t3.message = e3.status + ": " + e3.statusText + ": " + t3.message, i2(t3);
+                      }
                     }).then(function(e3) {
                       Array.isArray(e3) && (e3.meta$ = { id: "ID" });
                       let t3 = o.internalize_reply(a, e3);
-                      r2(t3.err, t3.out, t3.meta);
+                      i2(t3.err, t3.out, t3.meta);
                     });
                   });
                 } });
@@ -23979,9 +23990,20 @@ var senecaBrowser = senecaBrowser$1.exports;
               "object" == typeof e2.pathmap && (t2 = n.util.Patrun({ gex: true }), Object.entries(e2.pathmap).forEach((e3) => {
                 t2.add(n.util.Jsonic(e3[0]), e3[1]);
               }), e2.debug && console.log("SENECA", "pathmap", "" + t2));
+            } }), n.root.order.inward.add({ name: "debounce", before: "inward_msg_modify", exec: function(e2) {
+              let t2 = e2.data.msg;
+              if (t2.debounce$) {
+                let n2 = e2.ctx.seneca.status().history.log, r2 = e2.ctx.seneca.find(t2);
+                if (!r2)
+                  return null;
+                for (let e3 = n2.length - 1; -1 < e3; e3--)
+                  if (n2[e3].meta.pattern === r2.pattern && 0 === n2[e3].result.length)
+                    return { op: "stop", out: { kind: "result", result: {} } };
+              }
+              return null;
             } }), n;
           };
-          SenecaExport.util = SenecaModule.util, SenecaExport.valid = SenecaModule.valid, SenecaExport.prototype = SenecaModule.prototype, SenecaExport.browser = { version: "4.0.1" }, module4.exports = SenecaExport;
+          SenecaExport.util = SenecaModule.util, SenecaExport.valid = SenecaModule.valid, SenecaExport.prototype = SenecaModule.prototype, SenecaExport.browser = { version: "7.1.0" }, module4.exports = SenecaExport;
         }).call(this);
       }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, { "seneca-promisify": 109, "seneca4": 133, "timers": 139, "util.promisify/shim": 142 }] }, {}, [147])(147);
@@ -25197,6 +25219,7 @@ var entity_1 = entity.exports;
     }
   };
   function preload(context) {
+    var _a;
     const seneca = this;
     const options = context.options;
     seneca.util.parsecanon = seneca.util.parsecanon || make_entity_1.MakeEntity.parsecanon;
@@ -25226,7 +25249,7 @@ var entity_1 = entity.exports;
     if (options.mem_store) {
       seneca.root.use(requireMemStore());
     }
-    if (options.log.active) {
+    if ((_a = options.log) === null || _a === void 0 ? void 0 : _a.active) {
       seneca.root.private$.exports.Entity.prototype.log$ = function() {
         const seneca2 = this.private$.get_instance();
         seneca2.log.apply(seneca2, arguments);
@@ -25722,26 +25745,26 @@ var gubu_min = gubu_min$2.exports;
   }(function() {
     var e = {}, t = {};
     Object.defineProperty(t, "__esModule", { value: true }), t.Gubu = void 0;
-    const n = Symbol.for("gubu$"), l = { gubu$: n, v$: "6.0.1" }, r = Symbol.for("gubu$nil"), i = /^[A-Z]/, o = "gubu", s = "name", u = "nan", a = "never", c = "number", f = "required", p = "array", h = "function", v = "object", d = "string", g = "boolean", m = "undefined", y = "any", b = "list", x = "instance", $ = "null", I = "type", k = "closed", j = "shape", w = "check", O = "Object", N = "Array", S = "Function", V = "Value", R = "Above", A = "All", D = "Below", E = "Max", C = "Min", G = "Len", B = "One", T = "Some", M = " for property ", L2 = '"$PATH"', F = '"$VALUE"', P = (e2) => Object.keys(e2), z = (e2, t2, n2) => Object.defineProperty(e2, t2, n2), q = (e2) => Array.isArray(e2), W = (e2) => JSON.parse(e2), _ = (e2, t2) => JSON.stringify(e2, t2);
-    class J {
-      constructor(e2, t2, n2, l2) {
-        this.match = false, this.dI = 0, this.nI = 2, this.cI = -1, this.pI = 0, this.sI = -1, this.valType = a, this.isRoot = false, this.key = "", this.type = a, this.stop = true, this.nextSibling = true, this.fromDefault = false, this.ignoreVal = void 0, this.curerr = [], this.err = [], this.parents = [], this.keys = [], this.path = [], this.root = e2, this.vals = [e2, -1], this.node = t2, this.nodes = [t2, -1], this.ctx = n2 || {}, this.match = !!l2;
+    const n = Symbol.for("gubu$"), r = { gubu$: n, v$: "7.0.0" }, l = Symbol.for("gubu$nil"), i = /^[A-Z]/, { toString: o } = Object.prototype, s = "gubu", u = "name", a = "nan", c = "never", f = "number", p = "required", h = "array", v = "function", d = "object", g = "string", y = "boolean", m = "undefined", b = "any", $ = "list", x = "instance", I = "null", k = "type", j = "closed", w = "shape", O = "check", N = "regexp", S = "Object", V = "Array", R = "Function", A = "Value", D = "Above", E = "All", C = "Below", G = "Max", T = "Min", B = "Len", M = "One", L2 = "Some", P = " for property ", F = '"$PATH"', z = '"$VALUE"', q = (e2) => Object.keys(e2), W = (e2, t2, n2) => Object.defineProperty(e2, t2, n2), _ = (e2) => Array.isArray(e2), J = (e2) => JSON.parse(e2), H = (e2, t2) => JSON.stringify(e2, t2);
+    class U {
+      constructor(e2, t2, n2, r2) {
+        this.match = false, this.dI = 0, this.nI = 2, this.cI = -1, this.pI = 0, this.sI = -1, this.valType = c, this.isRoot = false, this.key = "", this.type = c, this.stop = true, this.nextSibling = true, this.fromDflt = false, this.ignoreVal = void 0, this.curerr = [], this.err = [], this.parents = [], this.keys = [], this.path = [], this.root = e2, this.vals = [e2, -1], this.node = t2, this.nodes = [t2, -1], this.ctx = n2 || {}, this.match = !!r2;
       }
       next() {
-        this.stop = false, this.fromDefault = false, this.ignoreVal = void 0, this.isRoot = 0 === this.pI, this.check = void 0;
+        this.stop = false, this.fromDflt = false, this.ignoreVal = void 0, this.isRoot = 0 === this.pI, this.check = void 0;
         let e2 = this.nodes[this.pI];
         for (; +e2; )
-          this.dI--, this.ctx.log && -1 < this.dI && this.ctx.log("e" + (q(this.parents[this.pI]) ? "a" : "o"), this), this.pI = +e2, e2 = this.nodes[this.pI];
+          this.dI--, this.ctx.log && -1 < this.dI && this.ctx.log("e" + (_(this.parents[this.pI]) ? "a" : "o"), this), this.pI = +e2, e2 = this.nodes[this.pI];
         e2 ? (this.node = e2, this.updateVal(this.vals[this.pI]), this.key = this.keys[this.pI], this.cI = this.pI, this.sI = this.pI + 1, this.parent = this.parents[this.pI], this.nextSibling = true, this.type = this.node.t, this.path[this.dI] = this.key, this.oval = this.val, this.curerr.length = 0) : this.stop = true;
       }
       updateVal(e2) {
-        this.val = e2, this.valType = typeof this.val, c === this.valType && isNaN(this.val) && (this.valType = u), this.isRoot && !this.match && (this.root = this.val);
+        this.val = e2, this.valType = typeof this.val, f === this.valType && isNaN(this.val) && (this.valType = a), this.isRoot && !this.match && (this.root = this.val);
       }
     }
-    class H extends TypeError {
-      constructor(e2, t2, n2, l2) {
-        var r2;
-        super((t2 = null == t2 ? "" : t2 + ": ") + n2.map((e3) => e3.t).join("\n")), this.gubu = true, this.name = "GubuError", this.code = e2, this.prefix = t2, this.desc = () => ({ name: "GubuError", code: e2, err: n2, ctx: l2 }), this.stack = null === (r2 = this.stack) || void 0 === r2 ? void 0 : r2.replace(/.*\/gubu\/gubu\.[tj]s.*\n/g, ""), this.props = n2.map((e3) => {
+    class K extends TypeError {
+      constructor(e2, t2, n2, r2) {
+        var l2;
+        super((t2 = null == t2 ? "" : t2 + ": ") + n2.map((e3) => e3.t).join("\n")), this.gubu = true, this.name = "GubuError", this.code = e2, this.prefix = t2, this.desc = () => ({ name: "GubuError", code: e2, err: n2, ctx: r2 }), this.stack = null === (l2 = this.stack) || void 0 === l2 ? void 0 : l2.replace(/.*\/gubu\/gubu\.[tj]s.*\n/g, ""), this.props = n2.map((e3) => {
           var t3;
           return { path: e3.p, what: e3.w, type: null === (t3 = e3.n) || void 0 === t3 ? void 0 : t3.t, value: e3.v };
         });
@@ -25750,378 +25773,389 @@ var gubu_min = gubu_min$2.exports;
         return Object.assign(Object.assign({}, this), { err: this.desc().err, name: this.name, message: this.message });
       }
     }
-    const U = { String: true, Number: true, Boolean: true, Object: true, Array: true, Function: true, Symbol: true, BigInt: true }, K = { string: "", number: 0, boolean: false, object: {}, array: [], symbol: Symbol(""), bigint: BigInt(0), null: null };
-    function Z(e2, t2, o2) {
-      var s2, a2, f2, g2;
-      if (Q === e2)
+    const Z = { String: true, Number: true, Boolean: true, Object: true, Array: true, Function: true, Symbol: true, BigInt: true }, Q = { string: "", number: 0, boolean: false, object: {}, array: [], symbol: Symbol(""), bigint: BigInt(0), null: null, regexp: /.*/ };
+    function X(e2, t2, s2) {
+      var u2, c2, p2, y2;
+      if (Y === e2)
         e2 = void 0;
-      else if (null != e2 && (null === (s2 = e2.$) || void 0 === s2 ? void 0 : s2.gubu$)) {
+      else if (null != e2 && (null === (u2 = e2.$) || void 0 === u2 ? void 0 : u2.gubu$)) {
         if (n === e2.$.gubu$)
           return e2.d = null == t2 ? e2.d : t2, e2;
         if (true === e2.$.gubu$) {
-          let l2 = Object.assign({}, e2);
-          return l2.$ = Object.assign(Object.assign({ v$: "6.0.1" }, l2.$), { gubu$: n }), l2.v = null != l2.v && v === typeof l2.v ? Object.assign({}, l2.v) : l2.v, l2.t = l2.t || typeof l2.v, h === l2.t && U[l2.v.name] && (l2.t = l2.v.name.toLowerCase(), l2.v = Me(K[l2.t]), l2.f = l2.v), l2.r = !!l2.r, l2.p = !!l2.p, l2.d = null == t2 ? null == l2.d ? -1 : l2.d : t2, l2.b = l2.b || [], l2.a = l2.a || [], l2.u = l2.u || {}, l2.m = l2.m || o2 || {}, l2;
+          let r2 = Object.assign({}, e2);
+          return r2.$ = Object.assign(Object.assign({ v$: "7.0.0" }, r2.$), { gubu$: n }), r2.v = null != r2.v && d === typeof r2.v ? Object.assign({}, r2.v) : r2.v, r2.t = r2.t || typeof r2.v, v === r2.t && Z[r2.v.name] && (r2.t = r2.v.name.toLowerCase(), r2.v = Pe(Q[r2.t]), r2.f = r2.v), r2.r = !!r2.r, r2.p = !!r2.p, r2.d = null == t2 ? null == r2.d ? -1 : r2.d : t2, r2.b = r2.b || [], r2.a = r2.a || [], r2.u = r2.u || {}, r2.m = r2.m || s2 || {}, r2;
         }
       }
-      let b2 = null === e2 ? $ : typeof e2;
-      b2 = m === b2 ? y : b2;
-      let I2 = e2, k2 = I2, j2 = r, w2 = false, N2 = {}, V2 = [], R2 = [];
-      if (v === b2)
-        k2 = void 0, q(I2) ? (b2 = p, 1 === I2.length && (j2 = I2[0], I2 = [])) : null != I2 && Function !== I2.constructor && Object !== I2.constructor && null != I2.constructor ? (b2 = x, N2.n = I2.constructor.name, N2.i = I2.constructor, k2 = I2) : 0 === P(I2).length && (j2 = oe());
-      else if (h === b2)
-        if (U[e2.name])
-          b2 = e2.name.toLowerCase(), w2 = true, I2 = Me(K[b2]), k2 = I2, O === e2.name && (j2 = oe());
-        else if (I2.gubu === l || true === (null === (a2 = I2.$) || void 0 === a2 ? void 0 : a2.gubu)) {
-          let e3 = I2.node ? I2.node() : I2;
-          b2 = e3.t, I2 = e3.v, k2 = I2, w2 = e3.r, N2 = Object.assign({}, e3.u), V2 = [...e3.a], R2 = [...e3.b];
+      let $2 = null === e2 ? I : typeof e2;
+      $2 = m === $2 ? b : $2;
+      let k2 = e2, j2 = k2, w2 = l, O2 = false, V2 = {}, A2 = [], D2 = [];
+      if (d === $2)
+        j2 = void 0, _(k2) ? ($2 = h, 1 === k2.length && (w2 = k2[0], k2 = [])) : null != k2 && Function !== k2.constructor && Object !== k2.constructor && null != k2.constructor ? ("[object RegExp]" === o.call(k2) ? ($2 = N, O2 = true) : ($2 = x, V2.n = k2.constructor.name, V2.i = k2.constructor), j2 = k2) : 0 === q(k2).length && (w2 = ue());
+      else if (v === $2)
+        if (Z[e2.name])
+          $2 = e2.name.toLowerCase(), O2 = true, k2 = Pe(Q[$2]), j2 = k2, S === e2.name && (w2 = ue());
+        else if (k2.gubu === r || true === (null === (c2 = k2.$) || void 0 === c2 ? void 0 : c2.gubu)) {
+          let e3 = k2.node ? k2.node() : k2;
+          $2 = e3.t, k2 = e3.v, j2 = k2, O2 = e3.r, V2 = Object.assign({}, e3.u), A2 = [...e3.a], D2 = [...e3.b];
         } else
-          S === I2.constructor.name && i.test(I2.name) && (b2 = x, w2 = true, N2.n = null === (g2 = null === (f2 = I2.prototype) || void 0 === f2 ? void 0 : f2.constructor) || void 0 === g2 ? void 0 : g2.name, N2.i = I2);
+          R === k2.constructor.name && i.test(k2.name) && ($2 = x, O2 = true, V2.n = null === (y2 = null === (p2 = k2.prototype) || void 0 === p2 ? void 0 : p2.constructor) || void 0 === y2 ? void 0 : y2.name, V2.i = k2);
       else
-        c === b2 && isNaN(I2) ? b2 = u : d === b2 && "" === I2 && (N2.empty = true);
-      let A2 = null == I2 || v !== b2 && p !== b2 ? I2 : Object.assign({}, I2);
-      return { $: l, t: b2, v: A2, f: k2, n: null != A2 && v === typeof A2 ? P(A2).length : 0, c: j2, r: w2, p: false, d: null == t2 ? -1 : t2, k: [], e: true, u: N2, a: V2, b: R2, m: o2 || {} };
+        f === $2 && isNaN(k2) ? $2 = a : g === $2 && "" === k2 && (V2.empty = true);
+      let E2 = null == k2 || d !== $2 && h !== $2 ? k2 : Object.assign({}, k2);
+      return { $: r, t: $2, v: E2, f: j2, n: null != E2 && d === typeof E2 ? q(E2).length : 0, c: w2, r: O2, p: false, d: null == t2 ? -1 : t2, k: [], e: true, u: V2, a: A2, b: D2, m: s2 || {} };
     }
-    function Q(t2, i2) {
+    function Y(t2, i2) {
       const o2 = null == i2 ? {} : i2;
       o2.name = null == o2.name ? "G" + ("" + Math.random()).substring(2, 8) : "" + o2.name, o2.prefix = null == o2.prefix ? void 0 : o2.prefix;
       let s2 = o2.meta = o2.meta || {};
-      s2.active = true === s2.active || false, s2.suffix = d == typeof s2.suffix ? s2.suffix : "$$";
+      s2.active = true === s2.active || false, s2.suffix = g == typeof s2.suffix ? s2.suffix : "$$";
       let u2 = o2.keyexpr = o2.keyexpr || {};
       u2.active = false !== u2.active;
-      let c2 = Z(t2, 0);
-      function h2(e2, t3, n2) {
-        let l2 = new J(e2, c2, t3, n2);
-        for (; l2.next(), !l2.stop; ) {
-          let t4 = l2.node, n3 = false, i3 = false;
+      let a2 = X(t2, 0);
+      function f2(e2, t3, n2) {
+        let r2 = new U(e2, a2, t3, n2);
+        for (; r2.next(), !r2.stop; ) {
+          let t4 = r2.node, n3 = false, i3 = false;
           if (0 < t4.b.length)
             for (let e3 = 0; e3 < t4.b.length; e3++) {
-              let r2 = Y(t4.b[e3], l2);
-              t4 = l2.node, void 0 !== r2.done && (n3 = r2.done), i3 = i3 || !!r2.fatal;
+              let l2 = te(t4.b[e3], r2);
+              t4 = r2.node, void 0 !== l2.done && (n3 = l2.done), i3 = i3 || !!l2.fatal;
             }
           if (!n3) {
-            let n4 = true, i4 = void 0 === l2.val;
-            if (a === l2.type)
-              l2.curerr.push(Ge(a, l2, 1070));
-            else if (v === l2.type) {
+            let n4 = true, i4 = void 0 === r2.val;
+            if (c === r2.type)
+              r2.curerr.push(Be(c, r2, 1070));
+            else if (d === r2.type) {
               let e3;
-              if (t4.r && i4 ? (l2.ignoreVal = true, l2.curerr.push(Ge(f, l2, 1010))) : i4 || null !== l2.val && v === l2.valType && !q(l2.val) ? !t4.p && i4 && void 0 !== t4.f ? (l2.updateVal(t4.f), l2.fromDefault = true, e3 = l2.val, n4 = false) : t4.p && i4 || (l2.updateVal(l2.val || (l2.fromDefault = true, {})), e3 = l2.val) : (l2.curerr.push(Ge(I, l2, 1020)), e3 = q(l2.val) ? l2.val : {}), n4 && (e3 = null == e3 && false === l2.ctx.err ? {} : e3, null != e3)) {
-                l2.ctx.log && l2.ctx.log("so", l2);
-                let n5 = false, i5 = P(t4.v), o4 = l2.nI;
+              if (t4.r && i4 ? (r2.ignoreVal = true, r2.curerr.push(Be(p, r2, 1010))) : i4 || null !== r2.val && d === r2.valType && !_(r2.val) ? !t4.p && i4 && void 0 !== t4.f ? (r2.updateVal(t4.f), r2.fromDflt = true, e3 = r2.val, n4 = false) : t4.p && i4 || (r2.updateVal(r2.val || (r2.fromDflt = true, {})), e3 = r2.val) : (r2.curerr.push(Be(k, r2, 1020)), e3 = _(r2.val) ? r2.val : {}), n4 && (e3 = null == e3 && false === r2.ctx.err ? {} : e3, null != e3)) {
+                r2.ctx.log && r2.ctx.log("so", r2);
+                let n5 = false, i5 = q(t4.v), o4 = r2.nI;
                 if (0 < i5.length) {
-                  n5 = true, l2.pI = o4;
+                  n5 = true, r2.pI = o4;
                   for (let n6 = 0; n6 < i5.length; n6++) {
-                    let r2, o5 = i5[n6];
+                    let l2, o5 = i5[n6];
                     if (s2.active && o5.endsWith(s2.suffix)) {
-                      if (r2 = { short: "" }, d === typeof t4.v[o5] ? r2.short = t4.v[o5] : r2 = Object.assign(Object.assign({}, r2), t4.v[o5]), delete t4.v[o5], n6++, i5.length <= n6)
+                      if (l2 = { short: "" }, g === typeof t4.v[o5] ? l2.short = t4.v[o5] : l2 = Object.assign(Object.assign({}, l2), t4.v[o5]), delete t4.v[o5], n6++, i5.length <= n6)
                         break;
                       if (i5[n6] !== o5.substring(0, o5.length - s2.suffix.length))
                         throw new Error("Invalid meta key: " + o5);
                       o5 = i5[n6];
                     }
-                    let a3 = o5, c3 = t4.v[o5];
+                    let a4 = o5, c2 = t4.v[o5];
                     if (u2.active) {
                       let e4 = /^\s*("(\\.|[^"\\])*"|[^\s]+):\s*(.*?)\s*$/.exec(o5);
-                      e4 && (a3 = e4[1], c3 = X({ src: e4[3], val: c3 }), delete t4.v[o5]);
+                      e4 && (a4 = e4[1], c2 = ee({ src: e4[3], val: c2 }), delete t4.v[o5]);
                     }
-                    let f2 = Z(c3, 1 + l2.dI, r2);
-                    t4.v[a3] = f2, t4.k.includes(a3) || t4.k.push(a3), l2.nodes[l2.nI] = f2, l2.vals[l2.nI] = e3[a3], l2.parents[l2.nI] = e3, l2.keys[l2.nI] = a3, l2.nI++;
+                    let f3 = X(c2, 1 + r2.dI, l2);
+                    t4.v[a4] = f3, t4.k.includes(a4) || t4.k.push(a4), r2.nodes[r2.nI] = f3, r2.vals[r2.nI] = e3[a4], r2.parents[r2.nI] = e3, r2.keys[r2.nI] = a4, r2.nI++;
                   }
                 }
-                let a2 = P(e3).filter((e4) => void 0 === t4.v[e4]);
-                if (0 < a2.length)
-                  if (r === t4.c)
-                    l2.ignoreVal = true, l2.curerr.push(Ge(k, l2, 1100, void 0, { k: a2 }));
+                let a3 = q(e3).filter((e4) => void 0 === t4.v[e4]);
+                if (0 < a3.length)
+                  if (l === t4.c)
+                    r2.ignoreVal = true, r2.curerr.push(Be(j, r2, 1100, void 0, { k: a3 }));
                   else {
-                    n5 = true, l2.pI = o4;
-                    for (let n6 of a2) {
-                      let r2 = t4.c = Z(t4.c, 1 + l2.dI);
-                      l2.nodes[l2.nI] = r2, l2.vals[l2.nI] = e3[n6], l2.parents[l2.nI] = e3, l2.keys[l2.nI] = n6, l2.nI++;
+                    n5 = true, r2.pI = o4;
+                    for (let n6 of a3) {
+                      let l2 = t4.c = X(t4.c, 1 + r2.dI);
+                      r2.nodes[r2.nI] = l2, r2.vals[r2.nI] = e3[n6], r2.parents[r2.nI] = e3, r2.keys[r2.nI] = n6, r2.nI++;
                     }
                   }
-                n5 ? (l2.dI++, l2.nodes[l2.nI] = l2.sI, l2.parents[l2.nI] = e3, l2.nextSibling = false, l2.nI++) : l2.ctx.log && l2.ctx.log("eo", l2);
+                n5 ? (r2.dI++, r2.nodes[r2.nI] = r2.sI, r2.parents[r2.nI] = e3, r2.nextSibling = false, r2.nI++) : r2.ctx.log && r2.ctx.log("eo", r2);
               }
-            } else if (p === l2.type)
+            } else if (h === r2.type)
               if (t4.r && i4)
-                l2.ignoreVal = true, l2.curerr.push(Ge(f, l2, 1030));
-              else if (i4 || q(l2.val)) {
+                r2.ignoreVal = true, r2.curerr.push(Be(p, r2, 1030));
+              else if (i4 || _(r2.val)) {
                 if (!t4.p && i4 && void 0 !== t4.f)
-                  l2.updateVal(t4.f), l2.fromDefault = true;
-                else if (!t4.p || null != l2.val) {
-                  l2.updateVal(l2.val || (l2.fromDefault = true, []));
-                  let n5 = r !== t4.c, i5 = 0 < l2.val.length, o4 = P(t4.v).filter((e3) => !isNaN(+e3)), s3 = 0 < o4.length;
-                  if (l2.ctx.log && l2.ctx.log("sa", l2), i5 || s3) {
-                    l2.pI = l2.nI;
+                  r2.updateVal(t4.f), r2.fromDflt = true;
+                else if (!t4.p || null != r2.val) {
+                  r2.updateVal(r2.val || (r2.fromDflt = true, []));
+                  let n5 = l !== t4.c, i5 = 0 < r2.val.length, o4 = q(t4.v).filter((e3) => !isNaN(+e3)), s3 = 0 < o4.length;
+                  if (r2.ctx.log && r2.ctx.log("sa", r2), i5 || s3) {
+                    r2.pI = r2.nI;
                     let e3 = 0;
                     if (s3)
-                      if (o4.length < l2.val.length && !n5)
-                        l2.ignoreVal = true, l2.curerr.push(Ge(k, l2, 1090, void 0, { k: o4.length }));
+                      if (o4.length < r2.val.length && !n5)
+                        r2.ignoreVal = true, r2.curerr.push(Be(j, r2, 1090, void 0, { k: o4.length }));
                       else
                         for (; e3 < o4.length; e3++) {
-                          let n6 = t4.v[e3] = Z(t4.v[e3], 1 + l2.dI);
-                          l2.nodes[l2.nI] = n6, l2.vals[l2.nI] = l2.val[e3], l2.parents[l2.nI] = l2.val, l2.keys[l2.nI] = "" + e3, l2.nI++;
+                          let n6 = t4.v[e3] = X(t4.v[e3], 1 + r2.dI);
+                          r2.nodes[r2.nI] = n6, r2.vals[r2.nI] = r2.val[e3], r2.parents[r2.nI] = r2.val, r2.keys[r2.nI] = "" + e3, r2.nI++;
                         }
                     if (n5 && i5) {
-                      let n6 = t4.c = Z(t4.c, 1 + l2.dI);
-                      for (; e3 < l2.val.length; e3++)
-                        l2.nodes[l2.nI] = n6, l2.vals[l2.nI] = l2.val[e3], l2.parents[l2.nI] = l2.val, l2.keys[l2.nI] = "" + e3, l2.nI++;
+                      let n6 = t4.c = X(t4.c, 1 + r2.dI);
+                      for (; e3 < r2.val.length; e3++)
+                        r2.nodes[r2.nI] = n6, r2.vals[r2.nI] = r2.val[e3], r2.parents[r2.nI] = r2.val, r2.keys[r2.nI] = "" + e3, r2.nI++;
                     }
-                    l2.ignoreVal || (l2.dI++, l2.nodes[l2.nI] = l2.sI, l2.parents[l2.nI] = l2.val, l2.nextSibling = false, l2.nI++);
+                    r2.ignoreVal || (r2.dI++, r2.nodes[r2.nI] = r2.sI, r2.parents[r2.nI] = r2.val, r2.nextSibling = false, r2.nI++);
                   } else
-                    l2.ctx.log && n5 && null == e2 && l2.ctx.log("kv", Object.assign(Object.assign({}, l2), { key: 0, val: t4.c })), l2.ctx.log && l2.ctx.log("ea", l2);
+                    r2.ctx.log && n5 && null == e2 && r2.ctx.log("kv", Object.assign(Object.assign({}, r2), { key: 0, val: t4.c })), r2.ctx.log && r2.ctx.log("ea", r2);
                 }
               } else
-                l2.curerr.push(Ge(I, l2, 1040));
-            else if (y === l2.type || b === l2.type || void 0 === l2.val || l2.type === l2.valType || x === l2.type && t4.u.i && l2.val instanceof t4.u.i || $ === l2.type && null === l2.val)
-              if (void 0 === l2.val) {
-                let e3 = l2.path[l2.dI];
-                !t4.r || m === l2.type && l2.parent.hasOwnProperty(e3) ? void 0 !== t4.f && !t4.p || m === l2.type ? (l2.updateVal(t4.f), l2.fromDefault = true) : y === l2.type && (l2.ignoreVal = void 0 === l2.ignoreVal || l2.ignoreVal) : (l2.ignoreVal = true, l2.curerr.push(Ge(f, l2, 1060))), l2.ctx.log && l2.ctx.log("kv", l2);
+                r2.curerr.push(Be(k, r2, 1040));
+            else if (N === r2.type)
+              i4 && !t4.r ? r2.ignoreVal = true : g !== r2.valType ? (r2.ignoreVal = true, r2.curerr.push(Be(k, r2, 1045))) : r2.val.match(t4.v) || (r2.ignoreVal = true, r2.curerr.push(Be(N, r2, 1045)));
+            else if (b === r2.type || $ === r2.type || void 0 === r2.val || r2.type === r2.valType || x === r2.type && t4.u.i && r2.val instanceof t4.u.i || I === r2.type && null === r2.val)
+              if (void 0 === r2.val) {
+                let e3 = r2.path[r2.dI];
+                !t4.r || m === r2.type && r2.parent.hasOwnProperty(e3) ? void 0 !== t4.f && !t4.p || m === r2.type ? (r2.updateVal(t4.f), r2.fromDflt = true) : b === r2.type && (r2.ignoreVal = void 0 === r2.ignoreVal || r2.ignoreVal) : (r2.ignoreVal = true, r2.curerr.push(Be(p, r2, 1060))), r2.ctx.log && r2.ctx.log("kv", r2);
               } else
-                d !== l2.type || "" !== l2.val || t4.u.empty || l2.curerr.push(Ge(f, l2, 1080)), l2.ctx.log && l2.ctx.log("kv", l2);
+                g !== r2.type || "" !== r2.val || t4.u.empty || r2.curerr.push(Be(p, r2, 1080)), r2.ctx.log && r2.ctx.log("kv", r2);
             else
-              l2.curerr.push(Ge(I, l2, 1050));
+              r2.curerr.push(Be(k, r2, 1050));
           }
           if (0 < t4.a.length)
             for (let e3 = 0; e3 < t4.a.length; e3++) {
-              let r2 = Y(t4.a[e3], l2);
-              t4 = l2.node, void 0 !== r2.done && (n3 = r2.done), i3 = i3 || !!r2.fatal;
+              let l2 = te(t4.a[e3], r2);
+              t4 = r2.node, void 0 !== l2.done && (n3 = l2.done), i3 = i3 || !!l2.fatal;
             }
-          let o3 = l2.node.p ? false !== l2.ignoreVal : !!l2.ignoreVal;
-          !l2.match && null != l2.parent && !n3 && !o3 && (l2.parent[l2.key] = l2.val), l2.nextSibling && (l2.pI = l2.sI), (l2.node.e || i3) && l2.err.push(...l2.curerr);
+          let o3 = r2.node.p ? false !== r2.ignoreVal : !!r2.ignoreVal;
+          !r2.match && null != r2.parent && !n3 && !o3 && (r2.parent[r2.key] = r2.val), r2.nextSibling && (r2.pI = r2.sI), (r2.node.e || i3) && r2.err.push(...r2.curerr);
         }
-        if (0 < l2.err.length) {
-          if (q(l2.ctx.err))
-            l2.ctx.err.push(...l2.err);
-          else if (!l2.match && false !== l2.ctx.err)
-            throw new H(j, o2.prefix, l2.err, l2.ctx);
+        if (0 < r2.err.length) {
+          if (_(r2.ctx.err))
+            r2.ctx.err.push(...r2.err);
+          else if (!r2.match && false !== r2.ctx.err)
+            throw new K(w, o2.prefix, r2.err, r2.ctx);
         }
-        return l2.match ? 0 === l2.err.length : l2.root;
+        return r2.match ? 0 === r2.err.length : r2.root;
       }
-      function g2(e2, t3) {
-        return h2(e2, t3, false);
+      function v2(e2, t3) {
+        return f2(e2, t3, false);
       }
-      g2.valid = function(e2, t3) {
+      v2.valid = function(e2, t3) {
         let n2 = t3 || {};
-        return n2.err = n2.err || [], h2(e2, n2, false), 0 === n2.err.length;
-      }, g2.match = (e2, t3) => h2(e2, t3 = t3 || {}, true), g2.error = (e2, t3) => {
+        return n2.err = n2.err || [], f2(e2, n2, false), 0 === n2.err.length;
+      }, v2.match = (e2, t3) => f2(e2, t3 = t3 || {}, true), v2.error = (e2, t3) => {
         let n2 = t3 || {};
-        return n2.err = n2.err || [], h2(e2, n2, false), n2.err;
-      }, g2.spec = () => (g2(void 0, { err: false }), W(Te(c2, (e2, t3) => n === t3 || t3, false, true))), g2.node = () => (g2.spec(), c2);
-      let w2 = "";
-      return g2.toString = () => (w2 = ne("" === w2 ? Te(c2 && c2.$ && (n === c2.$.gubu$ || true === c2.$.gubu$) ? c2.v : c2) : w2), `[Gubu ${o2.name} ${w2}]`), e.inspect && e.inspect.custom && (g2[e.inspect.custom] = g2.toString), g2.gubu = l, g2.spec(), g2;
+        return n2.err = n2.err || [], f2(e2, n2, false), n2.err;
+      }, v2.spec = () => (v2(void 0, { err: false }), J(Le(a2, (e2, t3) => n === t3 || t3, false, true))), v2.node = () => (v2.spec(), a2), v2.stringify = (e2) => {
+        let t3 = null == e2 ? a2 : e2.node && e2.node();
+        return t3 = null == t3 || !t3.$ || n !== t3.$.gubu$ && true !== t3.$.gubu$ ? t3 : t3.v, qe.stringify(t3);
+      };
+      let y2 = "";
+      return v2.toString = () => (y2 = le("" === y2 ? Le(null == a2 || !a2.$ || n !== a2.$.gubu$ && true !== a2.$.gubu$ ? a2 : a2.v) : y2), `[Gubu ${o2.name} ${y2}]`), e.inspect && e.inspect.custom && (v2[e.inspect.custom] = v2.toString), v2.gubu = r, v2.spec(), v2;
     }
-    function X(e2) {
+    function ee(e2) {
       let t2 = false;
       if (null == e2.tokens) {
         t2 = true, e2.tokens = [];
-        let n3 = /\s*,?\s*([)(\.]|"(\\.|[^"\\])*"|\/(\\.|[^\/\\])*\/[a-z]?|[^)(,\s]+)\s*/g, l3 = null;
-        for (; l3 = n3.exec(e2.src); )
-          e2.tokens.push(l3[1]);
+        let n3 = /\s*,?\s*([)(\.]|"(\\.|[^"\\])*"|\/(\\.|[^\/\\])*\/[a-z]?|[^)(,\s]+)\s*/g, r3 = null;
+        for (; r3 = n3.exec(e2.src); )
+          e2.tokens.push(r3[1]);
       }
       e2.i = e2.i || 0;
-      let n2 = e2.tokens[e2.i], l2 = Fe[n2];
+      let n2 = e2.tokens[e2.i], r2 = ze[n2];
       if (")" === e2.tokens[e2.i])
         return e2.i++, e2.val;
       e2.i++;
-      let r2 = { Number, String, Boolean };
-      if (null == l2)
+      let l2 = { Number, String, Boolean };
+      if (null == r2)
         try {
-          return r2[n2] || (m === n2 ? void 0 : "NaN" === n2 ? NaN : n2.match(/^\/.+\/$/) ? new RegExp(n2.substring(1, n2.length - 1)) : W(n2));
+          return l2[n2] || (m === n2 ? void 0 : "NaN" === n2 ? NaN : n2.match(/^\/.+\/$/) ? new RegExp(n2.substring(1, n2.length - 1)) : J(n2));
         } catch (s2) {
           throw new SyntaxError(`Gubu: unexpected token ${n2} in builder expression ${e2.src}`);
         }
       "(" === e2.tokens[e2.i] && e2.i++;
       let i2 = [], o2 = null;
       for (; null != (o2 = e2.tokens[e2.i]) && ")" !== o2; ) {
-        let t3 = X(e2);
+        let t3 = ee(e2);
         i2.push(t3);
       }
-      return e2.i++, e2.val = l2.call(e2.val, ...i2), "." === e2.tokens[e2.i] ? (e2.i++, X(e2)) : t2 && e2.i < e2.tokens.length ? X(e2) : e2.val;
+      return e2.i++, e2.val = r2.call(e2.val, ...i2), "." === e2.tokens[e2.i] ? (e2.i++, ee(e2)) : t2 && e2.i < e2.tokens.length ? ee(e2) : e2.val;
     }
-    function Y(e2, t2) {
+    function te(e2, t2) {
       var n2;
-      let l2, r2 = {}, i2 = false;
+      let r2, l2 = {}, i2 = false;
       try {
-        i2 = !(void 0 !== t2.val || !(null === (n2 = e2.gubu$) || void 0 === n2 ? void 0 : n2.Check)) || (t2.check = e2, e2(t2.val, r2, t2));
+        i2 = !(void 0 !== t2.val || !(null === (n2 = e2.gubu$) || void 0 === n2 ? void 0 : n2.Check)) || (t2.check = e2, e2(t2.val, l2, t2));
       } catch (s2) {
-        l2 = s2;
+        r2 = s2;
       }
-      let o2 = q(r2.err) ? 0 < r2.err.length : null != r2.err;
+      let o2 = _(l2.err) ? 0 < l2.err.length : null != l2.err;
       if (!i2 || o2) {
-        if (void 0 === t2.val && (t2.node.p || !t2.node.r) && true !== r2.done)
-          return delete r2.err, r2;
-        let n3 = r2.why || w, i3 = ee(t2);
-        if (d === typeof r2.err)
-          t2.curerr.push(Ce(t2, r2.err));
-        else if (v === typeof r2.err)
-          t2.curerr.push(...[r2.err].flat().filter((e3) => null != e3).map((e3) => (e3.p = null == e3.p ? i3 : e3.p, e3.m = null == e3.m ? 2010 : e3.m, e3)));
+        if (void 0 === t2.val && (t2.node.p || !t2.node.r) && true !== l2.done)
+          return delete l2.err, l2;
+        let n3 = l2.why || O, i3 = ne(t2);
+        if (g === typeof l2.err)
+          t2.curerr.push(Te(t2, l2.err));
+        else if (d === typeof l2.err)
+          t2.curerr.push(...[l2.err].flat().filter((e3) => null != e3).map((e3) => (e3.p = null == e3.p ? i3 : e3.p, e3.m = null == e3.m ? 2010 : e3.m, e3)));
         else {
-          let r3 = e2.name;
-          null != r3 && "" != r3 || (r3 = ne(e2.toString().replace(/[ \t\r\n]+/g, " "))), t2.curerr.push(Ge(n3, t2, 1045, void 0, { thrown: l2 }, r3));
+          let l3 = e2.name;
+          null != l3 && "" != l3 || (l3 = le(e2.toString().replace(/[ \t\r\n]+/g, " "))), t2.curerr.push(Be(n3, t2, 1045, void 0, { thrown: r2 }, l3));
         }
-        r2.done = null == r2.done || r2.done;
+        l2.done = null == l2.done || l2.done;
       }
-      return r2.hasOwnProperty("uval") ? (t2.updateVal(r2.uval), t2.ignoreVal = false) : void 0 === r2.val || Number.isNaN(r2.val) || (t2.updateVal(r2.val), t2.ignoreVal = false), void 0 !== r2.node && (t2.node = r2.node), void 0 !== r2.type && (t2.type = r2.type), r2;
+      return l2.hasOwnProperty("uval") ? (t2.updateVal(l2.uval), t2.ignoreVal = false) : void 0 === l2.val || Number.isNaN(l2.val) || (t2.updateVal(l2.val), t2.ignoreVal = false), void 0 !== l2.node && (t2.node = l2.node), void 0 !== l2.type && (t2.type = l2.type), l2;
     }
-    function ee(e2) {
+    function ne(e2) {
       return e2.path.slice(1, e2.dI + 1).filter((e3) => null != e3).join(".");
     }
-    function te(e2) {
-      return c === typeof e2 ? e2 : c === typeof (null == e2 ? void 0 : e2.length) ? e2.length : null != e2 && v === typeof e2 ? P(e2).length : NaN;
+    function re(e2) {
+      return f === typeof e2 ? e2 : f === typeof (null == e2 ? void 0 : e2.length) ? e2.length : null != e2 && d === typeof e2 ? q(e2).length : NaN;
     }
-    function ne(e2, t2) {
-      let n2 = String(e2), l2 = null == t2 || isNaN(t2) ? 30 : t2 < 0 ? 0 : ~~t2, r2 = null == e2 ? 0 : n2.length, i2 = null == e2 ? "" : n2.substring(0, r2);
-      return i2 = l2 < r2 ? i2.substring(0, l2 - 3) + "..." : i2, i2.substring(0, l2);
+    function le(e2, t2) {
+      let n2 = String(e2), r2 = null == t2 || isNaN(t2) ? 30 : t2 < 0 ? 0 : ~~t2, l2 = null == e2 ? 0 : n2.length, i2 = null == e2 ? "" : n2.substring(0, l2);
+      return i2 = r2 < l2 ? i2.substring(0, r2 - 3) + "..." : i2, i2.substring(0, r2);
     }
-    const le = function(e2) {
-      let t2 = Ee(this, e2);
+    const ie = function(e2) {
+      let t2 = Ge(this, e2);
       return t2.r = true, t2.p = false, void 0 === e2 && 1 === arguments.length && (t2.t = m, t2.v = void 0), t2;
-    }, re = function(e2) {
-      let t2 = Ee(this, e2);
-      return t2.c = oe(), t2;
-    }, ie = function(e2) {
-      let t2 = Ee(this, e2);
-      return t2.r = false, void 0 === e2 && 1 === arguments.length && (t2.t = m, t2.v = void 0), t2;
     }, oe = function(e2) {
-      let t2 = Ee(this, e2);
-      return t2.t = y, void 0 !== e2 && (t2.v = e2, t2.f = e2), t2;
-    }, se = function(e2, t2) {
-      let n2 = Ee(this, t2);
-      return n2.z = e2, n2;
+      let t2 = Ge(this, e2);
+      return t2.c = ue(), t2;
+    }, se = function(e2) {
+      let t2 = Ge(this, e2);
+      return t2.r = false, void 0 === e2 && 1 === arguments.length && (t2.t = m, t2.v = void 0), t2;
     }, ue = function(e2) {
-      let t2 = Ee(this, e2);
+      let t2 = Ge(this, e2);
+      return t2.t = b, void 0 !== e2 && (t2.v = e2, t2.f = e2), t2;
+    }, ae = function(e2, t2) {
+      let n2 = Ge(this, t2);
+      return n2.z = e2, n2;
+    }, ce = function(e2) {
+      let t2 = Ge(this, e2);
       return t2.r = false, t2.p = true, t2;
-    }, ae = function(e2) {
-      let t2 = Ee(this, e2);
+    }, fe = function(e2) {
+      let t2 = Ge(this, e2);
       return t2.r = false, t2.p = true, t2.e = false, t2.a.push(function(e3, t3, n2) {
         return 0 < n2.curerr.length && (t3.uval = void 0, t3.done = false), true;
       }), t2;
-    }, ce = function(e2) {
-      let t2 = Ee(this);
-      return t2.t = h, t2.v = e2, t2.f = e2, t2;
-    }, fe = function(e2, t2) {
-      let n2 = Ee(this, void 0 === t2 ? e2 : t2);
-      return n2.r = false, n2.f = e2, h === typeof e2 && U[e2.name] && (n2.t = e2.name.toLowerCase(), n2.f = Me(K[n2.t])), n2.p = false, n2;
     }, pe = function(e2) {
-      let t2 = Ee(this, e2);
+      let t2 = Ge(this);
+      return t2.t = v, t2.v = e2, t2.f = e2, t2;
+    }, he = function(e2, t2) {
+      let n2 = Ge(this, void 0 === t2 ? e2 : t2);
+      return n2.r = false, n2.f = e2, v === typeof e2 && Z[e2.name] && (n2.t = e2.name.toLowerCase(), n2.f = Pe(Q[n2.t])), n2.p = false, n2;
+    }, ve = function(e2) {
+      let t2 = Ge(this, e2);
       return t2.u.empty = true, t2;
-    }, he = function(e2) {
-      let t2 = Ee(this, e2);
-      return t2.t = a, t2;
-    }, ve = function(e2, t2) {
-      let n2 = Ee(this), l2 = c === typeof e2;
-      n2.t = d, l2 && null == t2 && (n2 = Z([]));
-      let r2 = null;
-      return h === typeof e2 && (r2 = e2, n2 = oe()), n2.b.push(function(n3, i2, o2) {
-        if (r2)
-          i2.val = r2(o2.path, o2);
-        else if (l2) {
+    }, de = function(e2) {
+      let t2 = Ge(this, e2);
+      return t2.t = c, t2;
+    }, ge = function(e2, t2) {
+      let n2 = Ge(this), r2 = f === typeof e2;
+      n2.t = g, r2 && null == t2 && (n2 = X([]));
+      let l2 = null;
+      return v === typeof e2 && (l2 = e2, n2 = ue()), n2.b.push(function(n3, i2, o2) {
+        if (l2)
+          i2.val = l2(o2.path, o2);
+        else if (r2) {
           let n4 = e2;
-          i2.val = o2.path.slice(o2.path.length - 1 - (0 <= n4 ? n4 : 0), o2.path.length - 1 + (0 <= n4 ? 0 : 1)), d === typeof t2 && (i2.val = i2.val.join(t2));
+          i2.val = o2.path.slice(o2.path.length - 1 - (0 <= n4 ? n4 : 0), o2.path.length - 1 + (0 <= n4 ? 0 : 1)), g === typeof t2 && (i2.val = i2.val.join(t2));
         } else
           null == e2 && (i2.val = o2.path[o2.path.length - 2]);
         return true;
       }), n2;
-    }, de = function(...e2) {
-      let t2 = Ee();
-      t2.t = b, t2.r = true;
-      let n2 = e2.map((e3) => Pe(e3));
-      return t2.u.list = e2, t2.b.push(function(t3, l2, r2) {
+    }, ye = function(...e2) {
+      let t2 = Ge();
+      t2.t = $, t2.r = true;
+      let n2 = e2.map((e3) => qe(e3));
+      return t2.u.list = e2, t2.b.push(function(t3, r2, l2) {
         let i2 = true;
         for (let e3 of n2) {
-          let n3 = Object.assign(Object.assign({}, r2.ctx), { err: [] });
+          let n3 = Object.assign(Object.assign({}, l2.ctx), { err: [] });
           e3(t3, n3), 0 < n3.err.length && (i2 = false);
         }
-        return i2 || (l2.why = A, l2.err = [Ce(r2, V + " " + F + M + L2 + " does not satisfy all of: " + e2.map((e3) => Te(e3, null, true)).join(", "))]), i2;
-      }), t2;
-    }, ge = function(...e2) {
-      let t2 = Ee();
-      t2.t = b, t2.r = true;
-      let n2 = e2.map((e3) => Pe(e3));
-      return t2.u.list = e2, t2.b.push(function(t3, l2, r2) {
-        let i2 = false;
-        for (let e3 of n2) {
-          let n3 = Object.assign(Object.assign({}, r2.ctx), { err: [] }), o2 = e3.match(t3, n3);
-          o2 && (l2.val = e3(t3, n3)), i2 || (i2 = o2);
-        }
-        return i2 || (l2.why = T, l2.err = [Ce(r2, V + " " + F + M + L2 + " does not satisfy any of: " + e2.map((e3) => Te(e3, null, true)).join(", "))]), i2;
+        return i2 || (r2.why = E, r2.err = [Te(l2, A + " " + z + P + F + " does not satisfy all of: " + e2.map((e3) => Le(e3, null, true)).join(", "))]), i2;
       }), t2;
     }, me = function(...e2) {
-      let t2 = Ee();
-      t2.t = b, t2.r = true;
-      let n2 = e2.map((e3) => Pe(e3));
-      return t2.u.list = e2, t2.b.push(function(t3, l2, r2) {
+      let t2 = Ge();
+      t2.t = $, t2.r = true;
+      let n2 = e2.map((e3) => qe(e3));
+      return t2.u.list = e2, t2.b.push(function(t3, r2, l2) {
+        let i2 = false;
+        for (let e3 of n2) {
+          let n3 = Object.assign(Object.assign({}, l2.ctx), { err: [] }), o2 = e3.match(t3, n3);
+          o2 && (r2.val = e3(t3, n3)), i2 || (i2 = o2);
+        }
+        return i2 || (r2.why = L2, r2.err = [Te(l2, A + " " + z + P + F + " does not satisfy any of: " + e2.map((e3) => Le(e3, null, true)).join(", "))]), i2;
+      }), t2;
+    }, be = function(...e2) {
+      let t2 = Ge();
+      t2.t = $, t2.r = true;
+      let n2 = e2.map((e3) => qe(e3));
+      return t2.u.list = e2, t2.b.push(function(t3, r2, l2) {
         let i2 = 0;
         for (let e3 of n2) {
-          let n3 = Object.assign(Object.assign({}, r2.ctx), { err: [] });
+          let n3 = Object.assign(Object.assign({}, l2.ctx), { err: [] });
           if (e3.match(t3, n3)) {
-            i2++, l2.val = e3(t3, n3);
+            i2++, r2.val = e3(t3, n3);
             break;
           }
         }
-        return 1 !== i2 && (l2.why = B, l2.err = [Ce(r2, V + " " + F + M + L2 + " does not satisfy one of: " + e2.map((e3) => Te(e3, null, true)).join(", "))]), true;
+        return 1 !== i2 && (r2.why = M, r2.err = [Te(l2, A + " " + z + P + F + " does not satisfy one of: " + e2.map((e3) => Le(e3, null, true)).join(", "))]), true;
       }), t2;
-    }, ye = function(...e2) {
-      let t2 = Ee();
-      return t2.b.push(function(t3, n2, l2) {
-        for (let r2 = 0; r2 < e2.length; r2++)
-          if (t3 === e2[r2])
+    }, $e = function(...e2) {
+      let t2 = Ge();
+      return t2.b.push(function(t3, n2, r2) {
+        for (let l2 = 0; l2 < e2.length; l2++)
+          if (t3 === e2[l2])
             return true;
-        return n2.err = Ce(l2, V + " " + F + M + L2 + " must be exactly one of: " + l2.node.s + "."), n2.done = true, false;
-      }), t2.s = e2.map((e3) => Te(e3, null, true)).join(", "), t2;
-    }, be = function(e2, t2) {
-      let n2 = Ee(this, t2);
-      return n2.b.push(e2), n2;
+        if (r2.node.hasOwnProperty("f") && void 0 === t3) {
+          const t4 = r2.node.f;
+          for (let n3 = 0; n3 < e2.length; n3++)
+            if (t4 === e2[n3])
+              return true;
+        }
+        return n2.err = Te(r2, A + " " + z + P + F + " must be exactly one of: " + r2.node.s + "."), n2.done = true, false;
+      }), t2.s = e2.map((e3) => Le(e3, null, true)).join(", "), t2;
     }, xe = function(e2, t2) {
-      let n2 = Ee(this, t2);
+      let n2 = Ge(this, t2);
+      return n2.b.push(e2), n2;
+    }, Ie = function(e2, t2) {
+      let n2 = Ge(this, t2);
       return n2.a.push(e2), n2;
-    }, $e = function(e2, t2) {
-      let n2 = Ee(this, t2);
-      if (h === typeof e2) {
+    }, ke = function(e2, t2) {
+      let n2 = Ge(this, t2);
+      if (v === typeof e2) {
         let t3 = e2;
-        t3.gubu$ = t3.gubu$ || {}, t3.gubu$.Check = true, n2.b.push(e2), n2.s = (null == n2.s ? "" : n2.s + ";") + Te(e2, null, true), n2.r = true;
-      } else if (v === typeof e2) {
+        t3.gubu$ = t3.gubu$ || {}, t3.gubu$.Check = true, n2.b.push(e2), n2.s = (null == n2.s ? "" : n2.s + ";") + Le(e2, null, true), n2.r = true;
+      } else if (d === typeof e2) {
         if (Object.prototype.toString.call(e2).includes("RegExp")) {
           let t3 = (t4) => null != t4 && !Number.isNaN(t4) && !!String(t4).match(e2);
-          z(t3, s, { value: String(e2) }), z(t3, "gubu$", { value: { Check: true } }), n2.b.push(t3), n2.s = Te(e2), n2.r = true;
+          W(t3, u, { value: String(e2) }), W(t3, "gubu$", { value: { Check: true } }), n2.b.push(t3), n2.s = Le(e2), n2.r = true;
         }
       } else
-        d === typeof e2 && (n2.t = e2, n2.r = true);
+        g === typeof e2 && (n2.t = e2, n2.r = true);
       return n2;
-    }, Ie = function(e2) {
-      let t2 = Ee(this, e2);
-      return p === t2.t && r !== t2.c && 0 === t2.n ? (t2.v = [t2.c], t2.c = r) : t2.c = r, t2;
-    }, ke = function(e2, t2) {
-      let n2 = Ee(this, t2), l2 = d === typeof e2 ? e2 : (v === typeof e2 && e2 || {}).name;
-      return null != l2 && "" != l2 && n2.b.push(function(e3, t3, n3) {
-        return (n3.ctx.ref = n3.ctx.ref || {})[l2] = n3.node, true;
-      }), n2;
-    }, je = function(e2, t2) {
-      let n2 = Ee(this, t2), l2 = v === typeof e2 && e2 || {}, r2 = d === typeof e2 ? e2 : l2.name, i2 = !!l2.fill;
+    }, je = function(e2) {
+      let t2 = Ge(this, e2);
+      return h === t2.t && l !== t2.c && 0 === t2.n ? (t2.v = [t2.c], t2.c = l) : t2.c = l, t2;
+    }, we = function(e2, t2) {
+      let n2 = Ge(this, t2), r2 = g === typeof e2 ? e2 : (d === typeof e2 && e2 || {}).name;
       return null != r2 && "" != r2 && n2.b.push(function(e3, t3, n3) {
+        return (n3.ctx.ref = n3.ctx.ref || {})[r2] = n3.node, true;
+      }), n2;
+    }, Oe = function(e2, t2) {
+      let n2 = Ge(this, t2), r2 = d === typeof e2 && e2 || {}, l2 = g === typeof e2 ? e2 : r2.name, i2 = !!r2.fill;
+      return null != l2 && "" != l2 && n2.b.push(function(e3, t3, n3) {
         if (void 0 !== e3 || i2) {
           let e4 = n3.ctx.ref = n3.ctx.ref || {};
-          if (void 0 !== e4[r2]) {
-            let n4 = Object.assign({}, e4[r2]);
-            n4.t = n4.t || a, t3.node = n4, t3.type = n4.t;
+          if (void 0 !== e4[l2]) {
+            let n4 = Object.assign({}, e4[l2]);
+            n4.t = n4.t || c, t3.node = n4, t3.type = n4.t;
           }
         }
         return true;
       }), n2;
-    }, we = function(e2, t2) {
-      let n2 = Ee(this, t2), l2 = v === typeof e2 && e2 || {}, r2 = d === typeof e2 ? e2 : l2.name, i2 = g === typeof l2.keep ? l2.keep : void 0, o2 = q(l2.claim) ? l2.claim : [];
-      if (null != r2 && "" != r2) {
+    }, Ne = function(e2, t2) {
+      let n2 = Ge(this, t2), r2 = d === typeof e2 && e2 || {}, l2 = g === typeof e2 ? e2 : r2.name, i2 = y === typeof r2.keep ? r2.keep : void 0, o2 = _(r2.claim) ? r2.claim : [];
+      if (null != l2 && "" != l2) {
         let e3 = (e4, t4, n3) => {
           if (void 0 === e4 && 0 < o2.length) {
-            n3.ctx.Rename = n3.ctx.Rename || {}, n3.ctx.Rename.fromDefault = n3.ctx.Rename.fromDefault || {};
+            n3.ctx.Rename = n3.ctx.Rename || {}, n3.ctx.Rename.fromDflt = n3.ctx.Rename.fromDflt || {};
             for (let e5 of o2) {
-              let l3 = n3.ctx.Rename.fromDefault[e5] || {};
-              if (void 0 !== n3.parent[e5] && !l3.yes) {
-                t4.val = n3.parent[e5], n3.match || (n3.parent[r2] = t4.val), t4.node = l3.node;
+              let r3 = n3.ctx.Rename.fromDflt[e5] || {};
+              if (void 0 !== n3.parent[e5] && !r3.yes) {
+                t4.val = n3.parent[e5], n3.match || (n3.parent[l2] = t4.val), t4.node = r3.node;
                 for (let e6 = 0; e6 < n3.err.length; e6++)
-                  n3.err[e6].k === l3.key && (n3.err.splice(e6, 1), e6--);
+                  n3.err[e6].k === r3.key && (n3.err.splice(e6, 1), e6--);
                 if (i2) {
                   let t5 = n3.cI + 1;
-                  n3.nodes.splice(t5, 0, Z(l3.dval)), n3.vals.splice(t5, 0, void 0), n3.parents.splice(t5, 0, n3.parent), n3.keys.splice(t5, 0, e5), n3.nI++, n3.pI++;
+                  n3.nodes.splice(t5, 0, X(r3.dval)), n3.vals.splice(t5, 0, void 0), n3.parents.splice(t5, 0, n3.parent), n3.keys.splice(t5, 0, e5), n3.nI++, n3.pI++;
                 } else
                   delete n3.parent[e5];
                 break;
@@ -26131,135 +26165,135 @@ var gubu_min = gubu_min$2.exports;
           }
           return true;
         };
-        z(e3, s, { value: "Rename:" + r2 }), n2.b.push(e3);
-        let t3 = (e4, t4, n3) => (n3.parent[r2] = e4, n3.match || i2 || n3.key === r2 || q(n3.parent) && false !== i2 || (delete n3.parent[n3.key], t4.done = true), n3.ctx.Rename = n3.ctx.Rename || {}, n3.ctx.Rename.fromDefault = n3.ctx.Rename.fromDefault || {}, n3.ctx.Rename.fromDefault[r2] = { yes: n3.fromDefault, key: n3.key, dval: n3.node.v, node: n3.node }, true);
-        z(t3, s, { value: "Rename:" + r2 }), n2.a.push(t3);
+        W(e3, u, { value: "Rename:" + l2 }), n2.b.push(e3);
+        let t3 = (e4, t4, n3) => (n3.parent[l2] = e4, n3.match || i2 || n3.key === l2 || _(n3.parent) && false !== i2 || (delete n3.parent[n3.key], t4.done = true), n3.ctx.Rename = n3.ctx.Rename || {}, n3.ctx.Rename.fromDflt = n3.ctx.Rename.fromDflt || {}, n3.ctx.Rename.fromDflt[l2] = { yes: n3.fromDflt, key: n3.key, dval: n3.node.v, node: n3.node }, true);
+        W(t3, u, { value: "Rename:" + l2 }), n2.a.push(t3);
       }
       return n2;
-    }, Oe = function(e2, t2) {
-      let n2 = Ee(this, t2);
-      return n2.b.push(function(t3, n3, l2) {
-        let r2 = te(t3);
-        if (e2 <= r2)
-          return true;
-        l2.checkargs = { min: 1 };
-        let i2 = c === typeof t3 ? "" : "length ";
-        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must be a minimum ${i2}of ${e2} (was ${r2}).`), false;
-      }), n2.s = C + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
-    }, Ne = function(e2, t2) {
-      let n2 = Ee(this, t2);
-      return n2.b.push(function(t3, n3, l2) {
-        let r2 = te(t3);
-        if (r2 <= e2)
-          return true;
-        let i2 = c === typeof t3 ? "" : "length ";
-        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must be a maximum ${i2}of ${e2} (was ${r2}).`), false;
-      }), n2.s = E + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
     }, Se = function(e2, t2) {
-      let n2 = Ee(this, t2);
-      return n2.b.push(function(t3, n3, l2) {
-        let r2 = te(t3);
-        if (e2 < r2)
+      let n2 = Ge(this, t2);
+      return n2.b.push(function(t3, n3, r2) {
+        let l2 = re(t3);
+        if (e2 <= l2)
           return true;
-        let i2 = c === typeof t3 ? "be" : "have length";
-        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must ${i2} above ${e2} (was ${r2}).`), false;
-      }), n2.s = R + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
+        r2.checkargs = { min: 1 };
+        let i2 = f === typeof t3 ? "" : "length ";
+        return n3.err = Te(r2, A + " " + z + P + F + ` must be a minimum ${i2}of ${e2} (was ${l2}).`), false;
+      }), n2.s = T + "(" + e2 + (null == t2 ? "" : "," + Le(t2)) + ")", n2;
     }, Ve = function(e2, t2) {
-      let n2 = Ee(this, t2);
-      return n2.b.push(function(t3, n3, l2) {
-        let r2 = te(t3);
-        if (r2 < e2)
+      let n2 = Ge(this, t2);
+      return n2.b.push(function(t3, n3, r2) {
+        let l2 = re(t3);
+        if (l2 <= e2)
           return true;
-        let i2 = c === typeof t3 ? "be" : "have length";
-        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must ${i2} below ${e2} (was ${r2}).`), false;
-      }), n2.s = D + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
+        let i2 = f === typeof t3 ? "" : "length ";
+        return n3.err = Te(r2, A + " " + z + P + F + ` must be a maximum ${i2}of ${e2} (was ${l2}).`), false;
+      }), n2.s = G + "(" + e2 + (null == t2 ? "" : "," + Le(t2)) + ")", n2;
     }, Re = function(e2, t2) {
-      let n2 = Ee(this, t2 || oe());
-      return n2.b.push(function(t3, n3, l2) {
-        let r2 = te(t3);
-        if (e2 === r2)
+      let n2 = Ge(this, t2);
+      return n2.b.push(function(t3, n3, r2) {
+        let l2 = re(t3);
+        if (e2 < l2)
           return true;
-        let i2 = c === typeof t3 ? "" : " in length";
-        return n3.err = Ce(l2, V + " " + F + M + L2 + ` must be exactly ${e2}${i2} (was ${r2}).`), false;
-      }), n2.s = G + "(" + e2 + (null == t2 ? "" : "," + Te(t2)) + ")", n2;
+        let i2 = f === typeof t3 ? "be" : "have length";
+        return n3.err = Te(r2, A + " " + z + P + F + ` must ${i2} above ${e2} (was ${l2}).`), false;
+      }), n2.s = D + "(" + e2 + (null == t2 ? "" : "," + Le(t2)) + ")", n2;
     }, Ae = function(e2, t2) {
-      let n2 = Ee(this, t2 || {});
-      return n2.c = Z(e2), n2;
+      let n2 = Ge(this, t2);
+      return n2.b.push(function(t3, n3, r2) {
+        let l2 = re(t3);
+        if (l2 < e2)
+          return true;
+        let i2 = f === typeof t3 ? "be" : "have length";
+        return n3.err = Te(r2, A + " " + z + P + F + ` must ${i2} below ${e2} (was ${l2}).`), false;
+      }), n2.s = C + "(" + e2 + (null == t2 ? "" : "," + Le(t2)) + ")", n2;
     }, De = function(e2, t2) {
-      let n2 = Ee(this, t2 || []);
-      return n2.t = "array", n2.c = Z(e2), n2.m = n2.m || {}, n2.m.rest = true, n2;
+      let n2 = Ge(this, t2 || ue());
+      return n2.b.push(function(t3, n3, r2) {
+        let l2 = re(t3);
+        if (e2 === l2)
+          return true;
+        let i2 = f === typeof t3 ? "" : " in length";
+        return n3.err = Te(r2, A + " " + z + P + F + ` must be exactly ${e2}${i2} (was ${l2}).`), false;
+      }), n2.s = B + "(" + e2 + (null == t2 ? "" : "," + Le(t2)) + ")", n2;
+    }, Ee = function(e2, t2) {
+      let n2 = Ge(this, t2 || {});
+      return n2.c = X(e2), n2;
+    }, Ce = function(e2, t2) {
+      let n2 = Ge(this, t2 || []);
+      return n2.t = "array", n2.c = X(e2), n2.m = n2.m || {}, n2.m.rest = true, n2;
     };
-    function Ee(e2, t2) {
-      let n2 = Z(null == e2 || e2.window === e2 || e2.global === e2 ? t2 : e2);
-      return Object.assign(n2, { Above: Se, After: xe, Any: oe, Before: be, Below: Ve, Check: $e, Child: Ae, Closed: Ie, Define: ke, Empty: pe, Exact: ye, Fault: se, Ignore: ae, Len: Re, Max: Ne, Min: Oe, Never: he, Open: re, Refer: je, Rename: we, Required: le, Skip: ue, Rest: De });
+    function Ge(e2, t2) {
+      let n2 = X(null == e2 || e2.window === e2 || e2.global === e2 ? t2 : e2);
+      return Object.assign(n2, { Above: Re, After: Ie, Any: ue, Before: xe, Below: Ae, Check: ke, Child: Ee, Closed: je, Default: he, Define: we, Empty: ve, Exact: $e, Fault: ae, Ignore: fe, Len: De, Max: Ve, Min: Se, Never: de, Open: oe, Refer: Oe, Rename: Ne, Required: ie, Rest: Ce, Skip: ce });
     }
-    function Ce(e2, t2, n2, l2) {
-      return Ge(n2 || w, e2, 4e3, t2, l2);
+    function Te(e2, t2, n2, r2) {
+      return Be(n2 || O, e2, 4e3, t2, r2);
     }
-    function Ge(e2, t2, n2, l2, r2, i2) {
+    function Be(e2, t2, n2, r2, l2, i2) {
       var o2;
-      let s2 = { k: t2.key, n: t2.node, v: t2.val, p: ee(t2), w: e2, c: (null === (o2 = t2.check) || void 0 === o2 ? void 0 : o2.name) || "none", a: t2.checkargs || {}, m: n2, t: "", u: r2 || {} }, u2 = ne((void 0 === t2.val ? m : Te(t2.val)).replace(/"/g, ""));
-      if (null == (l2 = l2 || t2.node.z) || "" === l2) {
-        let n3 = u2.startsWith("[") ? p : u2.startsWith("{") ? v : null == t2.val || c === typeof t2.val && isNaN(t2.val) ? "value" : typeof t2.val, l3 = u2.startsWith("[") || q(t2.parents[t2.pI]) ? "index" : "property", o3 = "is", h2 = null == r2 ? void 0 : r2.k;
-        h2 = q(h2) ? (l3 = 1 < h2.length ? (o3 = "are", "properties") : l3, h2.join(", ")) : h2, s2.t = "Validation failed for " + (0 < s2.p.length ? `${l3} "${s2.p}" with ` : "") + `${n3} "${u2}" because ` + (I === e2 ? x === t2.node.t ? `the ${n3} is not an instance of ${t2.node.u.n}` : `the ${n3} is not of type ${t2.node.t}` : f === e2 ? "" === t2.val ? "an empty string is not allowed" : `the ${n3} is required` : "closed" === e2 ? `the ${l3} "${h2}" ${o3} not allowed` : a === e2 ? "no value is allowed" : `check "${null == i2 ? e2 : i2}" failed`) + (s2.u.thrown ? " (threw: " + s2.u.thrown.message + ")" : ".");
+      let s2 = { k: t2.key, n: t2.node, v: t2.val, p: ne(t2), w: e2, c: (null === (o2 = t2.check) || void 0 === o2 ? void 0 : o2.name) || "none", a: t2.checkargs || {}, m: n2, t: "", u: l2 || {} }, u2 = le((void 0 === t2.val ? m : Le(t2.val)).replace(/"/g, ""));
+      if (null == (r2 = r2 || t2.node.z) || "" === r2) {
+        let n3 = u2.startsWith("[") ? h : u2.startsWith("{") ? d : null == t2.val || f === typeof t2.val && isNaN(t2.val) ? "value" : typeof t2.val, r3 = u2.startsWith("[") || _(t2.parents[t2.pI]) ? "index" : "property", o3 = "is", a2 = null == l2 ? void 0 : l2.k;
+        a2 = _(a2) ? (r3 = 1 < a2.length ? (o3 = "are", "properties") : r3, a2.join(", ")) : a2, s2.t = "Validation failed for " + (0 < s2.p.length ? `${r3} "${s2.p}" with ` : "") + `${n3} "${u2}" because ` + (k === e2 ? x === t2.node.t ? `the ${n3} is not an instance of ${t2.node.u.n}` : `the ${n3} is not of type ${N === t2.node.t ? g : t2.node.t}` : p === e2 ? "" === t2.val ? "an empty string is not allowed" : `the ${n3} is required` : "closed" === e2 ? `the ${r3} "${a2}" ${o3} not allowed` : N === e2 ? "the string did not match " + t2.node.v : c === e2 ? "no value is allowed" : `check "${null == i2 ? e2 : i2}" failed`) + (s2.u.thrown ? " (threw: " + s2.u.thrown.message + ")" : ".");
       } else
-        s2.t = l2.replace(/\$VALUE/g, u2).replace(/\$PATH/g, s2.p);
+        s2.t = r2.replace(/\$VALUE/g, u2).replace(/\$PATH/g, s2.p);
       return s2;
     }
-    function Be(e2) {
-      return null != e2.s && "" !== e2.s ? e2.s : e2.r || void 0 === e2.v ? e2.t : e2.v;
-    }
-    function Te(e2, t2, l2, r2) {
-      let i2;
-      r2 || !e2 || !e2.$ || n !== e2.$.gubu$ && true !== e2.$.gubu$ || (e2 = Be(e2));
-      try {
-        i2 = _(e2, (e3, l3) => {
-          var i3, o2;
-          if (t2 && (l3 = t2(e3, l3)), null != l3 && v === typeof l3 && l3.constructor && O !== l3.constructor.name && N !== l3.constructor.name)
-            l3 = h === typeof l3.toString ? l3.toString() : l3.constructor.name;
-          else if (h === typeof l3)
-            l3 = h === typeof Q[l3.name] && isNaN(+e3) ? void 0 : null != l3.name && "" !== l3.name ? l3.name : ne(l3.toString().replace(/[ \t\r\n]+/g, " "));
-          else if ("bigint" == typeof l3)
-            l3 = String(l3.toString());
-          else {
-            if (Number.isNaN(l3))
-              return "NaN";
-            true === r2 || true !== (null === (i3 = null == l3 ? void 0 : l3.$) || void 0 === i3 ? void 0 : i3.gubu$) && n !== (null === (o2 = null == l3 ? void 0 : l3.$) || void 0 === o2 ? void 0 : o2.gubu$) || (l3 = Be(l3));
-          }
-          return l3;
-        }), i2 = String(i2);
-      } catch (o2) {
-        i2 = _(String(e2));
-      }
-      return true === l2 && (i2 = i2.replace(/^"/, "").replace(/"$/, "")), i2;
-    }
     function Me(e2) {
-      return null == e2 || v !== typeof e2 ? e2 : W(_(e2));
+      return null != e2.s && "" !== e2.s ? e2.s : e2.r || void 0 === e2.v ? e2.t : "function" == typeof e2.v.constructor ? e2.v : e2.v.toString();
     }
-    const Le = (e2) => Z(Object.assign(Object.assign({}, e2), { $: { gubu$: true } })), Fe = { Above: Se, After: xe, All: de, Any: oe, Before: be, Below: Ve, Check: $e, Child: Ae, Closed: Ie, Default: fe, Define: ke, Empty: pe, Exact: ye, Fault: se, Func: ce, Ignore: ae, Key: ve, Len: Re, Max: Ne, Min: Oe, Never: he, One: me, Open: re, Optional: ie, Refer: je, Rename: we, Required: le, Skip: ue, Some: ge, Rest: De };
+    function Le(e2, t2, r2, l2) {
+      let i2;
+      l2 || !e2 || !e2.$ || n !== e2.$.gubu$ && true !== e2.$.gubu$ || (e2 = Me(e2));
+      try {
+        i2 = H(e2, (e3, r3) => {
+          var i3, s2;
+          if (t2 && (r3 = t2(e3, r3)), null != r3 && d === typeof r3 && r3.constructor && S !== r3.constructor.name && V !== r3.constructor.name)
+            r3 = "[object RegExp]" === o.call(r3) || v === typeof r3.toString ? r3.toString() : r3.constructor.name;
+          else if (v === typeof r3)
+            r3 = v === typeof Y[r3.name] && isNaN(+e3) ? void 0 : null != r3.name && "" !== r3.name ? r3.name : le(r3.toString().replace(/[ \t\r\n]+/g, " "));
+          else if ("bigint" == typeof r3)
+            r3 = String(r3.toString());
+          else {
+            if (Number.isNaN(r3))
+              return "NaN";
+            true === l2 || true !== (null === (i3 = null == r3 ? void 0 : r3.$) || void 0 === i3 ? void 0 : i3.gubu$) && n !== (null === (s2 = null == r3 ? void 0 : r3.$) || void 0 === s2 ? void 0 : s2.gubu$) || (r3 = Me(r3));
+          }
+          return r3;
+        }), i2 = String(i2);
+      } catch (s2) {
+        i2 = H(String(e2));
+      }
+      return true === r2 && (i2 = i2.replace(/^"/, "").replace(/"$/, "")), i2;
+    }
+    function Pe(e2) {
+      return null == e2 || d !== typeof e2 ? e2 : J(H(e2));
+    }
+    const Fe = (e2) => X(Object.assign(Object.assign({}, e2), { $: { gubu$: true } })), ze = { Above: Re, After: Ie, All: ye, Any: ue, Before: xe, Below: Ae, Check: ke, Child: Ee, Closed: je, Default: he, Define: we, Empty: ve, Exact: $e, Fault: ae, Func: pe, Ignore: fe, Key: ge, Len: De, Max: Ve, Min: Se, Never: de, One: be, Open: oe, Optional: se, Refer: Oe, Rename: Ne, Required: ie, Skip: ce, Some: me, Rest: Ce };
     if (m !== typeof window)
-      for (let We in Fe)
-        z(Fe[We], s, { value: We });
-    Object.assign(Q, Object.assign(Object.assign(Object.assign({ Gubu: Q }, Fe), Object.entries(Fe).reduce((e2, t2) => (e2["G" + t2[0]] = t2[1], e2), {})), { isShape: (e2) => e2 && l === e2.gubu, G$: Le, buildize: Ee, makeErr: Ce, stringify: Te, truncate: ne, nodize: Z, expr: X, MakeArgu: ze })), z(Q, s, { value: o });
-    const Pe = Q;
-    t.Gubu = Pe;
-    function ze(e2) {
-      return function(t2, n2, l2) {
-        let r2 = false;
-        d === typeof t2 && (r2 = true, l2 = n2, n2 = t2);
-        const i2 = Pe(l2 = l2 || n2, { prefix: e2 + (n2 = d === typeof n2 ? " (" + n2 + ")" : "") }), o2 = i2.node(), s2 = o2.k;
+      for (let Je in ze)
+        W(ze[Je], u, { value: Je });
+    Object.assign(Y, Object.assign(Object.assign(Object.assign({ Gubu: Y }, ze), Object.entries(ze).reduce((e2, t2) => (e2["G" + t2[0]] = t2[1], e2), {})), { isShape: (e2) => e2 && r === e2.gubu, G$: Fe, buildize: Ge, makeErr: Te, stringify: Le, truncate: le, nodize: X, expr: ee, MakeArgu: We })), W(Y, u, { value: s });
+    const qe = Y;
+    t.Gubu = qe;
+    function We(e2) {
+      return function(t2, n2, r2) {
+        let l2 = false;
+        g === typeof t2 && (l2 = true, r2 = n2, n2 = t2);
+        const i2 = qe(r2 = r2 || n2, { prefix: e2 + (n2 = g === typeof n2 ? " (" + n2 + ")" : "") }), o2 = i2.node(), s2 = o2.k;
         let u2 = t2, a2 = {}, c2 = 0, f2 = 0;
         for (; c2 < s2.length; c2++) {
           let e3 = o2.v[s2[c2]];
-          e3.p && (e3 = o2.v[s2[c2]] = ((t3) => xe(function(e4, n3, l3) {
-            if (0 < l3.curerr.length) {
+          e3.p && (e3 = o2.v[s2[c2]] = ((t3) => Ie(function(e4, n3, r3) {
+            if (0 < r3.curerr.length) {
               f2++;
               for (let e5 = s2.length - 1; e5 > t3; e5--)
-                o2.v[s2[e5]].m.rest ? a2[s2[e5]].splice(o2.v[s2[e5]].m.rest_pos + t3 - e5, 0, a2[s2[e5 - 1]]) : (l3.vals[l3.pI + e5 - t3] = l3.vals[l3.pI + e5 - t3 - 1], a2[s2[e5]] = a2[s2[e5 - 1]]);
+                o2.v[s2[e5]].m.rest ? a2[s2[e5]].splice(o2.v[s2[e5]].m.rest_pos + t3 - e5, 0, a2[s2[e5 - 1]]) : (r3.vals[r3.pI + e5 - t3] = r3.vals[r3.pI + e5 - t3 - 1], a2[s2[e5]] = a2[s2[e5 - 1]]);
               n3.uval = void 0, n3.done = false;
             }
             return true;
-          }, e3))(c2), e3.e = false), c2 !== s2.length - 1 || o2.v[s2[c2]].m.rest || (o2.v[s2[c2]] = xe(function(e4, t3, n3) {
+          }, e3))(c2), e3.e = false), c2 !== s2.length - 1 || o2.v[s2[c2]].m.rest || (o2.v[s2[c2]] = Ie(function(e4, t3, n3) {
             return !(s2.length - f2 < u2.length && (0 === n3.curerr.length && (t3.err = `Too many arguments for type signature (was ${u2.length}, expected ${s2.length - f2})`), t3.fatal = true, 1));
           }, o2.v[s2[c2]]));
         }
@@ -26270,13 +26304,13 @@ var gubu_min = gubu_min$2.exports;
           }
           return a2;
         }
-        return r2 ? function(e3) {
+        return l2 ? function(e3) {
           return u2 = e3, a2 = {}, c2 = 0, f2 = 0, i2(p2(e3));
         } : i2(p2(t2));
       };
     }
-    const { Gubu: qe } = t;
-    return qe;
+    const { Gubu: _e } = t;
+    return _e;
   });
 })(gubu_min$2, gubu_min$2.exports);
 var gubu_minExports = gubu_min$2.exports;
@@ -26332,7 +26366,8 @@ const PlantquestGeofenceDisplay = L$1.Layer.extend({
   },
   events() {
     return {
-      setGeofences: () => {
+      list: (event) => {
+        console.log("GF", event);
       }
     };
   },
@@ -26429,6 +26464,11 @@ console.log("PQAM INIT 8");
       this.seneca.use(SenecaEntity).use(LeafletSetup, {});
       this.use(PlantquestGeofenceDisplay, {
         debug: true,
+        seneca: {
+          events: {
+            "list:geofence": "list"
+          }
+        },
         geofences: [
           {
             id: "buildingA",
@@ -26479,20 +26519,41 @@ console.log("PQAM INIT 8");
         ready && ready.call(this, ...args);
       });
     }
-    use(plugin, options) {
+    use(LeafletPlugin, options) {
       let pluginDefine = function(options2) {
         const seneca = this;
         seneca.prepare(function() {
           return __async(this, null, function* () {
+            var _a, _b;
             yield new Promise((r) => setTimeout(r, 555));
+            options2.seneca = options2.seneca || {};
+            options2.seneca.instance = seneca;
+            const plugin = new LeafletPlugin(options2);
             let map = this.export("LeafletSetup/getMap")();
-            const plugin2 = new PlantquestGeofenceDisplay(options2);
-            plugin2.addTo(map);
-            const events = plugin2.events();
+            if (plugin.addTo) {
+              plugin.addTo(map);
+            }
+            if (plugin.events) {
+              const events = plugin.events();
+              console.log("PLUGIN EVENTS", plugin.name, events, (_a = options2.seneca) == null ? void 0 : _a.events);
+              Object.entries(((_b = options2.seneca) == null ? void 0 : _b.events) || {}).map((entry) => {
+                const eventPattern = entry[0];
+                const eventName = entry[1];
+                console.log("PLUGIN MSG SUB", eventPattern, eventName);
+                seneca.sub(
+                  "srv:plantquest,part:assetmap,out$:true",
+                  seneca.util.Jsonic(eventPattern),
+                  function(msg, out, meta) {
+                    const eventCallback = events[eventName];
+                    return eventCallback(out);
+                  }
+                );
+              });
+            }
           });
         });
       };
-      Object.defineProperty(pluginDefine, "name", { value: plugin.name });
+      Object.defineProperty(pluginDefine, "name", { value: LeafletPlugin.name });
       this.seneca.use(pluginDefine, options);
     }
   }
