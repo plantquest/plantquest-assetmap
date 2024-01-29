@@ -26315,12 +26315,17 @@ var gubu_min = gubu_min$2.exports;
 })(gubu_min$2, gubu_min$2.exports);
 var gubu_minExports = gubu_min$2.exports;
 const gubu_min$1 = /* @__PURE__ */ getDefaultExportFromCjs(gubu_minExports);
-const { Any } = gubu_minExports.Gubu;
+const { Any, Optional, Function: Function$1 } = gubu_minExports.Gubu;
 const PluginName = "GeofenceDisplay";
 const OptionsShape = gubu_minExports.Gubu({
   debug: false,
   zIndex: 230,
-  pqam: Any(),
+  color: {
+    main: "#66f"
+  },
+  outbound: {
+    click: () => null
+  },
   seneca: Any()
 });
 const PlantquestGeofenceDisplay = L$1.Layer.extend({
@@ -26353,7 +26358,7 @@ const PlantquestGeofenceDisplay = L$1.Layer.extend({
     map.removeLayer(self2._state.geofencePane);
     map.removeLayer(self2._state.geofenceLabelPane);
   },
-  events() {
+  inbound() {
     let self2 = this;
     return {
       list: (event) => {
@@ -26363,8 +26368,8 @@ const PlantquestGeofenceDisplay = L$1.Layer.extend({
         let list = event.list || [];
         list = list.filter((gfd) => !!gfd).map((gfd) => new Geofence(gfd, {
           map: self2._state.map,
-          // TODO: only pass in config that we need
-          cfg: self2.options.pqam.config
+          color: self2.options.color.main,
+          click: self2.options.outbound.click
         })).map((gf) => (gf.show(), gf));
         geofences.push(...list);
         self2.debug && self2.debug("EVENT:list geofences", geofences);
@@ -26387,14 +26392,15 @@ class Geofence {
     this.ctx = ctx;
     this.poly = L$1.polygon(ent.latlngs, {
       pane: "geofence",
-      color: this.ctx.cfg.geofence.colour
+      color: ctx.colour
     });
   }
   show() {
     let self2 = this;
-    if (self2.ctx.cfg.geofence.click.active) {
-      self2.poly.on("click", self2.onClick.bind(self2));
-    }
+    self2.poly.on("click", () => self2.ctx.click({
+      kind: "click",
+      geofence: self2
+    }));
     let tooltip = L$1.tooltip({
       pane: "geofenceLabel",
       permanent: true,
@@ -26411,9 +26417,6 @@ class Geofence {
   hide() {
     let self2 = this;
     self2.poly && self2.poly.remove();
-  }
-  onClick(event) {
-    console.log("onClick", event);
   }
 }
 Object.defineProperty(PlantquestGeofenceDisplay, "name", { value: "PlantquestGeofenceDisplay" });
@@ -26488,13 +26491,17 @@ console.log("PQAM INIT 8");
         });
       }, {});
       this.use(PlantquestGeofenceDisplay, {
-        debug: true,
         seneca: {
-          events: {
+          inbound: {
             "list:geofence,out$:true": "list"
           }
         },
-        pqam: { config: { geofence: { click: { active: true }, color: "#f3f" } } }
+        outbound: {
+          click: (event) => {
+            console.log("GEOFENCE CLICK", event);
+          }
+        },
+        debug: true
       });
       this.seneca.message("srv:plantquest,part:assetmap,start:instance", function(msg) {
         return __async(this, null, function* () {
@@ -26524,10 +26531,10 @@ console.log("PQAM INIT 8");
             if (plugin.addTo) {
               plugin.addTo(map2);
             }
-            if (plugin.events) {
-              const events = plugin.events();
-              console.log("PLUGIN EVENTS", plugin.name, events, (_a = options2.seneca) == null ? void 0 : _a.events);
-              Object.entries(((_b = options2.seneca) == null ? void 0 : _b.events) || {}).map((entry) => {
+            if (plugin.inbound) {
+              const events = plugin.inbound();
+              console.log("PLUGIN EVENTS", plugin.name, events, (_a = options2.seneca) == null ? void 0 : _a.inbound);
+              Object.entries(((_b = options2.seneca) == null ? void 0 : _b.inbound) || {}).map((entry) => {
                 const eventPattern = entry[0];
                 const eventName = entry[1];
                 console.log("PLUGIN MSG SUB", eventPattern, eventName);

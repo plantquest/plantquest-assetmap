@@ -2,7 +2,7 @@ import L from 'leaflet'
 import { Gubu } from 'gubu'
 // import './geofence-display.css'
 
-const { Any } = Gubu
+const { Any, Optional, Function } = Gubu
 
 // TODO: implement Gubu with interfaces
 // interface GeofenceDef {
@@ -21,7 +21,12 @@ const PluginName = 'GeofenceDisplay'
 const OptionsShape = Gubu({
   debug: false,
   zIndex: 230,
-  pqam: Any(),
+  color: {
+    main: '#66f'
+  },
+  outbound: {
+    click: ()=>null
+  },
   seneca: Any(),
 })
 
@@ -71,7 +76,7 @@ const PlantquestGeofenceDisplay = L.Layer.extend({
   },
 
 
-  events() {
+  inbound() {
     let self = this
     
     return {
@@ -87,9 +92,8 @@ const PlantquestGeofenceDisplay = L.Layer.extend({
           .filter(gfd=>!!gfd)
           .map(gfd=>new Geofence(gfd, {
             map: self._state.map,
-
-            // TODO: only pass in config that we need
-            cfg: self.options.pqam.config,
+            color: self.options.color.main,
+            click: self.options.outbound.click,
           }))
           .map(gf=>(gf.show(),gf))
 
@@ -120,16 +124,17 @@ class Geofence {
     this.ctx = ctx
     this.poly = L.polygon(ent.latlngs, {
       pane: 'geofence',
-      color: this.ctx.cfg.geofence.colour,
+      color: ctx.colour,
     })
   }
 
   show() {
     let self = this
 
-    if (self.ctx.cfg.geofence.click.active) {
-      self.poly.on('click', self.onClick.bind(self))
-    }
+    self.poly.on('click', ()=>self.ctx.click({
+      kind: 'click',
+      geofence: self
+    }))
 
     // TODO: tooltip options passed into plugin
     let tooltip = L.tooltip({
@@ -155,10 +160,6 @@ class Geofence {
   hide() {
     let self = this
     self.poly && self.poly.remove()
-  }
-
-  onClick(event) {
-    console.log('onClick', event)
   }
 }
 

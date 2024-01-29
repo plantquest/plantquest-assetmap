@@ -116,13 +116,17 @@ console.log('PQAM INIT 8')
       
       this
         .use(PlantquestGeofenceDisplay, {
-          debug: true,
           seneca: {
-            events: {
+            inbound: {
               'list:geofence,out$:true': 'list'
             }
           },
-          pqam: { config: { geofence: { click: { active: true }, color: '#f3f' } } },
+          outbound: {
+            click: (event)=>{
+              console.log('GEOFENCE CLICK', event)
+            }
+          },
+          debug: true,
         })
 
 
@@ -162,10 +166,10 @@ console.log('PQAM INIT 8')
           }
           
           // Connect LeafletPlugin events to Seneca messages
-          if(plugin.events) {
-            const events = plugin.events()
-            console.log('PLUGIN EVENTS', plugin.name, events, options.seneca?.events)
-            Object.entries(options.seneca?.events||{}).map(entry=>{
+          if(plugin.inbound) {
+            const events = plugin.inbound()
+            console.log('PLUGIN EVENTS', plugin.name, events, options.seneca?.inbound)
+            Object.entries(options.seneca?.inbound||{}).map(entry=>{
               const eventPattern = entry[0]
               const eventName = entry[1]
               
