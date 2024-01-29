@@ -2,6 +2,8 @@ import L from 'leaflet'
 import { Gubu } from 'gubu'
 // import './geofence-display.css'
 
+const { Any } = Gubu
+
 // TODO: implement Gubu with interfaces
 // interface GeofenceDef {
 //   id: string
@@ -14,121 +16,99 @@ import { Gubu } from 'gubu'
 //   geofences: GeofenceDef[]
 // }
 
+const PluginName = 'GeofenceDisplay'
+
+const OptionsShape = Gubu({
+  debug: false,
+  zIndex: 230,
+  pqam: Any(),
+  seneca: Any(),
+})
+
 const PlantquestGeofenceDisplay = L.Layer.extend({
   initialize: function (
     // this,
     rawOptions//: PlantquestGeofenceDisplayOptions
   ) {
+    const self = this
+    self.debug = rawOptions.debug ? (...args)=>console.log(PluginName, ...args): null
+    
+    const options = OptionsShape(rawOptions)
 
+    L.Util.setOptions(self, options)
     
-    
-    console.log('rawOptions IN', rawOptions)
-    
-    // const PlantquestGeofenceDisplayOptionsShape = Gubu({})
-    // let options = rawOptions // PlantquestGeofenceDisplayOptionsShape(rawOptions)
-    // options.debug && console.log('GeofenceDisplay init function called.')
-
-    
-    // L.Util.setOptions(options)
-    L.Util.setOptions(this, rawOptions)
-
-    console.log('rawOptions SET', this.options)
-    
-    this._state = {
+    self._state = {
       zindex: 0,
-      geofenceByID: {},
-    }
-  },
-
-  onAdd: function (map) {
-    let self = this
-
-
-    map.createPane('geofence')
-    let geofencePane = map.getPane('geofence')
-    geofencePane.style.zIndex = 230
-    
-    map.createPane('geofenceLabel')
-    let geofenceLabelPane = map.getPane('geofenceLabel')
-    geofenceLabelPane.style.zIndex = 235
-    
-
-    
-    self.options.debug && console.log('GeofenceDisplay onAdd function called.')
-    self.options.debug &&
-      console.log(
-        'Local geofence variable before add:',
-        self._state.geofenceByID
-      )
-
-    self.options.geofences.forEach((geo) => {
-      let geofence = new Geofence(geo, {
-        map: map,
-        cfg: self.options.pqam.config,
-      })
-      self._state.geofenceByID[geo.id] = geofence
-      self.showGeofence(geofence, true)
-    })
-
-    self.options.debug &&
-      console.log(
-        'Local geofence variable after add:',
-        self._state.geofenceByID
-      )
-  },
-
-  onRemove: function (_map) {
-    let self = this
-    self.options.debug &&
-      console.log('GeofenceDisplay onRemove function called.')
-    self.options.debug &&
-      console.log(
-        'Local geofence variable before remove:',
-        self._state.geofenceByID
-      )
-
-    self.clearGeofences()
-
-    self.options.debug &&
-      console.log(
-        'Local geofence variable after remove:',
-        self._state.geofenceByID
-      )
-  },
-
-
-  events() {
-    return {
-      list: (event)=>{
-        console.log('GF', event)
-      },
+      geofences: [],
     }
   },
 
   
-  showGeofence: function (geofence, show) {
-    if (null == geofence) {
-      return
-    }
-    show = !!show
-    if (true === show) {
-      geofence.show()
-    } else if (false === show) {
-      geofence.hide()
-    }
+  onAdd: function (map) {
+    let self = this
+    self.debug && self.debug('onAdd')
+
+    self._state.map = map
+    
+    const zIndex = this.options.zIndex
+    
+    map.createPane('geofence')
+    self._state.geofencePane = map.getPane('geofence')
+    self._state.geofencePane.style.zIndex = zIndex
+    
+    map.createPane('geofenceLabel')
+    self._state.geofenceLabelPane = map.getPane('geofenceLabel')
+    self._state.geofenceLabelPane.style.zIndex = zIndex + 5
   },
 
-  clearGeofences: function () {
+  
+  onRemove: function (_map) {
     let self = this
-    for (let geofenceID in self._state.geofenceByID) {
-      let geofence = self._state.geofenceByID[geofenceID]
-      delete self._state.geofenceByID[geofenceID]
-      if (geofence && geofence.hide) {
-        geofence.hide()
+    self.debug && self.debug('onRemove')
+    self.clearGeofences()
+    map.removeLayer(self._state.geofencePane)
+    map.removeLayer(self._state.geofenceLabelPane)
+  },
+
+
+  events() {
+    let self = this
+    
+    return {
+      list: (event)=>{
+        self.debug && self.debug('EVENT:list event', event)
+
+        self.clearGeofences()
+        let geofences = self._state.geofences
+        
+        let list = event.list || []
+        
+        list = list
+          .filter(gfd=>!!gfd)
+          .map(gfd=>new Geofence(gfd, {
+            map: self._state.map,
+
+            // TODO: only pass in config that we need
+            cfg: self.options.pqam.config,
+          }))
+          .map(gf=>(gf.show(),gf))
+
+        geofences.push(...list)
+
+        self.debug && self.debug('EVENT:list geofences', geofences)
       }
     }
   },
+
+  
+  clearGeofences: function () {
+    const self = this
+    let geofences = self._state.geofences
+    geofences.map(gf=>gf.hide())
+    geofences.length = 0
+  }
 })
+
 
 class Geofence {
   ent = null

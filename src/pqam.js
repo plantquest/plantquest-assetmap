@@ -69,49 +69,59 @@ console.log('PQAM INIT 8')
         .use(LeafletSetup, {})
 
 
+        .use(function FakeData(options) {
+          const seneca = this
+          
+          seneca.add('srv:plantquest,part:assetmap,list:geofence', function(msg, reply) {
+            let include = msg.include || [true,true,true]
+            let i = 0
+            reply({ok:true,list:[
+              include[i++] && {
+                id: 'buildingA',
+                title: 'Building A',
+                latlngs: [
+                  [52.7, 2086],
+                  [52.7, 2115.7],
+                  [47.4, 2115.7],
+                  [47.4, 2086],
+                ],
+              },
+              include[i++] && {
+                id: 'buildingB',
+                title: 'Building B',
+                latlngs: [
+                  [60.6, 2235],
+                  [60.6, 2255.3],
+                  [58.3, 2255.3],
+                  [58.3, 2252],
+                  [56.1, 2252],
+                  [56.1, 2235],
+                ],
+              },
+              include[i++] && {
+                id: 'buildingC',
+                title: 'Building C',
+                latlngs: [
+                  [3.4, 2155.6],
+                  [3.4, 2172.5],
+                  [-3.4, 2172.5],
+                  [-3.4, 2155.6],
+                ],
+              },
+              
+            ]})
+          })
+        }, {})
+
+      
       this
         .use(PlantquestGeofenceDisplay, {
           debug: true,
           seneca: {
             events: {
-              'list:geofence': 'list'
+              'list:geofence,out$:true': 'list'
             }
           },
-          
-          geofences: [
-            {
-              id: 'buildingA',
-              title: 'Building A',
-              latlngs: [
-                [52.7, 2086],
-                [52.7, 2115.7],
-                [47.4, 2115.7],
-                [47.4, 2086],
-              ],
-            },
-            {
-              id: 'buildingB',
-              title: 'Building B',
-              latlngs: [
-                [60.6, 2235],
-                [60.6, 2255.3],
-                [58.3, 2255.3],
-                [58.3, 2252],
-                [56.1, 2252],
-                [56.1, 2235],
-              ],
-            },
-            {
-              id: 'buildingC',
-              title: 'Building C',
-              latlngs: [
-                [3.4, 2155.6],
-                [3.4, 2172.5],
-                [-3.4, 2172.5],
-                [-3.4, 2155.6],
-              ],
-            },
-          ],
           pqam: { config: { geofence: { click: { active: true }, color: '#f3f' } } },
         })
 
@@ -160,16 +170,20 @@ console.log('PQAM INIT 8')
               const eventName = entry[1]
               
               console.log('PLUGIN MSG SUB', eventPattern, eventName)
-              
+
+              let eventPat = seneca.util.Jsonic(eventPattern)
               seneca.sub(
-                'srv:plantquest,part:assetmap,out$:true',
-                seneca.util.Jsonic(eventPattern),
+                'srv:plantquest,part:assetmap',
+                eventPat,
                 function(msg, out, meta) {
-                  // TODO: handle errors
-                  // console.log('ARGS', arguments)
                   const eventCallback = events[eventName]
                   // if(error) return events[eventName]({ok:false,error})
-                  return eventCallback(out)
+                  try {
+                    return eventCallback(eventPat.in$?msg:out)
+                  }
+                  catch(err) {
+                    console.error('EVENT-ERROR',err)
+                  }
                 }
               )
             })

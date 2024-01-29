@@ -25,7 +25,7 @@
     "leaflet": "1.9.4",
     "leaflet-editable": "1.2.0",
     "leaflet-path-drag": "^1.8.0-beta.3",
-    "leaflet-rastercoords": "1.0.5",
+    "leaflet-rastercoords": "1.0.6",
     "leaflet.markercluster": "1.5.3",
     "seneca-browser": "7.1.0",
     "seneca-entity": "25.1.3",

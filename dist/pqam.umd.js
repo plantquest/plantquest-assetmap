@@ -3273,13 +3273,13 @@ var __async = (__this, __arguments, generator) => {
           // @method setPosition(position: string): this
           // Sets the position of the control.
           setPosition: function(position) {
-            var map = this._map;
-            if (map) {
-              map.removeControl(this);
+            var map2 = this._map;
+            if (map2) {
+              map2.removeControl(this);
             }
             this.options.position = position;
-            if (map) {
-              map.addControl(this);
+            if (map2) {
+              map2.addControl(this);
             }
             return this;
           },
@@ -3290,10 +3290,10 @@ var __async = (__this, __arguments, generator) => {
           },
           // @method addTo(map: Map): this
           // Adds the control to the given map.
-          addTo: function(map) {
+          addTo: function(map2) {
             this.remove();
-            this._map = map;
-            var container = this._container = this.onAdd(map), pos = this.getPosition(), corner = map._controlCorners[pos];
+            this._map = map2;
+            var container = this._container = this.onAdd(map2), pos = this.getPosition(), corner = map2._controlCorners[pos];
             addClass(container, "leaflet-control");
             if (pos.indexOf("bottom") !== -1) {
               corner.insertBefore(container, corner.firstChild);
@@ -3401,18 +3401,18 @@ var __async = (__this, __arguments, generator) => {
               this._addLayer(overlays[i], i, true);
             }
           },
-          onAdd: function(map) {
+          onAdd: function(map2) {
             this._initLayout();
             this._update();
-            this._map = map;
-            map.on("zoomend", this._checkDisabledLayers, this);
+            this._map = map2;
+            map2.on("zoomend", this._checkDisabledLayers, this);
             for (var i = 0; i < this._layers.length; i++) {
               this._layers[i].layer.on("add remove", this._onLayerChange, this);
             }
             return this._container;
           },
-          addTo: function(map) {
-            Control.prototype.addTo.call(this, map);
+          addTo: function(map2) {
+            Control.prototype.addTo.call(this, map2);
             return this._expandIfNotCollapsed();
           },
           onRemove: function() {
@@ -3667,7 +3667,7 @@ var __async = (__this, __arguments, generator) => {
             // The title set on the 'zoom out' button.
             zoomOutTitle: "Zoom out"
           },
-          onAdd: function(map) {
+          onAdd: function(map2) {
             var zoomName = "leaflet-control-zoom", container = create$1("div", zoomName + " leaflet-bar"), options = this.options;
             this._zoomInButton = this._createButton(
               options.zoomInText,
@@ -3684,11 +3684,11 @@ var __async = (__this, __arguments, generator) => {
               this._zoomOut
             );
             this._updateDisabled();
-            map.on("zoomend zoomlevelschange", this._updateDisabled, this);
+            map2.on("zoomend zoomlevelschange", this._updateDisabled, this);
             return container;
           },
-          onRemove: function(map) {
-            map.off("zoomend zoomlevelschange", this._updateDisabled, this);
+          onRemove: function(map2) {
+            map2.off("zoomend zoomlevelschange", this._updateDisabled, this);
           },
           disable: function() {
             this._disabled = true;
@@ -3724,16 +3724,16 @@ var __async = (__this, __arguments, generator) => {
             return link;
           },
           _updateDisabled: function() {
-            var map = this._map, className = "leaflet-disabled";
+            var map2 = this._map, className = "leaflet-disabled";
             removeClass(this._zoomInButton, className);
             removeClass(this._zoomOutButton, className);
             this._zoomInButton.setAttribute("aria-disabled", "false");
             this._zoomOutButton.setAttribute("aria-disabled", "false");
-            if (this._disabled || map._zoom === map.getMinZoom()) {
+            if (this._disabled || map2._zoom === map2.getMinZoom()) {
               addClass(this._zoomOutButton, className);
               this._zoomOutButton.setAttribute("aria-disabled", "true");
             }
-            if (this._disabled || map._zoom === map.getMaxZoom()) {
+            if (this._disabled || map2._zoom === map2.getMaxZoom()) {
               addClass(this._zoomInButton, className);
               this._zoomInButton.setAttribute("aria-disabled", "true");
             }
@@ -3768,15 +3768,15 @@ var __async = (__this, __arguments, generator) => {
             // @option updateWhenIdle: Boolean = false
             // If `true`, the control is updated on [`moveend`](#map-moveend), otherwise it's always up-to-date (updated on [`move`](#map-move)).
           },
-          onAdd: function(map) {
+          onAdd: function(map2) {
             var className = "leaflet-control-scale", container = create$1("div", className), options = this.options;
             this._addScales(options, className + "-line", container);
-            map.on(options.updateWhenIdle ? "moveend" : "move", this._update, this);
-            map.whenReady(this._update, this);
+            map2.on(options.updateWhenIdle ? "moveend" : "move", this._update, this);
+            map2.whenReady(this._update, this);
             return container;
           },
-          onRemove: function(map) {
-            map.off(this.options.updateWhenIdle ? "moveend" : "move", this._update, this);
+          onRemove: function(map2) {
+            map2.off(this.options.updateWhenIdle ? "moveend" : "move", this._update, this);
           },
           _addScales: function(options, className, container) {
             if (options.metric) {
@@ -3787,10 +3787,10 @@ var __async = (__this, __arguments, generator) => {
             }
           },
           _update: function() {
-            var map = this._map, y = map.getSize().y / 2;
-            var maxMeters = map.distance(
-              map.containerPointToLatLng([0, y]),
-              map.containerPointToLatLng([this.options.maxWidth, y])
+            var map2 = this._map, y = map2.getSize().y / 2;
+            var maxMeters = map2.distance(
+              map2.containerPointToLatLng([0, y]),
+              map2.containerPointToLatLng([this.options.maxWidth, y])
             );
             this._updateScales(maxMeters);
           },
@@ -3844,21 +3844,21 @@ var __async = (__this, __arguments, generator) => {
             setOptions(this, options);
             this._attributions = {};
           },
-          onAdd: function(map) {
-            map.attributionControl = this;
+          onAdd: function(map2) {
+            map2.attributionControl = this;
             this._container = create$1("div", "leaflet-control-attribution");
             disableClickPropagation(this._container);
-            for (var i in map._layers) {
-              if (map._layers[i].getAttribution) {
-                this.addAttribution(map._layers[i].getAttribution());
+            for (var i in map2._layers) {
+              if (map2._layers[i].getAttribution) {
+                this.addAttribution(map2._layers[i].getAttribution());
               }
             }
             this._update();
-            map.on("layeradd", this._addAttribution, this);
+            map2.on("layeradd", this._addAttribution, this);
             return this._container;
           },
-          onRemove: function(map) {
-            map.off("layeradd", this._addAttribution, this);
+          onRemove: function(map2) {
+            map2.off("layeradd", this._addAttribution, this);
           },
           _addAttribution: function(ev) {
             if (ev.layer.getAttribution) {
@@ -3940,8 +3940,8 @@ var __async = (__this, __arguments, generator) => {
         control.scale = scale;
         control.attribution = attribution;
         var Handler = Class.extend({
-          initialize: function(map) {
-            this._map = map;
+          initialize: function(map2) {
+            this._map = map2;
           },
           // @method enable(): this
           // Enables the handler
@@ -3975,8 +3975,8 @@ var __async = (__this, __arguments, generator) => {
           // @method removeHooks()
           // Called when the handler is disabled, should remove the event hooks added previously.
         });
-        Handler.addTo = function(map, name2) {
-          map.addHandler(name2, this);
+        Handler.addTo = function(map2, name2) {
+          map2.addHandler(name2, this);
           return this;
         };
         var Mixin = { Events };
@@ -4486,8 +4486,8 @@ var __async = (__this, __arguments, generator) => {
            * @method addTo(map: Map|LayerGroup): this
            * Adds the layer to the given map or layer group.
            */
-          addTo: function(map) {
-            map.addLayer(this);
+          addTo: function(map2) {
+            map2.addLayer(this);
             return this;
           },
           // @method remove: this
@@ -4526,22 +4526,22 @@ var __async = (__this, __arguments, generator) => {
             return this.options.attribution;
           },
           _layerAdd: function(e) {
-            var map = e.target;
-            if (!map.hasLayer(this)) {
+            var map2 = e.target;
+            if (!map2.hasLayer(this)) {
               return;
             }
-            this._map = map;
-            this._zoomAnimated = map._zoomAnimated;
+            this._map = map2;
+            this._zoomAnimated = map2._zoomAnimated;
             if (this.getEvents) {
               var events = this.getEvents();
-              map.on(events, this);
+              map2.on(events, this);
               this.once("remove", function() {
-                map.off(events, this);
+                map2.off(events, this);
               }, this);
             }
-            this.onAdd(map);
+            this.onAdd(map2);
             this.fire("add");
-            map.fire("layeradd", { layer: this });
+            map2.fire("layeradd", { layer: this });
           }
         });
         Map2.include({
@@ -4701,11 +4701,11 @@ var __async = (__this, __arguments, generator) => {
             }
             return this;
           },
-          onAdd: function(map) {
-            this.eachLayer(map.addLayer, map);
+          onAdd: function(map2) {
+            this.eachLayer(map2.addLayer, map2);
           },
-          onRemove: function(map) {
-            this.eachLayer(map.removeLayer, map);
+          onRemove: function(map2) {
+            this.eachLayer(map2.removeLayer, map2);
           },
           // @method eachLayer(fn: Function, context?: Object): this
           // Iterates over the layers of the group, optionally specifying context of the iterator function.
@@ -4974,7 +4974,7 @@ var __async = (__this, __arguments, generator) => {
             return this._draggable && this._draggable._moved;
           },
           _adjustPan: function(e) {
-            var marker2 = this._marker, map = marker2._map, speed = this._marker.options.autoPanSpeed, padding = this._marker.options.autoPanPadding, iconPos = getPosition(marker2._icon), bounds = map.getPixelBounds(), origin = map.getPixelOrigin();
+            var marker2 = this._marker, map2 = marker2._map, speed = this._marker.options.autoPanSpeed, padding = this._marker.options.autoPanPadding, iconPos = getPosition(marker2._icon), bounds = map2.getPixelBounds(), origin = map2.getPixelOrigin();
             var panBounds = toBounds(
               bounds.min._subtract(origin).add(padding),
               bounds.max._subtract(origin).subtract(padding)
@@ -4984,7 +4984,7 @@ var __async = (__this, __arguments, generator) => {
                 (Math.max(panBounds.max.x, iconPos.x) - panBounds.max.x) / (bounds.max.x - panBounds.max.x) - (Math.min(panBounds.min.x, iconPos.x) - panBounds.min.x) / (bounds.min.x - panBounds.min.x),
                 (Math.max(panBounds.max.y, iconPos.y) - panBounds.max.y) / (bounds.max.y - panBounds.max.y) - (Math.min(panBounds.min.y, iconPos.y) - panBounds.min.y) / (bounds.min.y - panBounds.min.y)
               ).multiplyBy(speed);
-              map.panBy(movement, { animate: false });
+              map2.panBy(movement, { animate: false });
               this._draggable._newPos._add(movement);
               this._draggable._startPos._add(movement);
               setPosition(marker2._icon, this._draggable._newPos);
@@ -5091,22 +5091,22 @@ var __async = (__this, __arguments, generator) => {
             setOptions(this, options);
             this._latlng = toLatLng(latlng);
           },
-          onAdd: function(map) {
-            this._zoomAnimated = this._zoomAnimated && map.options.markerZoomAnimation;
+          onAdd: function(map2) {
+            this._zoomAnimated = this._zoomAnimated && map2.options.markerZoomAnimation;
             if (this._zoomAnimated) {
-              map.on("zoomanim", this._animateZoom, this);
+              map2.on("zoomanim", this._animateZoom, this);
             }
             this._initIcon();
             this.update();
           },
-          onRemove: function(map) {
+          onRemove: function(map2) {
             if (this.dragging && this.dragging.enabled()) {
               this.options.draggable = true;
               this.dragging.removeHooks();
             }
             delete this.dragging;
             if (this._zoomAnimated) {
-              map.off("zoomanim", this._animateZoom, this);
+              map2.off("zoomanim", this._animateZoom, this);
             }
             this._removeIcon();
             this._removeShadow();
@@ -5297,14 +5297,14 @@ var __async = (__this, __arguments, generator) => {
             this._updateZIndex(0);
           },
           _panOnFocus: function() {
-            var map = this._map;
-            if (!map) {
+            var map2 = this._map;
+            if (!map2) {
               return;
             }
             var iconOpts = this.options.icon.options;
             var size = iconOpts.iconSize ? toPoint(iconOpts.iconSize) : toPoint(0, 0);
             var anchor = iconOpts.iconAnchor ? toPoint(iconOpts.iconAnchor) : toPoint(0, 0);
-            map.panInside(this._latlng, {
+            map2.panInside(this._latlng, {
               paddingTopLeft: anchor,
               paddingBottomRight: size.subtract(anchor)
             });
@@ -5367,8 +5367,8 @@ var __async = (__this, __arguments, generator) => {
             // (unless [`L.DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
             bubblingMouseEvents: true
           },
-          beforeAdd: function(map) {
-            this._renderer = map.getRenderer(this);
+          beforeAdd: function(map2) {
+            this._renderer = map2.getRenderer(this);
           },
           onAdd: function() {
             this._renderer._initPath(this);
@@ -5530,19 +5530,19 @@ var __async = (__this, __arguments, generator) => {
           },
           setStyle: Path.prototype.setStyle,
           _project: function() {
-            var lng = this._latlng.lng, lat = this._latlng.lat, map = this._map, crs = map.options.crs;
+            var lng = this._latlng.lng, lat = this._latlng.lat, map2 = this._map, crs = map2.options.crs;
             if (crs.distance === Earth.distance) {
-              var d = Math.PI / 180, latR = this._mRadius / Earth.R / d, top = map.project([lat + latR, lng]), bottom = map.project([lat - latR, lng]), p = top.add(bottom).divideBy(2), lat2 = map.unproject(p).lat, lngR = Math.acos((Math.cos(latR * d) - Math.sin(lat * d) * Math.sin(lat2 * d)) / (Math.cos(lat * d) * Math.cos(lat2 * d))) / d;
+              var d = Math.PI / 180, latR = this._mRadius / Earth.R / d, top = map2.project([lat + latR, lng]), bottom = map2.project([lat - latR, lng]), p = top.add(bottom).divideBy(2), lat2 = map2.unproject(p).lat, lngR = Math.acos((Math.cos(latR * d) - Math.sin(lat * d) * Math.sin(lat2 * d)) / (Math.cos(lat * d) * Math.cos(lat2 * d))) / d;
               if (isNaN(lngR) || lngR === 0) {
                 lngR = latR / Math.cos(Math.PI / 180 * lat);
               }
-              this._point = p.subtract(map.getPixelOrigin());
-              this._radius = isNaN(lngR) ? 0 : p.x - map.project([lat2, lng - lngR]).x;
+              this._point = p.subtract(map2.getPixelOrigin());
+              this._radius = isNaN(lngR) ? 0 : p.x - map2.project([lat2, lng - lngR]).x;
               this._radiusY = p.y - top.y;
             } else {
               var latlng2 = crs.unproject(crs.project(this._latlng).subtract([this._mRadius, 0]));
-              this._point = map.latLngToLayerPoint(this._latlng);
-              this._radius = this._point.x - map.latLngToLayerPoint(latlng2).x;
+              this._point = map2.latLngToLayerPoint(this._latlng);
+              this._radius = this._point.x - map2.latLngToLayerPoint(latlng2).x;
             }
             this._updateBounds();
           }
@@ -6430,10 +6430,10 @@ var __async = (__this, __arguments, generator) => {
           // @method openOn(map: Map): this
           // Adds the overlay to the map.
           // Alternative to `map.openPopup(popup)`/`.openTooltip(tooltip)`.
-          openOn: function(map) {
-            map = arguments.length ? map : this._source._map;
-            if (!map.hasLayer(this)) {
-              map.addLayer(this);
+          openOn: function(map2) {
+            map2 = arguments.length ? map2 : this._source._map;
+            if (!map2.hasLayer(this)) {
+              map2.addLayer(this);
             }
             return this;
           },
@@ -6465,18 +6465,18 @@ var __async = (__this, __arguments, generator) => {
             }
             return this;
           },
-          onAdd: function(map) {
-            this._zoomAnimated = map._zoomAnimated;
+          onAdd: function(map2) {
+            this._zoomAnimated = map2._zoomAnimated;
             if (!this._container) {
               this._initLayout();
             }
-            if (map._fadeAnimated) {
+            if (map2._fadeAnimated) {
               setOpacity(this._container, 0);
             }
             clearTimeout(this._removeTimeout);
             this.getPane().appendChild(this._container);
             this.update();
-            if (map._fadeAnimated) {
+            if (map2._fadeAnimated) {
               setOpacity(this._container, 1);
             }
             this.bringToFront();
@@ -6485,8 +6485,8 @@ var __async = (__this, __arguments, generator) => {
               this.addInteractiveTarget(this._container);
             }
           },
-          onRemove: function(map) {
-            if (map._fadeAnimated) {
+          onRemove: function(map2) {
+            if (map2._fadeAnimated) {
               setOpacity(this._container, 0);
               this._removeTimeout = setTimeout(bind(remove, void 0, this._container), 200);
             } else {
@@ -6734,17 +6734,17 @@ var __async = (__this, __arguments, generator) => {
           // @method openOn(map: Map): this
           // Alternative to `map.openPopup(popup)`.
           // Adds the popup to the map and closes the previous one.
-          openOn: function(map) {
-            map = arguments.length ? map : this._source._map;
-            if (!map.hasLayer(this) && map._popup && map._popup.options.autoClose) {
-              map.removeLayer(map._popup);
+          openOn: function(map2) {
+            map2 = arguments.length ? map2 : this._source._map;
+            if (!map2.hasLayer(this) && map2._popup && map2._popup.options.autoClose) {
+              map2.removeLayer(map2._popup);
             }
-            map._popup = this;
-            return DivOverlay.prototype.openOn.call(this, map);
+            map2._popup = this;
+            return DivOverlay.prototype.openOn.call(this, map2);
           },
-          onAdd: function(map) {
-            DivOverlay.prototype.onAdd.call(this, map);
-            map.fire("popupopen", { popup: this });
+          onAdd: function(map2) {
+            DivOverlay.prototype.onAdd.call(this, map2);
+            map2.fire("popupopen", { popup: this });
             if (this._source) {
               this._source.fire("popupopen", { popup: this }, true);
               if (!(this._source instanceof Path)) {
@@ -6752,9 +6752,9 @@ var __async = (__this, __arguments, generator) => {
               }
             }
           },
-          onRemove: function(map) {
-            DivOverlay.prototype.onRemove.call(this, map);
-            map.fire("popupclose", { popup: this });
+          onRemove: function(map2) {
+            DivOverlay.prototype.onRemove.call(this, map2);
+            map2.fire("popupclose", { popup: this });
             if (this._source) {
               this._source.fire("popupclose", { popup: this }, true);
               if (!(this._source instanceof Path)) {
@@ -6830,9 +6830,9 @@ var __async = (__this, __arguments, generator) => {
               this._autopanning = false;
               return;
             }
-            var map = this._map, marginBottom = parseInt(getStyle(this._container, "marginBottom"), 10) || 0, containerHeight = this._container.offsetHeight + marginBottom, containerWidth = this._containerWidth, layerPos = new Point(this._containerLeft, -containerHeight - this._containerBottom);
+            var map2 = this._map, marginBottom = parseInt(getStyle(this._container, "marginBottom"), 10) || 0, containerHeight = this._container.offsetHeight + marginBottom, containerWidth = this._containerWidth, layerPos = new Point(this._containerLeft, -containerHeight - this._containerBottom);
             layerPos._add(getPosition(this._container));
-            var containerPos = map.layerPointToContainerPoint(layerPos), padding = toPoint(this.options.autoPanPadding), paddingTL = toPoint(this.options.autoPanPaddingTopLeft || padding), paddingBR = toPoint(this.options.autoPanPaddingBottomRight || padding), size = map.getSize(), dx = 0, dy = 0;
+            var containerPos = map2.layerPointToContainerPoint(layerPos), padding = toPoint(this.options.autoPanPadding), paddingTL = toPoint(this.options.autoPanPaddingTopLeft || padding), paddingBR = toPoint(this.options.autoPanPaddingBottomRight || padding), size = map2.getSize(), dx = 0, dy = 0;
             if (containerPos.x + containerWidth + paddingBR.x > size.x) {
               dx = containerPos.x + containerWidth - size.x + paddingBR.x;
             }
@@ -6849,7 +6849,7 @@ var __async = (__this, __arguments, generator) => {
               if (this.options.keepInView) {
                 this._autopanning = true;
               }
-              map.fire("autopanstart").panBy([dx, dy]);
+              map2.fire("autopanstart").panBy([dx, dy]);
             }
           },
           _getAnchor: function() {
@@ -7014,18 +7014,18 @@ var __async = (__this, __arguments, generator) => {
             // Tooltip container opacity.
             opacity: 0.9
           },
-          onAdd: function(map) {
-            DivOverlay.prototype.onAdd.call(this, map);
+          onAdd: function(map2) {
+            DivOverlay.prototype.onAdd.call(this, map2);
             this.setOpacity(this.options.opacity);
-            map.fire("tooltipopen", { tooltip: this });
+            map2.fire("tooltipopen", { tooltip: this });
             if (this._source) {
               this.addEventParent(this._source);
               this._source.fire("tooltipopen", { tooltip: this }, true);
             }
           },
-          onRemove: function(map) {
-            DivOverlay.prototype.onRemove.call(this, map);
-            map.fire("tooltipclose", { tooltip: this });
+          onRemove: function(map2) {
+            DivOverlay.prototype.onRemove.call(this, map2);
+            map2.fire("tooltipclose", { tooltip: this });
             if (this._source) {
               this.removeEventParent(this._source);
               this._source.fire("tooltipclose", { tooltip: this }, true);
@@ -7049,7 +7049,7 @@ var __async = (__this, __arguments, generator) => {
           _adjustPan: function() {
           },
           _setPosition: function(pos) {
-            var subX, subY, map = this._map, container = this._container, centerPoint = map.latLngToContainerPoint(map.getCenter()), tooltipPoint = map.layerPointToContainerPoint(pos), direction = this.options.direction, tooltipWidth = container.offsetWidth, tooltipHeight = container.offsetHeight, offset = toPoint(this.options.offset), anchor = this._getAnchor();
+            var subX, subY, map2 = this._map, container = this._container, centerPoint = map2.latLngToContainerPoint(map2.getCenter()), tooltipPoint = map2.layerPointToContainerPoint(pos), direction = this.options.direction, tooltipWidth = container.offsetWidth, tooltipHeight = container.offsetHeight, offset = toPoint(this.options.offset), anchor = this._getAnchor();
             if (direction === "top") {
               subX = tooltipWidth / 2;
               subY = tooltipHeight;
@@ -7382,13 +7382,13 @@ var __async = (__this, __arguments, generator) => {
             this._tiles = {};
             this._resetView();
           },
-          beforeAdd: function(map) {
-            map._addZoomLimit(this);
+          beforeAdd: function(map2) {
+            map2._addZoomLimit(this);
           },
-          onRemove: function(map) {
+          onRemove: function(map2) {
             this._removeAllTiles();
             remove(this._container);
-            map._removeZoomLimit(this);
+            map2._removeZoomLimit(this);
             this._container = null;
             this._tileZoom = void 0;
           },
@@ -7564,14 +7564,14 @@ var __async = (__this, __arguments, generator) => {
                 delete this._levels[z];
               }
             }
-            var level = this._levels[zoom2], map = this._map;
+            var level = this._levels[zoom2], map2 = this._map;
             if (!level) {
               level = this._levels[zoom2] = {};
               level.el = create$1("div", "leaflet-tile-container leaflet-zoom-animated", this._container);
               level.el.style.zIndex = maxZoom;
-              level.origin = map.project(map.unproject(map.getPixelOrigin()), zoom2).round();
+              level.origin = map2.project(map2.unproject(map2.getPixelOrigin()), zoom2).round();
               level.zoom = zoom2;
-              this._setZoomTransform(level, map.getCenter(), map.getZoom());
+              this._setZoomTransform(level, map2.getCenter(), map2.getZoom());
               falseFn(level.el.offsetWidth);
               this._onCreateLevel(level);
             }
@@ -7721,18 +7721,18 @@ var __async = (__this, __arguments, generator) => {
             }
           },
           _resetGrid: function() {
-            var map = this._map, crs = map.options.crs, tileSize = this._tileSize = this.getTileSize(), tileZoom = this._tileZoom;
+            var map2 = this._map, crs = map2.options.crs, tileSize = this._tileSize = this.getTileSize(), tileZoom = this._tileZoom;
             var bounds = this._map.getPixelWorldBounds(this._tileZoom);
             if (bounds) {
               this._globalTileRange = this._pxBoundsToTileRange(bounds);
             }
             this._wrapX = crs.wrapLng && !this.options.noWrap && [
-              Math.floor(map.project([0, crs.wrapLng[0]], tileZoom).x / tileSize.x),
-              Math.ceil(map.project([0, crs.wrapLng[1]], tileZoom).x / tileSize.y)
+              Math.floor(map2.project([0, crs.wrapLng[0]], tileZoom).x / tileSize.x),
+              Math.ceil(map2.project([0, crs.wrapLng[1]], tileZoom).x / tileSize.y)
             ];
             this._wrapY = crs.wrapLat && !this.options.noWrap && [
-              Math.floor(map.project([crs.wrapLat[0], 0], tileZoom).y / tileSize.x),
-              Math.ceil(map.project([crs.wrapLat[1], 0], tileZoom).y / tileSize.y)
+              Math.floor(map2.project([crs.wrapLat[0], 0], tileZoom).y / tileSize.x),
+              Math.ceil(map2.project([crs.wrapLat[1], 0], tileZoom).y / tileSize.y)
             ];
           },
           _onMoveEnd: function() {
@@ -7742,18 +7742,18 @@ var __async = (__this, __arguments, generator) => {
             this._update();
           },
           _getTiledPixelBounds: function(center) {
-            var map = this._map, mapZoom = map._animatingZoom ? Math.max(map._animateToZoom, map.getZoom()) : map.getZoom(), scale2 = map.getZoomScale(mapZoom, this._tileZoom), pixelCenter = map.project(center, this._tileZoom).floor(), halfSize = map.getSize().divideBy(scale2 * 2);
+            var map2 = this._map, mapZoom = map2._animatingZoom ? Math.max(map2._animateToZoom, map2.getZoom()) : map2.getZoom(), scale2 = map2.getZoomScale(mapZoom, this._tileZoom), pixelCenter = map2.project(center, this._tileZoom).floor(), halfSize = map2.getSize().divideBy(scale2 * 2);
             return new Bounds(pixelCenter.subtract(halfSize), pixelCenter.add(halfSize));
           },
           // Private method to load tiles in the grid's active zoom level according to map bounds
           _update: function(center) {
-            var map = this._map;
-            if (!map) {
+            var map2 = this._map;
+            if (!map2) {
               return;
             }
-            var zoom2 = this._clampZoom(map.getZoom());
+            var zoom2 = this._clampZoom(map2.getZoom());
             if (center === void 0) {
-              center = map.getCenter();
+              center = map2.getCenter();
             }
             if (this._tileZoom === void 0) {
               return;
@@ -7823,7 +7823,7 @@ var __async = (__this, __arguments, generator) => {
             return this._tileCoordsToBounds(this._keyToTileCoords(key));
           },
           _tileCoordsToNwSe: function(coords) {
-            var map = this._map, tileSize = this.getTileSize(), nwPoint = coords.scaleBy(tileSize), sePoint = nwPoint.add(tileSize), nw = map.unproject(nwPoint, coords.z), se = map.unproject(sePoint, coords.z);
+            var map2 = this._map, tileSize = this.getTileSize(), nwPoint = coords.scaleBy(tileSize), sePoint = nwPoint.add(tileSize), nw = map2.unproject(nwPoint, coords.z), se = map2.unproject(sePoint, coords.z);
             return [nw, se];
           },
           // converts tile coordinates to its geographical bounds
@@ -8190,12 +8190,12 @@ var __async = (__this, __arguments, generator) => {
             wmsParams.height = tileSize.y * realRetina;
             this.wmsParams = wmsParams;
           },
-          onAdd: function(map) {
-            this._crs = this.options.crs || map.options.crs;
+          onAdd: function(map2) {
+            this._crs = this.options.crs || map2.options.crs;
             this._wmsVersion = parseFloat(this.wmsParams.version);
             var projectionKey = this._wmsVersion >= 1.3 ? "crs" : "srs";
             this.wmsParams[projectionKey] = this._crs.code;
-            TileLayer.prototype.onAdd.call(this, map);
+            TileLayer.prototype.onAdd.call(this, map2);
           },
           getTileUrl: function(coords) {
             var tileBounds = this._tileCoordsToNwSe(coords), crs = this._crs, bounds = toBounds(crs.project(tileBounds[0]), crs.project(tileBounds[1])), min = bounds.min, max = bounds.max, bbox = (this._wmsVersion >= 1.3 && this._crs === EPSG4326 ? [min.y, min.x, max.y, max.x] : [min.x, min.y, max.x, max.y]).join(","), url = TileLayer.prototype.getTileUrl.call(this, coords);
@@ -8920,12 +8920,12 @@ var __async = (__this, __arguments, generator) => {
           boxZoom: true
         });
         var BoxZoom = Handler.extend({
-          initialize: function(map) {
-            this._map = map;
-            this._container = map._container;
-            this._pane = map._panes.overlayPane;
+          initialize: function(map2) {
+            this._map = map2;
+            this._container = map2._container;
+            this._pane = map2._panes.overlayPane;
             this._resetStateTimeout = 0;
-            map.on("unload", this._destroy, this);
+            map2.on("unload", this._destroy, this);
           },
           addHooks: function() {
             on(this._container, "mousedown", this._onMouseDown, this);
@@ -9034,11 +9034,11 @@ var __async = (__this, __arguments, generator) => {
             this._map.off("dblclick", this._onDoubleClick, this);
           },
           _onDoubleClick: function(e) {
-            var map = this._map, oldZoom = map.getZoom(), delta = map.options.zoomDelta, zoom2 = e.originalEvent.shiftKey ? oldZoom - delta : oldZoom + delta;
-            if (map.options.doubleClickZoom === "center") {
-              map.setZoom(zoom2);
+            var map2 = this._map, oldZoom = map2.getZoom(), delta = map2.options.zoomDelta, zoom2 = e.originalEvent.shiftKey ? oldZoom - delta : oldZoom + delta;
+            if (map2.options.doubleClickZoom === "center") {
+              map2.setZoom(zoom2);
             } else {
-              map.setZoomAround(e.containerPoint, zoom2);
+              map2.setZoomAround(e.containerPoint, zoom2);
             }
           }
         });
@@ -9081,18 +9081,18 @@ var __async = (__this, __arguments, generator) => {
         var Drag = Handler.extend({
           addHooks: function() {
             if (!this._draggable) {
-              var map = this._map;
-              this._draggable = new Draggable(map._mapPane, map._container);
+              var map2 = this._map;
+              this._draggable = new Draggable(map2._mapPane, map2._container);
               this._draggable.on({
                 dragstart: this._onDragStart,
                 drag: this._onDrag,
                 dragend: this._onDragEnd
               }, this);
               this._draggable.on("predrag", this._onPreDragLimit, this);
-              if (map.options.worldCopyJump) {
+              if (map2.options.worldCopyJump) {
                 this._draggable.on("predrag", this._onPreDragWrap, this);
-                map.on("zoomend", this._onZoomEnd, this);
-                map.whenReady(this._onZoomEnd, this);
+                map2.on("zoomend", this._onZoomEnd, this);
+                map2.whenReady(this._onZoomEnd, this);
               }
             }
             addClass(this._map._container, "leaflet-grab leaflet-touch-drag");
@@ -9112,8 +9112,8 @@ var __async = (__this, __arguments, generator) => {
             return this._draggable && this._draggable._moving;
           },
           _onDragStart: function() {
-            var map = this._map;
-            map._stop();
+            var map2 = this._map;
+            map2._stop();
             if (this._map.options.maxBounds && this._map.options.maxBoundsViscosity) {
               var bounds = toLatLngBounds(this._map.options.maxBounds);
               this._offsetLimit = toBounds(
@@ -9124,8 +9124,8 @@ var __async = (__this, __arguments, generator) => {
             } else {
               this._offsetLimit = null;
             }
-            map.fire("movestart").fire("dragstart");
-            if (map.options.inertia) {
+            map2.fire("movestart").fire("dragstart");
+            if (map2.options.inertia) {
               this._positions = [];
               this._times = [];
             }
@@ -9179,19 +9179,19 @@ var __async = (__this, __arguments, generator) => {
             this._draggable._newPos.x = newX;
           },
           _onDragEnd: function(e) {
-            var map = this._map, options = map.options, noInertia = !options.inertia || e.noInertia || this._times.length < 2;
-            map.fire("dragend", e);
+            var map2 = this._map, options = map2.options, noInertia = !options.inertia || e.noInertia || this._times.length < 2;
+            map2.fire("dragend", e);
             if (noInertia) {
-              map.fire("moveend");
+              map2.fire("moveend");
             } else {
               this._prunePositions(+/* @__PURE__ */ new Date());
               var direction = this._lastPos.subtract(this._positions[0]), duration = (this._lastTime - this._times[0]) / 1e3, ease = options.easeLinearity, speedVector = direction.multiplyBy(ease / duration), speed = speedVector.distanceTo([0, 0]), limitedSpeed = Math.min(options.inertiaMaxSpeed, speed), limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed), decelerationDuration = limitedSpeed / (options.inertiaDeceleration * ease), offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
               if (!offset.x && !offset.y) {
-                map.fire("moveend");
+                map2.fire("moveend");
               } else {
-                offset = map._limitOffset(offset, map.options.maxBounds);
+                offset = map2._limitOffset(offset, map2.options.maxBounds);
                 requestAnimFrame(function() {
-                  map.panBy(offset, {
+                  map2.panBy(offset, {
                     duration: decelerationDuration,
                     easeLinearity: ease,
                     noMoveStart: true,
@@ -9221,10 +9221,10 @@ var __async = (__this, __arguments, generator) => {
             zoomIn: [187, 107, 61, 171],
             zoomOut: [189, 109, 54, 173]
           },
-          initialize: function(map) {
-            this._map = map;
-            this._setPanDelta(map.options.keyboardPanDelta);
-            this._setZoomDelta(map.options.zoomDelta);
+          initialize: function(map2) {
+            this._map = map2;
+            this._setPanDelta(map2.options.keyboardPanDelta);
+            this._setZoomDelta(map2.options.zoomDelta);
           },
           addHooks: function() {
             var container = this._map._container;
@@ -9303,27 +9303,27 @@ var __async = (__this, __arguments, generator) => {
             if (e.altKey || e.ctrlKey || e.metaKey) {
               return;
             }
-            var key = e.keyCode, map = this._map, offset;
+            var key = e.keyCode, map2 = this._map, offset;
             if (key in this._panKeys) {
-              if (!map._panAnim || !map._panAnim._inProgress) {
+              if (!map2._panAnim || !map2._panAnim._inProgress) {
                 offset = this._panKeys[key];
                 if (e.shiftKey) {
                   offset = toPoint(offset).multiplyBy(3);
                 }
-                if (map.options.maxBounds) {
-                  offset = map._limitOffset(toPoint(offset), map.options.maxBounds);
+                if (map2.options.maxBounds) {
+                  offset = map2._limitOffset(toPoint(offset), map2.options.maxBounds);
                 }
-                if (map.options.worldCopyJump) {
-                  var newLatLng = map.wrapLatLng(map.unproject(map.project(map.getCenter()).add(offset)));
-                  map.panTo(newLatLng);
+                if (map2.options.worldCopyJump) {
+                  var newLatLng = map2.wrapLatLng(map2.unproject(map2.project(map2.getCenter()).add(offset)));
+                  map2.panTo(newLatLng);
                 } else {
-                  map.panBy(offset);
+                  map2.panBy(offset);
                 }
               }
             } else if (key in this._zoomKeys) {
-              map.setZoom(map.getZoom() + (e.shiftKey ? 3 : 1) * this._zoomKeys[key]);
-            } else if (key === 27 && map._popup && map._popup.options.closeOnEscapeKey) {
-              map.closePopup();
+              map2.setZoom(map2.getZoom() + (e.shiftKey ? 3 : 1) * this._zoomKeys[key]);
+            } else if (key === 27 && map2._popup && map2._popup.options.closeOnEscapeKey) {
+              map2.closePopup();
             } else {
               return;
             }
@@ -9369,18 +9369,18 @@ var __async = (__this, __arguments, generator) => {
             stop(e);
           },
           _performZoom: function() {
-            var map = this._map, zoom2 = map.getZoom(), snap = this._map.options.zoomSnap || 0;
-            map._stop();
-            var d2 = this._delta / (this._map.options.wheelPxPerZoomLevel * 4), d3 = 4 * Math.log(2 / (1 + Math.exp(-Math.abs(d2)))) / Math.LN2, d4 = snap ? Math.ceil(d3 / snap) * snap : d3, delta = map._limitZoom(zoom2 + (this._delta > 0 ? d4 : -d4)) - zoom2;
+            var map2 = this._map, zoom2 = map2.getZoom(), snap = this._map.options.zoomSnap || 0;
+            map2._stop();
+            var d2 = this._delta / (this._map.options.wheelPxPerZoomLevel * 4), d3 = 4 * Math.log(2 / (1 + Math.exp(-Math.abs(d2)))) / Math.LN2, d4 = snap ? Math.ceil(d3 / snap) * snap : d3, delta = map2._limitZoom(zoom2 + (this._delta > 0 ? d4 : -d4)) - zoom2;
             this._delta = 0;
             this._startTime = null;
             if (!delta) {
               return;
             }
-            if (map.options.scrollWheelZoom === "center") {
-              map.setZoom(zoom2 + delta);
+            if (map2.options.scrollWheelZoom === "center") {
+              map2.setZoom(zoom2 + delta);
             } else {
-              map.setZoomAround(this._lastMousePos, zoom2 + delta);
+              map2.setZoomAround(this._lastMousePos, zoom2 + delta);
             }
           }
         });
@@ -9479,21 +9479,21 @@ var __async = (__this, __arguments, generator) => {
             off(this._map._container, "touchstart", this._onTouchStart, this);
           },
           _onTouchStart: function(e) {
-            var map = this._map;
-            if (!e.touches || e.touches.length !== 2 || map._animatingZoom || this._zooming) {
+            var map2 = this._map;
+            if (!e.touches || e.touches.length !== 2 || map2._animatingZoom || this._zooming) {
               return;
             }
-            var p1 = map.mouseEventToContainerPoint(e.touches[0]), p2 = map.mouseEventToContainerPoint(e.touches[1]);
-            this._centerPoint = map.getSize()._divideBy(2);
-            this._startLatLng = map.containerPointToLatLng(this._centerPoint);
-            if (map.options.touchZoom !== "center") {
-              this._pinchStartLatLng = map.containerPointToLatLng(p1.add(p2)._divideBy(2));
+            var p1 = map2.mouseEventToContainerPoint(e.touches[0]), p2 = map2.mouseEventToContainerPoint(e.touches[1]);
+            this._centerPoint = map2.getSize()._divideBy(2);
+            this._startLatLng = map2.containerPointToLatLng(this._centerPoint);
+            if (map2.options.touchZoom !== "center") {
+              this._pinchStartLatLng = map2.containerPointToLatLng(p1.add(p2)._divideBy(2));
             }
             this._startDist = p1.distanceTo(p2);
-            this._startZoom = map.getZoom();
+            this._startZoom = map2.getZoom();
             this._moved = false;
             this._zooming = true;
-            map._stop();
+            map2._stop();
             on(document, "touchmove", this._onTouchMove, this);
             on(document, "touchend touchcancel", this._onTouchEnd, this);
             preventDefault(e);
@@ -9502,12 +9502,12 @@ var __async = (__this, __arguments, generator) => {
             if (!e.touches || e.touches.length !== 2 || !this._zooming) {
               return;
             }
-            var map = this._map, p1 = map.mouseEventToContainerPoint(e.touches[0]), p2 = map.mouseEventToContainerPoint(e.touches[1]), scale2 = p1.distanceTo(p2) / this._startDist;
-            this._zoom = map.getScaleZoom(scale2, this._startZoom);
-            if (!map.options.bounceAtZoomLimits && (this._zoom < map.getMinZoom() && scale2 < 1 || this._zoom > map.getMaxZoom() && scale2 > 1)) {
-              this._zoom = map._limitZoom(this._zoom);
+            var map2 = this._map, p1 = map2.mouseEventToContainerPoint(e.touches[0]), p2 = map2.mouseEventToContainerPoint(e.touches[1]), scale2 = p1.distanceTo(p2) / this._startDist;
+            this._zoom = map2.getScaleZoom(scale2, this._startZoom);
+            if (!map2.options.bounceAtZoomLimits && (this._zoom < map2.getMinZoom() && scale2 < 1 || this._zoom > map2.getMaxZoom() && scale2 > 1)) {
+              this._zoom = map2._limitZoom(this._zoom);
             }
-            if (map.options.touchZoom === "center") {
+            if (map2.options.touchZoom === "center") {
               this._center = this._startLatLng;
               if (scale2 === 1) {
                 return;
@@ -9517,14 +9517,14 @@ var __async = (__this, __arguments, generator) => {
               if (scale2 === 1 && delta.x === 0 && delta.y === 0) {
                 return;
               }
-              this._center = map.unproject(map.project(this._pinchStartLatLng, this._zoom).subtract(delta), this._zoom);
+              this._center = map2.unproject(map2.project(this._pinchStartLatLng, this._zoom).subtract(delta), this._zoom);
             }
             if (!this._moved) {
-              map._moveStart(true, false);
+              map2._moveStart(true, false);
               this._moved = true;
             }
             cancelAnimFrame(this._animRequest);
-            var moveFn = bind(map._move, map, this._center, this._zoom, { pinch: true, round: false }, void 0);
+            var moveFn = bind(map2._move, map2, this._center, this._zoom, { pinch: true, round: false }, void 0);
             this._animRequest = requestAnimFrame(moveFn, this, true);
             preventDefault(e);
           },
@@ -10124,16 +10124,16 @@ var __async = (__this, __arguments, generator) => {
         },
         //Zoom down to show the given layer (spiderfying if necessary) then calls the callback
         zoomToShowLayer: function(layer, callback) {
-          var map = this._map;
+          var map2 = this._map;
           if (typeof callback !== "function") {
             callback = function() {
             };
           }
           var showMarker = function() {
-            if ((map.hasLayer(layer) || map.hasLayer(layer.__parent)) && !this._inZoomAnimation) {
+            if ((map2.hasLayer(layer) || map2.hasLayer(layer.__parent)) && !this._inZoomAnimation) {
               this._map.off("moveend", showMarker, this);
               this.off("animationend", showMarker, this);
-              if (map.hasLayer(layer)) {
+              if (map2.hasLayer(layer)) {
                 callback();
               } else if (layer.__parent._icon) {
                 this.once("spiderfied", callback, this);
@@ -10153,18 +10153,18 @@ var __async = (__this, __arguments, generator) => {
           }
         },
         //Overrides FeatureGroup.onAdd
-        onAdd: function(map) {
-          this._map = map;
+        onAdd: function(map2) {
+          this._map = map2;
           var i, l, layer;
           if (!isFinite(this._map.getMaxZoom())) {
             throw "Map has no maxZoom specified";
           }
-          this._featureGroup.addTo(map);
-          this._nonPointGroup.addTo(map);
+          this._featureGroup.addTo(map2);
+          this._nonPointGroup.addTo(map2);
           if (!this._gridClusters) {
             this._generateInitialClusters();
           }
-          this._maxLat = map.options.crs.projection.MAX_LATITUDE;
+          this._maxLat = map2.options.crs.projection.MAX_LATITUDE;
           for (i = 0, l = this._needsRemoving.length; i < l; i++) {
             layer = this._needsRemoving[i];
             layer.newlatlng = layer.layer._latlng;
@@ -10189,9 +10189,9 @@ var __async = (__this, __arguments, generator) => {
           this.addLayers(l, true);
         },
         //Overrides FeatureGroup.onRemove
-        onRemove: function(map) {
-          map.off("zoomend", this._zoomEnd, this);
-          map.off("moveend", this._moveEnd, this);
+        onRemove: function(map2) {
+          map2.off("zoomend", this._zoomEnd, this);
+          map2.off("moveend", this._moveEnd, this);
           this._unbindEvents();
           this._map._mapPane.className = this._map._mapPane.className.replace(" leaflet-cluster-anim", "");
           if (this._spiderfierOnRemove) {
@@ -10227,9 +10227,9 @@ var __async = (__this, __arguments, generator) => {
          * @private
          */
         _removeFromGridUnclustered: function(marker, z) {
-          var map = this._map, gridUnclustered = this._gridUnclustered, minZoom = Math.floor(this._map.getMinZoom());
+          var map2 = this._map, gridUnclustered = this._gridUnclustered, minZoom = Math.floor(this._map.getMinZoom());
           for (; z >= minZoom; z--) {
-            if (!gridUnclustered[z].removeObject(marker, map.project(marker.getLatLng(), z))) {
+            if (!gridUnclustered[z].removeObject(marker, map2.project(marker.getLatLng(), z))) {
               break;
             }
           }
@@ -10262,7 +10262,7 @@ var __async = (__this, __arguments, generator) => {
         //Internal function for removing a marker from everything.
         //dontUpdateMap: set to true if you will handle updating the map manually (for bulk functions)
         _removeLayer: function(marker, removeFromDistanceGrid, dontUpdateMap) {
-          var gridClusters = this._gridClusters, gridUnclustered = this._gridUnclustered, fg = this._featureGroup, map = this._map, minZoom = Math.floor(this._map.getMinZoom());
+          var gridClusters = this._gridClusters, gridUnclustered = this._gridUnclustered, fg = this._featureGroup, map2 = this._map, minZoom = Math.floor(this._map.getMinZoom());
           if (removeFromDistanceGrid) {
             this._removeFromGridUnclustered(marker, this._maxZoom);
           }
@@ -10275,8 +10275,8 @@ var __async = (__this, __arguments, generator) => {
               break;
             } else if (removeFromDistanceGrid && cluster._childCount <= 1) {
               otherMarker = cluster._markers[0] === marker ? cluster._markers[1] : cluster._markers[0];
-              gridClusters[cluster._zoom].removeObject(cluster, map.project(cluster._cLatLng, cluster._zoom));
-              gridUnclustered[cluster._zoom].addObject(otherMarker, map.project(otherMarker.getLatLng(), cluster._zoom));
+              gridClusters[cluster._zoom].removeObject(cluster, map2.project(cluster._cLatLng, cluster._zoom));
+              gridUnclustered[cluster._zoom].addObject(otherMarker, map2.project(otherMarker.getLatLng(), cluster._zoom));
               this._arraySplice(cluster.__parent._childClusters, cluster);
               cluster.__parent._markers.push(otherMarker);
               otherMarker.__parent = cluster.__parent;
@@ -10330,14 +10330,14 @@ var __async = (__this, __arguments, generator) => {
           return new L.DivIcon({ html: "<div><span>" + childCount + "</span></div>", className: "marker-cluster" + c, iconSize: new L.Point(40, 40) });
         },
         _bindEvents: function() {
-          var map = this._map, spiderfyOnMaxZoom = this.options.spiderfyOnMaxZoom, showCoverageOnHover = this.options.showCoverageOnHover, zoomToBoundsOnClick = this.options.zoomToBoundsOnClick, spiderfyOnEveryZoom = this.options.spiderfyOnEveryZoom;
+          var map2 = this._map, spiderfyOnMaxZoom = this.options.spiderfyOnMaxZoom, showCoverageOnHover = this.options.showCoverageOnHover, zoomToBoundsOnClick = this.options.zoomToBoundsOnClick, spiderfyOnEveryZoom = this.options.spiderfyOnEveryZoom;
           if (spiderfyOnMaxZoom || zoomToBoundsOnClick || spiderfyOnEveryZoom) {
             this.on("clusterclick clusterkeypress", this._zoomOrSpiderfy, this);
           }
           if (showCoverageOnHover) {
             this.on("clustermouseover", this._showCoverage, this);
             this.on("clustermouseout", this._hideCoverage, this);
-            map.on("zoomend", this._hideCoverage, this);
+            map2.on("zoomend", this._hideCoverage, this);
           }
         },
         _zoomOrSpiderfy: function(e) {
@@ -10361,16 +10361,16 @@ var __async = (__this, __arguments, generator) => {
           }
         },
         _showCoverage: function(e) {
-          var map = this._map;
+          var map2 = this._map;
           if (this._inZoomAnimation) {
             return;
           }
           if (this._shownPolygon) {
-            map.removeLayer(this._shownPolygon);
+            map2.removeLayer(this._shownPolygon);
           }
           if (e.layer.getChildCount() > 2 && e.layer !== this._spiderfied) {
             this._shownPolygon = new L.Polygon(e.layer.getConvexHull(), this.options.polygonOptions);
-            map.addLayer(this._shownPolygon);
+            map2.addLayer(this._shownPolygon);
           }
         },
         _hideCoverage: function() {
@@ -10380,14 +10380,14 @@ var __async = (__this, __arguments, generator) => {
           }
         },
         _unbindEvents: function() {
-          var spiderfyOnMaxZoom = this.options.spiderfyOnMaxZoom, showCoverageOnHover = this.options.showCoverageOnHover, zoomToBoundsOnClick = this.options.zoomToBoundsOnClick, spiderfyOnEveryZoom = this.options.spiderfyOnEveryZoom, map = this._map;
+          var spiderfyOnMaxZoom = this.options.spiderfyOnMaxZoom, showCoverageOnHover = this.options.showCoverageOnHover, zoomToBoundsOnClick = this.options.zoomToBoundsOnClick, spiderfyOnEveryZoom = this.options.spiderfyOnEveryZoom, map2 = this._map;
           if (spiderfyOnMaxZoom || zoomToBoundsOnClick || spiderfyOnEveryZoom) {
             this.off("clusterclick clusterkeypress", this._zoomOrSpiderfy, this);
           }
           if (showCoverageOnHover) {
             this.off("clustermouseover", this._showCoverage, this);
             this.off("clustermouseout", this._hideCoverage, this);
-            map.off("zoomend", this._hideCoverage, this);
+            map2.off("zoomend", this._hideCoverage, this);
           }
         },
         _zoomEnd: function() {
@@ -10771,7 +10771,7 @@ var __async = (__this, __arguments, generator) => {
         },
         //Zoom to the minimum of showing all of the child markers, or the extents of this cluster
         zoomToBounds: function(fitBoundsOptions) {
-          var childClusters = this._childClusters.slice(), map = this._group._map, boundsZoom = map.getBoundsZoom(this._bounds), zoom = this._zoom + 1, mapZoom = map.getZoom(), i;
+          var childClusters = this._childClusters.slice(), map2 = this._group._map, boundsZoom = map2.getBoundsZoom(this._bounds), zoom = this._zoom + 1, mapZoom = map2.getZoom(), i;
           while (childClusters.length > 0 && boundsZoom > zoom) {
             zoom++;
             var newClusters = [];
@@ -11271,7 +11271,7 @@ var __async = (__this, __arguments, generator) => {
           if (this._group._spiderfied === this || this._group._inZoomAnimation) {
             return;
           }
-          var childMarkers = this.getAllChildMarkers(null, true), group = this._group, map = group._map, center = map.latLngToLayerPoint(this._latlng), positions;
+          var childMarkers = this.getAllChildMarkers(null, true), group = this._group, map2 = group._map, center = map2.latLngToLayerPoint(this._latlng), positions;
           this._group._unspiderfy();
           this._group._spiderfied = this;
           if (this._group.options.spiderfyShapePositions) {
@@ -11314,7 +11314,7 @@ var __async = (__this, __arguments, generator) => {
           return res;
         },
         _noanimationUnspiderfy: function() {
-          var group = this._group, map = group._map, fg = group._featureGroup, childMarkers = this.getAllChildMarkers(null, true), m, i;
+          var group = this._group, map2 = group._map, fg = group._featureGroup, childMarkers = this.getAllChildMarkers(null, true), m, i;
           group._ignoreMove = true;
           this.setOpacity(1);
           for (i = childMarkers.length - 1; i >= 0; i--) {
@@ -11328,7 +11328,7 @@ var __async = (__this, __arguments, generator) => {
               m.setZIndexOffset(0);
             }
             if (m._spiderLeg) {
-              map.removeLayer(m._spiderLeg);
+              map2.removeLayer(m._spiderLeg);
               delete m._spiderLeg;
             }
           }
@@ -11342,13 +11342,13 @@ var __async = (__this, __arguments, generator) => {
       });
       L.MarkerClusterNonAnimated = L.MarkerCluster.extend({
         _animationSpiderfy: function(childMarkers, positions) {
-          var group = this._group, map = group._map, fg = group._featureGroup, legOptions = this._group.options.spiderLegPolylineOptions, i, m, leg, newPos;
+          var group = this._group, map2 = group._map, fg = group._featureGroup, legOptions = this._group.options.spiderLegPolylineOptions, i, m, leg, newPos;
           group._ignoreMove = true;
           for (i = 0; i < childMarkers.length; i++) {
-            newPos = map.layerPointToLatLng(positions[i]);
+            newPos = map2.layerPointToLatLng(positions[i]);
             m = childMarkers[i];
             leg = new L.Polyline([this._latlng, newPos], legOptions);
-            map.addLayer(leg);
+            map2.addLayer(leg);
             m._spiderLeg = leg;
             m._preSpiderfyLatlng = m._latlng;
             m.setLatLng(newPos);
@@ -11370,7 +11370,7 @@ var __async = (__this, __arguments, generator) => {
       });
       L.MarkerCluster.include({
         _animationSpiderfy: function(childMarkers, positions) {
-          var me = this, group = this._group, map = group._map, fg = group._featureGroup, thisLayerLatLng = this._latlng, thisLayerPos = map.latLngToLayerPoint(thisLayerLatLng), svg = L.Path.SVG, legOptions = L.extend({}, this._group.options.spiderLegPolylineOptions), finalLegOpacity = legOptions.opacity, i, m, leg, legPath, legLength, newPos;
+          var me = this, group = this._group, map2 = group._map, fg = group._featureGroup, thisLayerLatLng = this._latlng, thisLayerPos = map2.latLngToLayerPoint(thisLayerLatLng), svg = L.Path.SVG, legOptions = L.extend({}, this._group.options.spiderLegPolylineOptions), finalLegOpacity = legOptions.opacity, i, m, leg, legPath, legLength, newPos;
           if (finalLegOpacity === void 0) {
             finalLegOpacity = L.MarkerClusterGroup.prototype.options.spiderLegPolylineOptions.opacity;
           }
@@ -11383,9 +11383,9 @@ var __async = (__this, __arguments, generator) => {
           group._ignoreMove = true;
           for (i = 0; i < childMarkers.length; i++) {
             m = childMarkers[i];
-            newPos = map.layerPointToLatLng(positions[i]);
+            newPos = map2.layerPointToLatLng(positions[i]);
             leg = new L.Polyline([thisLayerLatLng, newPos], legOptions);
-            map.addLayer(leg);
+            map2.addLayer(leg);
             m._spiderLeg = leg;
             if (svg) {
               legPath = leg._path;
@@ -11407,7 +11407,7 @@ var __async = (__this, __arguments, generator) => {
           group._forceLayout();
           group._animationStart();
           for (i = childMarkers.length - 1; i >= 0; i--) {
-            newPos = map.layerPointToLatLng(positions[i]);
+            newPos = map2.layerPointToLatLng(positions[i]);
             m = childMarkers[i];
             m._preSpiderfyLatlng = m._latlng;
             m.setLatLng(newPos);
@@ -11432,7 +11432,7 @@ var __async = (__this, __arguments, generator) => {
           }, 200);
         },
         _animationUnspiderfy: function(zoomDetails) {
-          var me = this, group = this._group, map = group._map, fg = group._featureGroup, thisLayerPos = zoomDetails ? map._latLngToNewLayerPoint(this._latlng, zoomDetails.zoom, zoomDetails.center) : map.latLngToLayerPoint(this._latlng), childMarkers = this.getAllChildMarkers(null, true), svg = L.Path.SVG, m, i, leg, legPath, legLength, nonAnimatable;
+          var me = this, group = this._group, map2 = group._map, fg = group._featureGroup, thisLayerPos = zoomDetails ? map2._latLngToNewLayerPoint(this._latlng, zoomDetails.zoom, zoomDetails.center) : map2.latLngToLayerPoint(this._latlng), childMarkers = this.getAllChildMarkers(null, true), svg = L.Path.SVG, m, i, leg, legPath, legLength, nonAnimatable;
           group._ignoreMove = true;
           group._animationStart();
           this.setOpacity(1);
@@ -11487,7 +11487,7 @@ var __async = (__this, __arguments, generator) => {
               if (stillThereChildCount > 1) {
                 fg.removeLayer(m);
               }
-              map.removeLayer(m._spiderLeg);
+              map2.removeLayer(m._spiderLeg);
               delete m._spiderLeg;
             }
             group._animationEnd();
@@ -12165,10 +12165,10 @@ var __async = (__this, __arguments, generator) => {
           // Set this to true if you don't want middle markers.
           skipMiddleMarkers: false
         },
-        initialize: function(map, options) {
+        initialize: function(map2, options) {
           L2.setOptions(this, options);
           this._lastZIndex = this.options.zIndex;
-          this.map = map;
+          this.map = map2;
           this.editLayer = this.createEditLayer();
           this.featuresLayer = this.createFeaturesLayer();
           this.forwardLineGuide = this.createLineGuide();
@@ -12441,8 +12441,8 @@ var __async = (__this, __arguments, generator) => {
           this.editor.editLayer.addLayer(this);
           this.setZIndexOffset(editor.tools._lastZIndex + 1);
         },
-        onAdd: function(map) {
-          L2.Marker.prototype.onAdd.call(this, map);
+        onAdd: function(map2) {
+          L2.Marker.prototype.onAdd.call(this, map2);
           this.on("drag", this.onDrag);
           this.on("dragstart", this.onDragStart);
           this.on("dragend", this.onDragEnd);
@@ -12454,7 +12454,7 @@ var __async = (__this, __arguments, generator) => {
           this.on("mouseout", this.onMouseOut);
           this.addMiddleMarkers();
         },
-        onRemove: function(map) {
+        onRemove: function(map2) {
           if (this.middleMarker)
             this.middleMarker.delete();
           delete this.latlng.__vertex;
@@ -12467,7 +12467,7 @@ var __async = (__this, __arguments, generator) => {
           this.off("mousedown touchstart", this.onMouseDown);
           this.off("mouseover", this.onMouseOver);
           this.off("mouseout", this.onMouseOut);
-          L2.Marker.prototype.onRemove.call(this, map);
+          L2.Marker.prototype.onRemove.call(this, map2);
         },
         onDrag: function(e) {
           e.vertex = this;
@@ -12647,16 +12647,16 @@ var __async = (__this, __arguments, generator) => {
           var leftPoint = this.editor.map.latLngToContainerPoint(this.left.latlng), rightPoint = this.editor.map.latLngToContainerPoint(this.right.latlng), y = (leftPoint.y + rightPoint.y) / 2, x = (leftPoint.x + rightPoint.x) / 2;
           return this.editor.map.containerPointToLatLng([x, y]);
         },
-        onAdd: function(map) {
-          L2.Marker.prototype.onAdd.call(this, map);
+        onAdd: function(map2) {
+          L2.Marker.prototype.onAdd.call(this, map2);
           L2.DomEvent.on(this._icon, "mousedown touchstart", this.onMouseDown, this);
-          map.on("zoomend", this.setVisibility, this);
+          map2.on("zoomend", this.setVisibility, this);
         },
-        onRemove: function(map) {
+        onRemove: function(map2) {
           delete this.right.middleMarker;
           L2.DomEvent.off(this._icon, "mousedown touchstart", this.onMouseDown, this);
-          map.off("zoomend", this.setVisibility, this);
-          L2.Marker.prototype.onRemove.call(this, map);
+          map2.off("zoomend", this.setVisibility, this);
+          L2.Marker.prototype.onRemove.call(this, map2);
         },
         onMouseDown: function(e) {
           var iconPos = L2.DomUtil.getPosition(this._icon), latlng = this.editor.map.layerPointToLatLng(iconPos);
@@ -12700,13 +12700,13 @@ var __async = (__this, __arguments, generator) => {
         middleMarkerClass: L2.Editable.MiddleMarker
       });
       L2.Editable.BaseEditor = L2.Handler.extend({
-        initialize: function(map, feature, options) {
+        initialize: function(map2, feature, options) {
           L2.setOptions(this, options);
-          this.map = map;
+          this.map = map2;
           this.feature = feature;
           this.feature.editor = this;
           this.editLayer = new L2.LayerGroup();
-          this.tools = this.options.editTools || map.editTools;
+          this.tools = this.options.editTools || map2.editTools;
         },
         // 🍂method enable(): this
         // Set up the drawing tools for the feature to be editable.
@@ -13367,8 +13367,8 @@ var __async = (__this, __arguments, generator) => {
         options: {
           skipMiddleMarkers: true
         },
-        initialize: function(map, feature, options) {
-          L2.Editable.PathEditor.prototype.initialize.call(this, map, feature, options);
+        initialize: function(map2, feature, options) {
+          L2.Editable.PathEditor.prototype.initialize.call(this, map2, feature, options);
           this._resizeLatLng = this.computeResizeLatLng();
         },
         computeResizeLatLng: function() {
@@ -13420,19 +13420,19 @@ var __async = (__this, __arguments, generator) => {
         }
       });
       var EditableMixin = {
-        createEditor: function(map) {
-          map = map || this._map;
-          var tools = (this.options.editOptions || {}).editTools || map.editTools;
+        createEditor: function(map2) {
+          map2 = map2 || this._map;
+          var tools = (this.options.editOptions || {}).editTools || map2.editTools;
           if (!tools)
             throw Error("Unable to detect Editable instance.");
           var Klass = this.options.editorClass || this.getEditorClass(tools);
-          return new Klass(map, this, this.options.editOptions);
+          return new Klass(map2, this, this.options.editOptions);
         },
         // 🍂method enableEdit(map?: L.Map): this.editor
         // Enable editing, by creating an editor if not existing, and then calling `enable` on it.
-        enableEdit: function(map) {
+        enableEdit: function(map2) {
           if (!this.editor)
-            this.createEditor(map);
+            this.createEditor(map2);
           this.editor.enable();
           return this.editor;
         },
@@ -13617,7 +13617,7 @@ var __async = (__this, __arguments, generator) => {
     leaflet: "1.9.4",
     "leaflet-editable": "1.2.0",
     "leaflet-path-drag": "^1.8.0-beta.3",
-    "leaflet-rastercoords": "1.0.5",
+    "leaflet-rastercoords": "1.0.6",
     "leaflet.markercluster": "1.5.3",
     "seneca-browser": "7.1.0",
     "seneca-entity": "25.1.3",
@@ -23249,7 +23249,7 @@ var __async = (__this, __arguments, generator) => {
               return e && e.__esModule ? e : { default: e };
             };
             Object.defineProperty(exports3, "__esModule", { value: true });
-            const Events = require2("events"), Util = require2("util"), GateExecutor = require2("gate-executor"), Jsonic = require2("@jsonic/jsonic-next"), UsePlugin = require2("use-plugin"), nid_1 = __importDefault(require2("nid")), patrun_1 = require2("patrun"), Stats = require2("rolling-stats"), { Ordu } = require2("ordu"), Eraro = require2("eraro"), gubu_1 = require2("gubu"), Common = require2("./lib/common"), { make_logging } = require2("./lib/logging"), { API } = require2("./lib/api"), { make_ready } = require2("./lib/ready"), Act = require2("./lib/act"), Add = require2("./lib/add"), Sub = require2("./lib/sub"), prior_1 = require2("./lib/prior"), plugin_1 = require2("./lib/plugin"), inward_1 = require2("./lib/inward"), outward_1 = require2("./lib/outward"), { Legacy } = require2("./lib/legacy"), { resolve_options } = require2("./lib/options"), { Print } = require2("./lib/print"), { addActions } = require2("./lib/actions"), { transport } = require2("./lib/transport"), package_json_1 = __importDefault(require2("./package.json")), { error, deep } = Common, { One, Any, Skip, Open } = gubu_1.Gubu, option_defaults = { tag: "-", timeout: 22222, idlen: 12, didlen: 4, id$: Skip(String), default_plugins: Open({}), test: false, quiet: false, log: Any(make_logging().default_logspec), logger: One(Function, Object, String, null), death_delay: 11111, deathdelay: 11111, close_delay: 22222, errhandler: Skip(One(Function, null)), from: Skip(String), module: Skip(), error: { capture: {}, identify: (e) => e instanceof Error }, valid: { active: true, message: true, option: true, plugin: true }, debug: { fragile: false, undead: false, print: { options: false, fatal: "summary", env: false, err: false, depth: 2 }, act_caller: false, short_logs: false, callpoint: false, deprecation: true, argv: One([], null), env: One({}, null), datalen: 111 }, strict: { result: true, fixedargs: true, add: false, find: true, maxloop: 11, exports: false }, history: { active: true, prune: true, interval: 100 }, trace: { act: One(Function, false), stack: false, unknown: One(String, true), invalid: false }, stats: { size: 1024, interval: 6e4, running: false }, plugin: {}, plugins: One({}, [], null), system: { exit: (...e) => {
+            const Events = require2("events"), Util = require2("util"), GateExecutor = require2("gate-executor"), Jsonic = require2("@jsonic/jsonic-next"), UsePlugin = require2("use-plugin"), nid_1 = __importDefault(require2("nid")), patrun_1 = require2("patrun"), Stats = require2("rolling-stats"), { Ordu } = require2("ordu"), Eraro = require2("eraro"), gubu_1 = require2("gubu"), Common = require2("./lib/common"), { make_logging } = require2("./lib/logging"), { API } = require2("./lib/api"), { make_ready } = require2("./lib/ready"), Act = require2("./lib/act"), Add = require2("./lib/add"), Sub = require2("./lib/sub"), prior_1 = require2("./lib/prior"), plugin_1 = require2("./lib/plugin"), inward_1 = require2("./lib/inward"), outward_1 = require2("./lib/outward"), { Legacy } = require2("./lib/legacy"), { resolve_options } = require2("./lib/options"), { Print } = require2("./lib/print"), { addActions } = require2("./lib/actions"), { transport } = require2("./lib/transport"), package_json_1 = __importDefault(require2("./package.json")), { error, deep } = Common, { One, Any: Any2, Skip, Open } = gubu_1.Gubu, option_defaults = { tag: "-", timeout: 22222, idlen: 12, didlen: 4, id$: Skip(String), default_plugins: Open({}), test: false, quiet: false, log: Any2(make_logging().default_logspec), logger: One(Function, Object, String, null), death_delay: 11111, deathdelay: 11111, close_delay: 22222, errhandler: Skip(One(Function, null)), from: Skip(String), module: Skip(), error: { capture: {}, identify: (e) => e instanceof Error }, valid: { active: true, message: true, option: true, plugin: true }, debug: { fragile: false, undead: false, print: { options: false, fatal: "summary", env: false, err: false, depth: 2 }, act_caller: false, short_logs: false, callpoint: false, deprecation: true, argv: One([], null), env: One({}, null), datalen: 111 }, strict: { result: true, fixedargs: true, add: false, find: true, maxloop: 11, exports: false }, history: { active: true, prune: true, interval: 100 }, trace: { act: One(Function, false), stack: false, unknown: One(String, true), invalid: false }, stats: { size: 1024, interval: 6e4, running: false }, plugin: {}, plugins: One({}, [], null), system: { exit: (...e) => {
               process.exit(...e);
             }, close_signals: { SIGHUP: false, SIGTERM: false, SIGINT: false, SIGBREAK: false }, plugin: { load_once: false }, action: { add: true } }, internal: Open({ print: { log: One(Function, null), err: One(Function, null) } }), status: { interval: 6e4, running: false }, transport: Open({ port: 10101, host: Skip(String), path: Skip(String), protocol: Skip(String) }), limits: { maxparents: 33 }, events: {}, legacy: One(Boolean, { actdef: false, action_signature: false, error: true, error_codes: false, fail: false, logging: false, meta: false, transport: true, timeout_string: true, rules: false, options: true, top_plugins: false }), order: { add: { debug: false }, inward: { debug: false }, outward: { debug: false }, use: { debug: false } }, prior: { direct: false }, reload$: Skip(Boolean) }, seneca_util = { Eraro, Jsonic, Nid: nid_1.default, Patrun: patrun_1.Patrun, Gex: patrun_1.Gex, Gubu: gubu_1.Gubu, pins: Common.pins, clean: Common.clean, pattern: Common.pattern, print: Common.print, error, deep: Common.deep, deepextend: Common.deep, parsepattern: Common.parsePattern, pincanon: Common.pincanon, router: function() {
               return (0, patrun_1.Patrun)();
@@ -25298,8 +25298,8 @@ var __async = (__this, __arguments, generator) => {
    * @copyright 2016- commenthol
    * @license MIT
    */
-  L.RasterCoords = function(map, imgsize, tilesize, setmaxbounds = true) {
-    this.map = map;
+  L.RasterCoords = function(map2, imgsize, tilesize, setmaxbounds = true) {
+    this.map = map2;
     this.width = imgsize[0];
     this.height = imgsize[1];
     this.tilesize = tilesize || 256;
@@ -25679,14 +25679,14 @@ div.plantquest-assetmap-asset-state-alarm {
     let $All = document2.querySelectorAll.bind(document2);
     let $Element = document2.createElement.bind(document2);
     let target = null;
-    let map = null;
+    let map2 = null;
     seneca.fix("srv:plantquest,part:assetmap").message("show:map", msgShowMap);
     function msgShowMap(msg) {
       return __async(this, null, function* () {
         let url = "https://plantquest-demo01-map01.s3.eu-west-1.amazonaws.com/tiles/pqd-pq01-m01-013/{z}/{x}/{y}.png";
         let tileLayer = L.tileLayer(url);
-        tileLayer.addTo(map);
-        map.setView([50.154377, 2154.375], 2);
+        tileLayer.addTo(map2);
+        map2.setView([50.154377, 2154.375], 2);
         return {
           ok: true
         };
@@ -25714,7 +25714,7 @@ div.plantquest-assetmap-asset-state-alarm {
         rootElement.style.position = "relative";
         rootElement.appendChild(mapElement);
         target.appendChild(rootElement);
-        map = L.map("plantquest-assetmap-map", {
+        map2 = L.map("plantquest-assetmap-map", {
           // crs: L.CRS.Simple,
           // scrollWheelZoom: false,
           // doubleClickZoom: false,
@@ -25722,12 +25722,12 @@ div.plantquest-assetmap-asset-state-alarm {
           // editable: true,
           minZoom: 2
         });
-        console.log("LeafletSetup", "prepare", map);
+        console.log("LeafletSetup", "prepare", map2);
       });
     });
     return {
       exports: {
-        getMap: () => map
+        getMap: () => map2
       }
     };
   }
@@ -26319,82 +26319,67 @@ div.plantquest-assetmap-asset-state-alarm {
   })(gubu_min$2, gubu_min$2.exports);
   var gubu_minExports = gubu_min$2.exports;
   const gubu_min$1 = /* @__PURE__ */ getDefaultExportFromCjs(gubu_minExports);
+  const { Any } = gubu_minExports.Gubu;
+  const PluginName = "GeofenceDisplay";
+  const OptionsShape = gubu_minExports.Gubu({
+    debug: false,
+    zIndex: 230,
+    pqam: Any(),
+    seneca: Any()
+  });
   const PlantquestGeofenceDisplay = L$1.Layer.extend({
     initialize: function(rawOptions) {
-      console.log("rawOptions IN", rawOptions);
-      L$1.Util.setOptions(this, rawOptions);
-      console.log("rawOptions SET", this.options);
-      this._state = {
+      const self2 = this;
+      self2.debug = rawOptions.debug ? (...args) => console.log(PluginName, ...args) : null;
+      const options = OptionsShape(rawOptions);
+      L$1.Util.setOptions(self2, options);
+      self2._state = {
         zindex: 0,
-        geofenceByID: {}
+        geofences: []
       };
     },
-    onAdd: function(map) {
+    onAdd: function(map2) {
       let self2 = this;
-      map.createPane("geofence");
-      let geofencePane = map.getPane("geofence");
-      geofencePane.style.zIndex = 230;
-      map.createPane("geofenceLabel");
-      let geofenceLabelPane = map.getPane("geofenceLabel");
-      geofenceLabelPane.style.zIndex = 235;
-      self2.options.debug && console.log("GeofenceDisplay onAdd function called.");
-      self2.options.debug && console.log(
-        "Local geofence variable before add:",
-        self2._state.geofenceByID
-      );
-      self2.options.geofences.forEach((geo) => {
-        let geofence = new Geofence(geo, {
-          map,
-          cfg: self2.options.pqam.config
-        });
-        self2._state.geofenceByID[geo.id] = geofence;
-        self2.showGeofence(geofence, true);
-      });
-      self2.options.debug && console.log(
-        "Local geofence variable after add:",
-        self2._state.geofenceByID
-      );
+      self2.debug && self2.debug("onAdd");
+      self2._state.map = map2;
+      const zIndex = this.options.zIndex;
+      map2.createPane("geofence");
+      self2._state.geofencePane = map2.getPane("geofence");
+      self2._state.geofencePane.style.zIndex = zIndex;
+      map2.createPane("geofenceLabel");
+      self2._state.geofenceLabelPane = map2.getPane("geofenceLabel");
+      self2._state.geofenceLabelPane.style.zIndex = zIndex + 5;
     },
     onRemove: function(_map) {
       let self2 = this;
-      self2.options.debug && console.log("GeofenceDisplay onRemove function called.");
-      self2.options.debug && console.log(
-        "Local geofence variable before remove:",
-        self2._state.geofenceByID
-      );
+      self2.debug && self2.debug("onRemove");
       self2.clearGeofences();
-      self2.options.debug && console.log(
-        "Local geofence variable after remove:",
-        self2._state.geofenceByID
-      );
+      map.removeLayer(self2._state.geofencePane);
+      map.removeLayer(self2._state.geofenceLabelPane);
     },
     events() {
+      let self2 = this;
       return {
         list: (event) => {
-          console.log("GF", event);
+          self2.debug && self2.debug("EVENT:list event", event);
+          self2.clearGeofences();
+          let geofences = self2._state.geofences;
+          let list = event.list || [];
+          list = list.filter((gfd) => !!gfd).map((gfd) => new Geofence(gfd, {
+            map: self2._state.map,
+            // TODO: only pass in config that we need
+            cfg: self2.options.pqam.config
+          })).map((gf) => (gf.show(), gf));
+          geofences.push(...list);
+          self2.debug && self2.debug("EVENT:list geofences", geofences);
         }
       };
     },
-    showGeofence: function(geofence, show) {
-      if (null == geofence) {
-        return;
-      }
-      show = !!show;
-      if (true === show) {
-        geofence.show();
-      } else if (false === show) {
-        geofence.hide();
-      }
-    },
     clearGeofences: function() {
-      let self2 = this;
-      for (let geofenceID in self2._state.geofenceByID) {
-        let geofence = self2._state.geofenceByID[geofenceID];
-        delete self2._state.geofenceByID[geofenceID];
-        if (geofence && geofence.hide) {
-          geofence.hide();
-        }
-      }
+      const self2 = this;
+      let geofences = self2._state.geofences;
+      geofences.map((gf) => gf.hide());
+      geofences.length = 0;
     }
   });
   class Geofence {
@@ -26465,48 +26450,54 @@ div.plantquest-assetmap-asset-state-alarm {
           timeout: 44444
         });
         this.seneca.error(console.log).test();
-        this.seneca.use(SenecaEntity).use(LeafletSetup, {});
+        this.seneca.use(SenecaEntity).use(LeafletSetup, {}).use(function FakeData(options) {
+          const seneca = this;
+          seneca.add("srv:plantquest,part:assetmap,list:geofence", function(msg, reply) {
+            let include = msg.include || [true, true, true];
+            let i = 0;
+            reply({ ok: true, list: [
+              include[i++] && {
+                id: "buildingA",
+                title: "Building A",
+                latlngs: [
+                  [52.7, 2086],
+                  [52.7, 2115.7],
+                  [47.4, 2115.7],
+                  [47.4, 2086]
+                ]
+              },
+              include[i++] && {
+                id: "buildingB",
+                title: "Building B",
+                latlngs: [
+                  [60.6, 2235],
+                  [60.6, 2255.3],
+                  [58.3, 2255.3],
+                  [58.3, 2252],
+                  [56.1, 2252],
+                  [56.1, 2235]
+                ]
+              },
+              include[i++] && {
+                id: "buildingC",
+                title: "Building C",
+                latlngs: [
+                  [3.4, 2155.6],
+                  [3.4, 2172.5],
+                  [-3.4, 2172.5],
+                  [-3.4, 2155.6]
+                ]
+              }
+            ] });
+          });
+        }, {});
         this.use(PlantquestGeofenceDisplay, {
           debug: true,
           seneca: {
             events: {
-              "list:geofence": "list"
+              "list:geofence,out$:true": "list"
             }
           },
-          geofences: [
-            {
-              id: "buildingA",
-              title: "Building A",
-              latlngs: [
-                [52.7, 2086],
-                [52.7, 2115.7],
-                [47.4, 2115.7],
-                [47.4, 2086]
-              ]
-            },
-            {
-              id: "buildingB",
-              title: "Building B",
-              latlngs: [
-                [60.6, 2235],
-                [60.6, 2255.3],
-                [58.3, 2255.3],
-                [58.3, 2252],
-                [56.1, 2252],
-                [56.1, 2235]
-              ]
-            },
-            {
-              id: "buildingC",
-              title: "Building C",
-              latlngs: [
-                [3.4, 2155.6],
-                [3.4, 2172.5],
-                [-3.4, 2172.5],
-                [-3.4, 2155.6]
-              ]
-            }
-          ],
           pqam: { config: { geofence: { click: { active: true }, color: "#f3f" } } }
         });
         this.seneca.message("srv:plantquest,part:assetmap,start:instance", function(msg) {
@@ -26533,9 +26524,9 @@ div.plantquest-assetmap-asset-state-alarm {
               options2.seneca = options2.seneca || {};
               options2.seneca.instance = seneca;
               const plugin = new LeafletPlugin(options2);
-              let map = this.export("LeafletSetup/getMap")();
+              let map2 = this.export("LeafletSetup/getMap")();
               if (plugin.addTo) {
-                plugin.addTo(map);
+                plugin.addTo(map2);
               }
               if (plugin.events) {
                 const events = plugin.events();
@@ -26544,12 +26535,17 @@ div.plantquest-assetmap-asset-state-alarm {
                   const eventPattern = entry[0];
                   const eventName = entry[1];
                   console.log("PLUGIN MSG SUB", eventPattern, eventName);
+                  let eventPat = seneca.util.Jsonic(eventPattern);
                   seneca.sub(
-                    "srv:plantquest,part:assetmap,out$:true",
-                    seneca.util.Jsonic(eventPattern),
+                    "srv:plantquest,part:assetmap",
+                    eventPat,
                     function(msg, out, meta) {
                       const eventCallback = events[eventName];
-                      return eventCallback(out);
+                      try {
+                        return eventCallback(eventPat.in$ ? msg : out);
+                      } catch (err) {
+                        console.error("EVENT-ERROR", err);
+                      }
                     }
                   );
                 });
