@@ -25735,6 +25735,94 @@ div.plantquest-assetmap-asset-state-alarm {
     target: "#plantquest-assetmap",
     document: "undefined" == document ? {} : document
   };
+  function PlantQuestData(options) {
+    const seneca = this;
+    let entNames = [
+      // 'asset',
+      // 'building',
+      "geofence"
+      // 'level',
+      // 'room',
+    ];
+    let frame;
+    let data = {};
+    seneca.fix("srv:plantquest,part:assetmap").message("load:frame", msgLoadFrame);
+    function msgLoadFrame(msg) {
+      return __async(this, null, function* () {
+        frame = msg.frame;
+        for (let entName of entNames) {
+          data[entName] = data[entName] || [];
+          data[entName].length = 0;
+          let query = __spreadValues({}, frame);
+          try {
+            let res = yield seneca.post(
+              "srv:plantquest,part:assetmap",
+              { list: entName, query }
+            );
+            if (res && res.ok) {
+              data[entName] = res.list;
+            }
+          } catch (e) {
+            console.log("ERROR", "list-ent", e);
+          }
+        }
+      });
+    }
+    seneca.prepare(function() {
+      return __async(this, null, function* () {
+        console.log("Plantquestdata prepare");
+      });
+    });
+    return {
+      exports: {}
+    };
+  }
+  PlantQuestData.defaults = {};
+  function MockData(options) {
+    const seneca = this;
+    seneca.message("srv:plantquest,part:assetmap,list:geofence", function(msg) {
+      return __async(this, null, function* () {
+        yield new Promise((r) => setTimeout(r, 111));
+        let include = msg.include || [true, true, true];
+        let i = 0;
+        return { ok: true, list: [
+          include[i++] && {
+            id: "buildingA",
+            title: "Building A",
+            latlngs: [
+              [52.7, 2086],
+              [52.7, 2115.7],
+              [47.4, 2115.7],
+              [47.4, 2086]
+            ]
+          },
+          include[i++] && {
+            id: "buildingB",
+            title: "Building B",
+            latlngs: [
+              [60.6, 2235],
+              [60.6, 2255.3],
+              [58.3, 2255.3],
+              [58.3, 2252],
+              [56.1, 2252],
+              [56.1, 2235]
+            ]
+          },
+          include[i++] && {
+            id: "buildingC",
+            title: "Building C",
+            latlngs: [
+              [3.4, 2155.6],
+              [3.4, 2172.5],
+              [-3.4, 2172.5],
+              [-3.4, 2155.6]
+            ]
+          }
+        ] };
+      });
+    });
+  }
+  MockData.defaults = {};
   var gubu_min$2 = { exports: {} };
   var gubu_min = gubu_min$2.exports;
   (function(module2, exports) {
@@ -26453,47 +26541,7 @@ div.plantquest-assetmap-asset-state-alarm {
           timeout: 44444
         });
         this.seneca.error(console.log).test();
-        this.seneca.use(SenecaEntity).use(LeafletSetup, {}).use(function FakeData(options) {
-          const seneca = this;
-          seneca.add("srv:plantquest,part:assetmap,list:geofence", function(msg, reply) {
-            let include = msg.include || [true, true, true];
-            let i = 0;
-            reply({ ok: true, list: [
-              include[i++] && {
-                id: "buildingA",
-                title: "Building A",
-                latlngs: [
-                  [52.7, 2086],
-                  [52.7, 2115.7],
-                  [47.4, 2115.7],
-                  [47.4, 2086]
-                ]
-              },
-              include[i++] && {
-                id: "buildingB",
-                title: "Building B",
-                latlngs: [
-                  [60.6, 2235],
-                  [60.6, 2255.3],
-                  [58.3, 2255.3],
-                  [58.3, 2252],
-                  [56.1, 2252],
-                  [56.1, 2235]
-                ]
-              },
-              include[i++] && {
-                id: "buildingC",
-                title: "Building C",
-                latlngs: [
-                  [3.4, 2155.6],
-                  [3.4, 2172.5],
-                  [-3.4, 2172.5],
-                  [-3.4, 2155.6]
-                ]
-              }
-            ] });
-          });
-        }, {});
+        this.seneca.use(SenecaEntity).use(MockData).use(LeafletSetup).use(PlantQuestData);
         this.use(PlantquestGeofenceDisplay, {
           seneca: {
             inbound: {
@@ -26511,6 +26559,11 @@ div.plantquest-assetmap-asset-state-alarm {
           return __async(this, null, function* () {
             yield this.post("srv:plantquest,part:assetmap,show:map", {
               // specify map
+            });
+            yield this.post("srv:plantquest,part:assetmap,load:frame", {
+              project: "bar",
+              plant: "foo",
+              stage: "dev"
             });
           });
         });
