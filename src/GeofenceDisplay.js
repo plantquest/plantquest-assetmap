@@ -32,7 +32,6 @@ const OptionsShape = Gubu({
 
 const PlantquestGeofenceDisplay = L.Layer.extend({
   initialize: function (
-    // this,
     rawOptions//: PlantquestGeofenceDisplayOptions
   ) {
     const self = this
@@ -43,7 +42,7 @@ const PlantquestGeofenceDisplay = L.Layer.extend({
     L.Util.setOptions(self, options)
     
     self._state = {
-      zindex: 0,
+      zIndex: 0,
       geofences: [],
     }
   },
@@ -75,7 +74,7 @@ const PlantquestGeofenceDisplay = L.Layer.extend({
     map.removeLayer(self._state.geofenceLabelPane)
   },
 
-
+  
   inbound() {
     let self = this
     

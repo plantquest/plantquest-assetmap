@@ -26335,7 +26335,7 @@ const PlantquestGeofenceDisplay = L$1.Layer.extend({
     const options = OptionsShape(rawOptions);
     L$1.Util.setOptions(self2, options);
     self2._state = {
-      zindex: 0,
+      zIndex: 0,
       geofences: []
     };
   },

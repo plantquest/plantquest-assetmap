@@ -26339,7 +26339,7 @@ div.plantquest-assetmap-asset-state-alarm {
       const options = OptionsShape(rawOptions);
       L$1.Util.setOptions(self2, options);
       self2._state = {
-        zindex: 0,
+        zIndex: 0,
         geofences: []
       };
     },
