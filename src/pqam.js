@@ -1202,6 +1202,9 @@ import './rastercoords.js'
             level.building_id===self.current.building?.id)
       
       levelsForBuilding.forEach((level,index)=>{
+      
+        let mapIndex = null != level.map ? (level.map-1) : index
+        
         levelActions.push(
           L.Toolbar2.Action.extend({
             options: {
@@ -1213,7 +1216,7 @@ import './rastercoords.js'
             addHooks: function () {
               markLevelSelector(index)
               
-              self.showMap(index,{
+              self.showMap(mapIndex,{
                 centerView:false,
                 startZoom:false,
                 showAllAssets:false,

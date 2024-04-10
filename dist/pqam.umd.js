@@ -25933,6 +25933,7 @@ var __async = (__this, __arguments, generator) => {
           return level.building_id === ((_a = self2.current.building) == null ? void 0 : _a.id);
         });
         levelsForBuilding.forEach((level, index2) => {
+          let mapIndex = null != level.map ? level.map - 1 : index2;
           levelActions.push(
             L$1.Toolbar2.Action.extend({
               options: {
@@ -25942,7 +25943,7 @@ var __async = (__this, __arguments, generator) => {
               },
               addHooks: function() {
                 markLevelSelector(index2);
-                self2.showMap(index2, {
+                self2.showMap(mapIndex, {
                   centerView: false,
                   startZoom: false,
                   showAllAssets: false,
