@@ -1309,7 +1309,7 @@ import './rastercoords.js'
                 x: building.center[0],
                 y: building.center[1]
               })
-              self.map.setView(coords, self.config.mapMinZoom)
+              self.map.setView(coords, self.map.getZoom())
               self.addLevelControl()
               self.emit({
                 srv:'plantquest',
