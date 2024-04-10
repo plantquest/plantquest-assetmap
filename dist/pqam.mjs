@@ -25521,7 +25521,7 @@ L.RasterCoords.prototype = {
                   delete self2.current.asset[assetInst.id];
                 }
               } else if (!existing) {
-                let show = assetEnt.map - 1 == self2.loc.map;
+                let show = assetEnt.map == self2.loc.map;
                 self2.data.assetMap[assetEnt.id] = assetEnt;
                 let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
                 if (-1 < index2) {
@@ -25666,7 +25666,7 @@ L.RasterCoords.prototype = {
       stateShown: {},
       asset: {},
       // TODO: use proper levels instead
-      map: -1
+      map: 1
     };
     self2.leaflet = {};
     self2.map = null;
@@ -25929,7 +25929,7 @@ L.RasterCoords.prototype = {
         return level.building_id === ((_a = self2.current.building) == null ? void 0 : _a.id);
       });
       levelsForBuilding.forEach((level, index2) => {
-        let mapIndex = null != level.map ? level.map - 1 : index2;
+        let mapIndex = null != level.map ? level.map : index2 + 1;
         levelActions.push(
           L$1.Toolbar2.Action.extend({
             options: {
@@ -26009,7 +26009,7 @@ L.RasterCoords.prototype = {
                 x: building.center[0],
                 y: building.center[1]
               });
-              self2.map.setView(coords, self2.config.mapMinZoom + 1);
+              self2.map.setView(coords, self2.config.mapMinZoom);
               self2.addLevelControl();
               self2.emit({
                 srv: "plantquest",
@@ -26108,7 +26108,7 @@ L.RasterCoords.prototype = {
             whence: "setAsset"
           });
         } else {
-          let show = assetEnt.map - 1 == self2.loc.map;
+          let show = assetEnt.map == self2.loc.map;
           show && assetInst.show({
             pqam: self2,
             assetID: assetEnt.id,
@@ -26132,7 +26132,7 @@ L.RasterCoords.prototype = {
       let yco = convert_poly_y(self2.config.mapImg, self2.loc.y);
       let rooms = Object.values(self2.data.room);
       for (let room of rooms) {
-        if (1 + self2.loc.map != room.map) {
+        if (self2.loc.map != room.map) {
           continue;
         }
         let roomInst = self2.room.map[room.id];
@@ -26425,7 +26425,7 @@ L.RasterCoords.prototype = {
         if (self2.leaflet.maptile) {
           self2.leaflet.maptile.remove(self2.map);
         }
-        self2.leaflet.maptile = self2.createTile(mapIndex + 1);
+        self2.leaflet.maptile = self2.createTile(mapIndex);
         self2.leaflet.maptile.addTo(self2.map);
         self2.loc.map = mapIndex;
         self2.zoomEndRender();
@@ -26809,6 +26809,9 @@ L.RasterCoords.prototype = {
                 let showargs = [];
                 for (let assetID of assetList) {
                   let assetInst = self2.asset.map[assetID];
+                  if (null == assetInst) {
+                    continue;
+                  }
                   let assetData = assetInst.ent;
                   if (assetData) {
                     if (msg.asset === assetData.id) {
@@ -26816,7 +26819,7 @@ L.RasterCoords.prototype = {
                     }
                     let shown = showAll || true;
                     shown = "hide" === msg.asset ? !shown : shown;
-                    shown = assetData.map - 1 == self2.loc.map ? shown : false;
+                    shown = assetData.map == self2.loc.map ? shown : false;
                     showargs.push([assetInst, {
                       pqam: self2,
                       state: stateName,
@@ -26864,7 +26867,7 @@ L.RasterCoords.prototype = {
                   let showInfoBox = null == msg.infobox ? self2.config.infobox.show : !!msg.infobox;
                   let assetMapIndex = assetData.map;
                   if (null != assetMapIndex) {
-                    let mapIndex = +assetMapIndex - 1;
+                    let mapIndex = assetMapIndex;
                     if (mapIndex !== self2.loc.map) {
                       self2.showMap(mapIndex, {
                         startZoom: false,
@@ -26921,7 +26924,7 @@ L.RasterCoords.prototype = {
                 if (geofence) {
                   let shown = showAll || -1 != geofenceIDList.indexOf(geofenceID);
                   shown = "geofence" === msg.hide ? false : shown;
-                  shown = geofence.ent.map - 1 == self2.loc.map ? shown : false;
+                  shown = geofence.ent.map == self2.loc.map ? shown : false;
                   self2.showGeofence(geofence, shown);
                 } else {
                   self2.log("ERROR", "send", "geofence", "unknown-geofence", geofenceID);
@@ -27275,7 +27278,7 @@ L.RasterCoords.prototype = {
     }
     // TODO: need a mapState object
     onZoom(zoom, mapID, layer) {
-      let mapMatch = 1 + parseInt(mapID) == parseInt(this.ent.map);
+      let mapMatch = parseInt(mapID) == parseInt(this.ent.map);
       let showRoomLabel = 1 === parseInt(this.ent.showlabel);
       let showNameZoom = null == this.cfgroom.label.zoom ? this.ctx.cfg.mapMaxZoom : this.cfgroom.label.zoom;
       let showLabel = showNameZoom <= zoom && mapMatch && showRoomLabel;

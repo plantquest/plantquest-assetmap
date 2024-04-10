@@ -260,6 +260,8 @@ import './rastercoords.js'
         self.map.setView(self.config.mapStart, self.config.mapStartZoom)
         return
       }
+      
+      
 
       self.clearAssets()
       self.clearGeofences()
@@ -278,6 +280,7 @@ import './rastercoords.js'
       }
       
       async function loading() {
+        
       //   if (false === self.current.started) {
       //     self.current.started = true
 
@@ -329,7 +332,12 @@ import './rastercoords.js'
                 part:'assetmap',
                 state: 'ready'
               })
+              
+              
+              
             })
+            
+            // self.current.started = true
           })
       }
 
@@ -633,7 +641,7 @@ import './rastercoords.js'
                 delete self.current.asset[assetInst.id]
               }
             } else if(!existing) { // POST
-              let show = assetEnt.map-1 == self.loc.map
+              let show = assetEnt.map == self.loc.map
               self.data.assetMap[assetEnt.id] = assetEnt
               
               let index = self.data.asset.findIndex(a=>a.id===assetEnt.id)
@@ -824,7 +832,7 @@ import './rastercoords.js'
       asset: {},
 
       // TODO: use proper levels instead
-      map: -1,
+      map: 1,
     }
 
     self.leaflet = {
@@ -1202,8 +1210,9 @@ import './rastercoords.js'
             level.building_id===self.current.building?.id)
       
       levelsForBuilding.forEach((level,index)=>{
-      
-        let mapIndex = null != level.map ? (level.map-1) : index
+        // index = index + 1
+        
+        let mapIndex = null != level.map ? level.map : index+1
         
         levelActions.push(
           L.Toolbar2.Action.extend({
@@ -1300,7 +1309,7 @@ import './rastercoords.js'
                 x: building.center[0],
                 y: building.center[1]
               })
-              self.map.setView(coords, self.config.mapMinZoom + 1)
+              self.map.setView(coords, self.config.mapMinZoom)
               self.addLevelControl()
               self.emit({
                 srv:'plantquest',
@@ -1433,7 +1442,7 @@ import './rastercoords.js'
           })
         }
         else {
-          let show = assetEnt.map-1 == self.loc.map
+          let show = assetEnt.map == self.loc.map
           show &&
            assetInst.show({
             pqam: self,
@@ -1465,7 +1474,7 @@ import './rastercoords.js'
       let rooms = Object.values(self.data.room)
 
       for(let room of rooms) {
-        if((1+self.loc.map) != room.map) {
+        if(self.loc.map != room.map) {
           continue
         }
 
@@ -1858,7 +1867,7 @@ import './rastercoords.js'
         if(self.leaflet.maptile) {
           self.leaflet.maptile.remove(self.map)
         }
-        self.leaflet.maptile = self.createTile(mapIndex+1)
+        self.leaflet.maptile = self.createTile(mapIndex)
         self.leaflet.maptile.addTo(self.map)
 
         self.loc.map = mapIndex
@@ -2343,6 +2352,11 @@ import './rastercoords.js'
             let showargs = []
             for(let assetID of assetList) {
               let assetInst = self.asset.map[assetID]
+              // console.log(assetID, assetInst, self.asset.map)
+              if(null == assetInst) {
+                continue
+              }
+              
               let assetData = assetInst.ent
               
               if(assetData) {
@@ -2356,7 +2370,7 @@ import './rastercoords.js'
                 
                 shown = 'hide'===msg.asset ? !shown : shown
 
-                shown = assetData.map-1 == self.loc.map ? shown : false
+                shown = assetData.map == self.loc.map ? shown : false
                 
                 showargs.push([assetInst,{
                   pqam: self,
@@ -2424,7 +2438,7 @@ import './rastercoords.js'
 
               let assetMapIndex = assetData.map
               if(null != assetMapIndex) {
-                let mapIndex = (+assetMapIndex)-1
+                let mapIndex = assetMapIndex
                 if(mapIndex !== self.loc.map) {
                   self.showMap(mapIndex, {
                     startZoom: false,
@@ -2494,7 +2508,7 @@ import './rastercoords.js'
             if(geofence) {
               let shown = showAll || -1!=geofenceIDList.indexOf(geofenceID)
               shown = 'geofence'===msg.hide ? false : shown
-              shown = (geofence.ent.map-1) == self.loc.map ? shown : false
+              shown = geofence.ent.map == self.loc.map ? shown : false
               
               self.showGeofence(geofence, shown)
             }
@@ -2956,7 +2970,7 @@ import './rastercoords.js'
 
     // TODO: need a mapState object
     onZoom(zoom, mapID, layer) {
-      let mapMatch = (1+parseInt(mapID)) == parseInt(this.ent.map)
+      let mapMatch = parseInt(mapID) == parseInt(this.ent.map)
       let showRoomLabel = 1 === parseInt(this.ent.showlabel)
       
       let showNameZoom =
