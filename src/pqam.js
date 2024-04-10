@@ -263,7 +263,7 @@ import './rastercoords.js'
       
       
 
-      self.clearAssets()
+      // self.clearAssets()
       self.clearGeofences()
       self.closeAssetInfo()
       self.closeClusterInfo()
