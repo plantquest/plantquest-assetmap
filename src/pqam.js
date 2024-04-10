@@ -72,6 +72,7 @@ import './rastercoords.js'
         mapRoomFocusZoom: 5,
         mapMinZoom: 1, // 2,
         mapMaxZoom: 6,
+        buildingZoom: 4,
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
@@ -1309,7 +1310,9 @@ import './rastercoords.js'
                 x: building.center[0],
                 y: building.center[1]
               })
-              self.map.setView(coords, self.map.getZoom())
+              
+              self.map.setView(coords, self.config.buildingZoom)
+              
               self.addLevelControl()
               self.emit({
                 srv:'plantquest',

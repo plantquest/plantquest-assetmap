@@ -24922,6 +24922,7 @@ var __async = (__this, __arguments, generator) => {
           mapMinZoom: 1,
           // 2,
           mapMaxZoom: 6,
+          buildingZoom: 4,
           assetFontScaleRoom: 10,
           assetFontScaleZoom: 4,
           assetFontHideZoom: -1,
@@ -25820,7 +25821,7 @@ var __async = (__this, __arguments, generator) => {
                   x: building.center[0],
                   y: building.center[1]
                 });
-                self2.map.setView(coords, self2.map.getZoom());
+                self2.map.setView(coords, self2.config.buildingZoom);
                 self2.addLevelControl();
                 self2.emit({
                   srv: "plantquest",

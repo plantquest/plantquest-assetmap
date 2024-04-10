@@ -24918,6 +24918,7 @@ L.RasterCoords.prototype = {
         mapMinZoom: 1,
         // 2,
         mapMaxZoom: 6,
+        buildingZoom: 4,
         assetFontScaleRoom: 10,
         assetFontScaleZoom: 4,
         assetFontHideZoom: -1,
@@ -25816,7 +25817,7 @@ L.RasterCoords.prototype = {
                 x: building.center[0],
                 y: building.center[1]
               });
-              self2.map.setView(coords, self2.map.getZoom());
+              self2.map.setView(coords, self2.config.buildingZoom);
               self2.addLevelControl();
               self2.emit({
                 srv: "plantquest",
