@@ -70,12 +70,12 @@ var __async = (__this, __arguments, generator) => {
     } else
       a = {};
     Object.defineProperty(a, "__esModule", { value: true });
-    Object.keys(n).forEach(function(k) {
-      var d = Object.getOwnPropertyDescriptor(n, k);
-      Object.defineProperty(a, k, d.get ? d : {
+    Object.keys(n).forEach(function(k2) {
+      var d = Object.getOwnPropertyDescriptor(n, k2);
+      Object.defineProperty(a, k2, d.get ? d : {
         enumerable: true,
         get: function() {
-          return n[k];
+          return n[k2];
         }
       });
     });
@@ -2215,9 +2215,9 @@ var __async = (__this, __arguments, generator) => {
             function easeOut(t) {
               return 1 - Math.pow(1 - t, 1.5);
             }
-            var start = Date.now(), S = (r(1) - r0) / rho, duration = options.duration ? 1e3 * options.duration : 1e3 * S * 0.8;
+            var start = Date.now(), S2 = (r(1) - r0) / rho, duration = options.duration ? 1e3 * options.duration : 1e3 * S2 * 0.8;
             function frame() {
-              var t = (Date.now() - start) / duration, s = easeOut(t) * S;
+              var t = (Date.now() - start) / duration, s = easeOut(t) * S2;
               if (t <= 1) {
                 this._flyToFrame = requestAnimFrame(frame, this);
                 this._move(
@@ -4044,18 +4044,18 @@ var __async = (__this, __arguments, generator) => {
           return newPoints;
         }
         function _simplifyDPStep(points, markers, sqTolerance, first, last) {
-          var maxSqDist = 0, index3, i, sqDist;
+          var maxSqDist = 0, index2, i, sqDist;
           for (i = first + 1; i <= last - 1; i++) {
             sqDist = _sqClosestPointOnSegment(points[i], points[first], points[last], true);
             if (sqDist > maxSqDist) {
-              index3 = i;
+              index2 = i;
               maxSqDist = sqDist;
             }
           }
           if (maxSqDist > sqTolerance) {
-            markers[index3] = 1;
-            _simplifyDPStep(points, markers, sqTolerance, first, index3);
-            _simplifyDPStep(points, markers, sqTolerance, index3, last);
+            markers[index2] = 1;
+            _simplifyDPStep(points, markers, sqTolerance, first, index2);
+            _simplifyDPStep(points, markers, sqTolerance, index2, last);
           }
         }
         function _reducePoints(points, sqTolerance) {
@@ -4165,12 +4165,12 @@ var __async = (__this, __arguments, generator) => {
           _flat
         };
         function clipPolygon(points, bounds, round) {
-          var clippedPoints, edges = [1, 4, 2, 8], i, j, k, a, b, len, edge2, p;
+          var clippedPoints, edges = [1, 4, 2, 8], i, j, k2, a, b, len, edge2, p;
           for (i = 0, len = points.length; i < len; i++) {
             points[i]._code = _getBitCode(points[i], bounds);
           }
-          for (k = 0; k < 4; k++) {
-            edge2 = edges[k];
+          for (k2 = 0; k2 < 4; k2++) {
+            edge2 = edges[k2];
             clippedPoints = [];
             for (i = 0, len = points.length, j = len - 1; i < len; j = i++) {
               a = points[i];
@@ -4226,7 +4226,7 @@ var __async = (__this, __arguments, generator) => {
             return new LatLng(phi * d, point.x * d / r);
           }
         };
-        var index2 = {
+        var index = {
           __proto__: null,
           LonLat,
           Mercator,
@@ -5512,19 +5512,19 @@ var __async = (__this, __arguments, generator) => {
               this._parts = this._rings;
               return;
             }
-            var parts = this._parts, i, j, k, len, len2, segment, points;
-            for (i = 0, k = 0, len = this._rings.length; i < len; i++) {
+            var parts = this._parts, i, j, k2, len, len2, segment, points;
+            for (i = 0, k2 = 0, len = this._rings.length; i < len; i++) {
               points = this._rings[i];
               for (j = 0, len2 = points.length; j < len2 - 1; j++) {
                 segment = clipSegment(points[j], points[j + 1], bounds, j, true);
                 if (!segment) {
                   continue;
                 }
-                parts[k] = parts[k] || [];
-                parts[k].push(segment[0]);
+                parts[k2] = parts[k2] || [];
+                parts[k2].push(segment[0]);
                 if (segment[1] !== points[j + 1] || j === len2 - 2) {
-                  parts[k].push(segment[1]);
-                  k++;
+                  parts[k2].push(segment[1]);
+                  k2++;
                 }
               }
             }
@@ -5549,17 +5549,17 @@ var __async = (__this, __arguments, generator) => {
           },
           // Needed by the `Canvas` renderer for interactivity
           _containsPoint: function(p, closed) {
-            var i, j, k, len, len2, part, w = this._clickTolerance();
+            var i, j, k2, len, len2, part, w = this._clickTolerance();
             if (!this._pxBounds || !this._pxBounds.contains(p)) {
               return false;
             }
             for (i = 0, len = this._parts.length; i < len; i++) {
               part = this._parts[i];
-              for (j = 0, len2 = part.length, k = len2 - 1; j < len2; k = j++) {
+              for (j = 0, len2 = part.length, k2 = len2 - 1; j < len2; k2 = j++) {
                 if (!closed && j === 0) {
                   continue;
                 }
-                if (pointToSegmentDistance(p, part[k], part[j]) <= w) {
+                if (pointToSegmentDistance(p, part[k2], part[j]) <= w) {
                   return true;
                 }
               }
@@ -5641,15 +5641,15 @@ var __async = (__this, __arguments, generator) => {
           },
           // Needed by the `Canvas` renderer for interactivity
           _containsPoint: function(p) {
-            var inside = false, part, p1, p2, i, j, k, len, len2;
+            var inside = false, part, p1, p2, i, j, k2, len, len2;
             if (!this._pxBounds || !this._pxBounds.contains(p)) {
               return false;
             }
             for (i = 0, len = this._parts.length; i < len; i++) {
               part = this._parts[i];
-              for (j = 0, len2 = part.length, k = len2 - 1; j < len2; k = j++) {
+              for (j = 0, len2 = part.length, k2 = len2 - 1; j < len2; k2 = j++) {
                 p1 = part[j];
-                p2 = part[k];
+                p2 = part[k2];
                 if (p1.y > p.y !== p2.y > p.y && p.x < (p2.x - p1.x) * (p.y - p1.y) / (p2.y - p1.y) + p1.x) {
                   inside = !inside;
                 }
@@ -7589,8 +7589,8 @@ var __async = (__this, __arguments, generator) => {
           },
           // converts tile cache key to coordinates
           _keyToTileCoords: function(key) {
-            var k = key.split(":"), coords = new Point(+k[0], +k[1]);
-            coords.z = +k[2];
+            var k2 = key.split(":"), coords = new Point(+k2[0], +k2[1]);
+            coords.z = +k2[2];
             return coords;
           },
           _removeTile: function(key) {
@@ -7845,8 +7845,8 @@ var __async = (__this, __arguments, generator) => {
             return zoom2 + zoomOffset;
           },
           _getSubdomain: function(tilePoint) {
-            var index3 = Math.abs(tilePoint.x + tilePoint.y) % this.options.subdomains.length;
-            return this.options.subdomains[index3];
+            var index2 = Math.abs(tilePoint.x + tilePoint.y) % this.options.subdomains.length;
+            return this.options.subdomains[index2];
           },
           // stops loading all tiles in the background layer
           _abortLoading: function() {
@@ -8041,7 +8041,7 @@ var __async = (__this, __arguments, generator) => {
             this._zoom = this._map.getZoom();
           }
         });
-        var Canvas2 = Renderer.extend({
+        var Canvas = Renderer.extend({
           // @section
           // @aka Canvas options
           options: {
@@ -8389,7 +8389,7 @@ var __async = (__this, __arguments, generator) => {
           }
         });
         function canvas(options) {
-          return Browser.canvas ? new Canvas2(options) : null;
+          return Browser.canvas ? new Canvas(options) : null;
         }
         var vmlCreate = function() {
           try {
@@ -8486,7 +8486,7 @@ var __async = (__this, __arguments, generator) => {
           }
         };
         var create = Browser.vml ? vmlCreate : svgCreate;
-        var SVG2 = Renderer.extend({
+        var SVG = Renderer.extend({
           _initContainer: function() {
             this._container = create("svg");
             this._container.setAttribute("pointer-events", "none");
@@ -8595,10 +8595,10 @@ var __async = (__this, __arguments, generator) => {
           }
         });
         if (Browser.vml) {
-          SVG2.include(vmlMixin);
+          SVG.include(vmlMixin);
         }
         function svg(options) {
-          return Browser.svg || Browser.vml ? new SVG2(options) : null;
+          return Browser.svg || Browser.vml ? new SVG(options) : null;
         }
         Map2.include({
           // @namespace Map; @method getRenderer(layer: Path): Renderer
@@ -8652,8 +8652,8 @@ var __async = (__this, __arguments, generator) => {
         function rectangle(latLngBounds, options) {
           return new Rectangle(latLngBounds, options);
         }
-        SVG2.create = create;
-        SVG2.pointsToPath = pointsToPath;
+        SVG.create = create;
+        SVG.pointsToPath = pointsToPath;
         GeoJSON.geometryToLayer = geometryToLayer;
         GeoJSON.coordsToLatLng = coordsToLatLng;
         GeoJSON.coordsToLatLngs = coordsToLatLngs;
@@ -9298,7 +9298,7 @@ var __async = (__this, __arguments, generator) => {
         exports2.Bounds = Bounds;
         exports2.Browser = Browser;
         exports2.CRS = CRS;
-        exports2.Canvas = Canvas2;
+        exports2.Canvas = Canvas;
         exports2.Circle = Circle;
         exports2.CircleMarker = CircleMarker;
         exports2.Class = Class;
@@ -9330,10 +9330,10 @@ var __async = (__this, __arguments, generator) => {
         exports2.Polyline = Polyline;
         exports2.Popup = Popup;
         exports2.PosAnimation = PosAnimation;
-        exports2.Projection = index2;
+        exports2.Projection = index;
         exports2.Rectangle = Rectangle;
         exports2.Renderer = Renderer;
-        exports2.SVG = SVG2;
+        exports2.SVG = SVG;
         exports2.SVGOverlay = SVGOverlay;
         exports2.TileLayer = TileLayer;
         exports2.Tooltip = Tooltip;
@@ -10725,8 +10725,8 @@ var __async = (__this, __arguments, generator) => {
               this._childClusters[j]._restorePosition();
             }
           } else {
-            for (var k = this._childClusters.length - 1; k >= 0; k--) {
-              this._childClusters[k]._recursivelyRestoreChildPositions(zoomLevel);
+            for (var k2 = this._childClusters.length - 1; k2 >= 0; k2--) {
+              this._childClusters[k2]._recursivelyRestoreChildPositions(zoomLevel);
             }
           }
         },
@@ -10842,15 +10842,15 @@ var __async = (__this, __arguments, generator) => {
           }
         },
         eachObject: function(fn, context) {
-          var i, j, k, len, row, cell, removed, grid = this._grid;
+          var i, j, k2, len, row, cell, removed, grid = this._grid;
           for (i in grid) {
             row = grid[i];
             for (j in row) {
               cell = row[j];
-              for (k = 0, len = cell.length; k < len; k++) {
-                removed = fn.call(context, cell[k]);
+              for (k2 = 0, len = cell.length; k2 < len; k2++) {
+                removed = fn.call(context, cell[k2]);
                 if (removed) {
-                  k--;
+                  k2--;
                   len--;
                 }
               }
@@ -10858,15 +10858,15 @@ var __async = (__this, __arguments, generator) => {
           }
         },
         getNearObject: function(point) {
-          var x = this._getCoord(point.x), y = this._getCoord(point.y), i, j, k, row, cell, len, obj, dist, objectPoint = this._objectPoint, closestDistSq = this._sqCellSize, closest = null;
+          var x = this._getCoord(point.x), y = this._getCoord(point.y), i, j, k2, row, cell, len, obj, dist, objectPoint = this._objectPoint, closestDistSq = this._sqCellSize, closest = null;
           for (i = y - 1; i <= y + 1; i++) {
             row = this._grid[i];
             if (row) {
               for (j = x - 1; j <= x + 1; j++) {
                 cell = row[j];
                 if (cell) {
-                  for (k = 0, len = cell.length; k < len; k++) {
-                    obj = cell[k];
+                  for (k2 = 0, len = cell.length; k2 < len; k2++) {
+                    obj = cell[k2];
                     dist = this._sqDist(objectPoint[L.Util.stamp(obj)], point);
                     if (dist < closestDistSq || dist <= closestDistSq && closest === null) {
                       closestDistSq = dist;
@@ -11391,95 +11391,60 @@ var __async = (__this, __arguments, generator) => {
   })(leaflet_markerclusterSrc$2, leaflet_markerclusterSrc$2.exports);
   var leaflet_markerclusterSrcExports = leaflet_markerclusterSrc$2.exports;
   const leaflet_markerclusterSrc$1 = /* @__PURE__ */ getDefaultExportFromCjs(leaflet_markerclusterSrcExports);
-  var SVG = {};
-  L.SVG.include({
+  leafletSrcExports.SVG.include({
     /**
      * Reset transform matrix
      */
-    _resetTransformPath: function(layer) {
-      layer._path.setAttributeNS(null, "transform", "");
+    _resetTransformPath: function(t) {
+      t._path.setAttributeNS(null, "transform", "");
     },
     /**
      * Applies matrix transformation to SVG
      * @param {L.Path}         layer
      * @param {Array.<Number>} matrix
      */
-    transformPath: function(layer, matrix) {
-      layer._path.setAttributeNS(
+    transformPath: function(t, i) {
+      t._path.setAttributeNS(
         null,
         "transform",
-        "matrix(" + matrix.join(" ") + ")"
+        "matrix(" + i.join(" ") + ")"
       );
     }
   });
-  var SVG_VML = {};
-  L.SVG.include(
-    !L.Browser.vml ? {} : {
+  leafletSrcExports.SVG.include(
+    leafletSrcExports.Browser.vml ? {
       /**
        * Reset transform matrix
        */
-      _resetTransformPath: function(layer) {
-        if (layer._skew) {
-          layer._skew.on = false;
-          layer._path.removeChild(layer._skew);
-          layer._skew = null;
-        }
+      _resetTransformPath: function(t) {
+        t._skew && (t._skew.on = false, t._path.removeChild(t._skew), t._skew = null);
       },
       /**
        * Applies matrix transformation to VML
        * @param {L.Path}         layer
        * @param {Array.<Number>} matrix
        */
-      transformPath: function(layer, matrix) {
-        var skew = layer._skew;
-        if (!skew) {
-          skew = L.SVG.create("skew");
-          layer._path.appendChild(skew);
-          skew.style.behavior = "url(#default#VML)";
-          layer._skew = skew;
-        }
-        var mt = matrix[0].toFixed(8) + " " + matrix[1].toFixed(8) + " " + matrix[2].toFixed(8) + " " + matrix[3].toFixed(8) + " 0 0";
-        var offset = Math.floor(matrix[4]).toFixed() + ", " + Math.floor(matrix[5]).toFixed();
-        var s = this._path.style;
-        var l = parseFloat(s.left);
-        var t = parseFloat(s.top);
-        var w = parseFloat(s.width);
-        var h = parseFloat(s.height);
-        if (isNaN(l))
-          l = 0;
-        if (isNaN(t))
-          t = 0;
-        if (isNaN(w) || !w)
-          w = 1;
-        if (isNaN(h) || !h)
-          h = 1;
-        var origin = (-l / w - 0.5).toFixed(8) + " " + (-t / h - 0.5).toFixed(8);
-        skew.on = "f";
-        skew.matrix = mt;
-        skew.origin = origin;
-        skew.offset = offset;
-        skew.on = true;
+      transformPath: function(t, i) {
+        let n = t._skew;
+        n || (n = leafletSrcExports.SVG.create("skew"), t._path.appendChild(n), n.style.behavior = "url(#default#VML)", t._skew = n);
+        const a = i[0].toFixed(8) + " " + i[1].toFixed(8) + " " + i[2].toFixed(8) + " " + i[3].toFixed(8) + " 0 0", r = Math.floor(i[4]).toFixed() + ", " + Math.floor(i[5]).toFixed(), s = this._path.style;
+        let e = parseFloat(s.left), o = parseFloat(s.top), _ = parseFloat(s.width), p = parseFloat(s.height);
+        isNaN(e) && (e = 0), isNaN(o) && (o = 0), (isNaN(_) || !_) && (_ = 1), (isNaN(p) || !p) && (p = 1);
+        const u = (-e / _ - 0.5).toFixed(8) + " " + (-o / p - 0.5).toFixed(8);
+        n.on = "f", n.matrix = a, n.origin = u, n.offset = r, n.on = true;
       }
-    }
+    } : {}
   );
-  var Canvas = {};
-  function TRUE_FN() {
+  function E() {
     return true;
   }
-  L.Canvas.include({
+  leafletSrcExports.Canvas.include({
     /**
      * Do nothing
      * @param  {L.Path} layer
      */
-    _resetTransformPath: function(layer) {
-      if (!this._containerCopy)
-        return;
-      delete this._containerCopy;
-      if (layer._containsPoint_) {
-        layer._containsPoint = layer._containsPoint_;
-        delete layer._containsPoint_;
-        this._requestRedraw(layer);
-      }
+    _resetTransformPath: function(t) {
+      this._containerCopy && (delete this._containerCopy, t._containsPoint_ && (t._containsPoint = t._containsPoint_, delete t._containsPoint_, this._requestRedraw(t)));
     },
     /**
      * Algorithm outline:
@@ -11496,60 +11461,26 @@ var __async = (__this, __arguments, generator) => {
      * @param  {L.Path}         layer
      * @param  {Array.<Number>} matrix
      */
-    transformPath: function(layer, matrix) {
-      var copy = this._containerCopy;
-      var ctx = this._ctx, copyCtx;
-      var m = L.Browser.retina ? 2 : 1;
-      var bounds = this._bounds;
-      var size = bounds.getSize();
-      var pos = bounds.min;
-      if (!copy) {
-        copy = this._containerCopy = document.createElement("canvas");
-        copyCtx = copy.getContext("2d");
-        copy.width = m * size.x;
-        copy.height = m * size.y;
-        this._removePath(layer);
-        this._redraw();
-        copyCtx.translate(m * bounds.min.x, m * bounds.min.y);
-        copyCtx.drawImage(this._container, 0, 0);
-        this._initPath(layer);
-        layer._containsPoint_ = layer._containsPoint;
-        layer._containsPoint = TRUE_FN;
-      }
-      ctx.save();
-      ctx.clearRect(pos.x, pos.y, size.x * m, size.y * m);
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.restore();
-      ctx.save();
-      ctx.drawImage(this._containerCopy, 0, 0, size.x, size.y);
-      ctx.transform.apply(ctx, matrix);
-      this._drawing = true;
-      layer._updatePath();
-      this._drawing = false;
-      ctx.restore();
+    transformPath: function(t, i) {
+      let n = this._containerCopy;
+      const a = this._ctx;
+      let r;
+      const s = leafletSrcExports.Browser.retina ? 2 : 1, e = this._bounds, o = e.getSize(), _ = e.min;
+      n || (n = this._containerCopy = document.createElement("canvas"), r = n.getContext("2d"), n.width = s * o.x, n.height = s * o.y, this._removePath(t), this._redraw(), r.translate(s * e.min.x, s * e.min.y), r.drawImage(this._container, 0, 0), this._initPath(t), t._containsPoint_ = t._containsPoint, t._containsPoint = E), a.save(), a.clearRect(_.x, _.y, o.x * s, o.y * s), a.setTransform(1, 0, 0, 1, 0, 0), a.restore(), a.save(), a.drawImage(this._containerCopy, 0, 0, o.x, o.y), a.transform.apply(a, i), this._drawing = true, t._updatePath(), this._drawing = false, a.restore();
     }
   });
-  var Path_Transform = {};
   /**
    * Leaflet vector features drag functionality
    * @author Alexander Milevski <info@w8r.name>
    * @preserve
    */
-  L.Path.include({
+  leafletSrcExports.Path.include({
     /**
      * Applies matrix transformation to SVG
      * @param {Array.<Number>?} matrix
      */
-    _transform: function(matrix) {
-      if (this._renderer) {
-        if (matrix) {
-          this._renderer.transformPath(this, matrix);
-        } else {
-          this._renderer._resetTransformPath(this);
-          this._update();
-        }
-      }
-      return this;
+    _transform: function(t) {
+      return this._renderer && (t ? this._renderer.transformPath(this, t) : (this._renderer._resetTransformPath(this), this._update())), this;
     },
     /**
      * Check if the feature was dragged, that'll supress the click event
@@ -11557,31 +11488,26 @@ var __async = (__this, __arguments, generator) => {
      *
      * @param  {MouseEvent} e
      */
-    _onMouseClick: function(e) {
-      if (this.dragging && this.dragging.moved() || this._map.dragging && this._map.dragging.moved()) {
-        return;
-      }
-      this._fireMouseEvent(e);
+    _onMouseClick: function(t) {
+      this.dragging && this.dragging.moved() || this._map.dragging && this._map.dragging.moved() || this._fireMouseEvent(t);
     }
   });
-  var Path_Drag = {};
-  var END = {
+  const S = {
     mousedown: "mouseup",
     touchstart: "touchend",
     pointerdown: "touchend",
     MSPointerDown: "touchend"
-  };
-  var MOVE = {
+  }, M = {
     mousedown: "mousemove",
     touchstart: "touchmove",
     pointerdown: "touchmove",
     MSPointerDown: "touchmove"
   };
-  function distance(a, b) {
-    var dx = a.x - b.x, dy = a.y - b.y;
-    return Math.sqrt(dx * dx + dy * dy);
+  function k(t, i) {
+    const n = t.x - i.x, a = t.y - i.y;
+    return Math.sqrt(n * n + a * a);
   }
-  L.Handler.PathDrag = L.Handler.extend(
+  leafletSrcExports.Handler.PathDrag = leafletSrcExports.Handler.extend(
     /** @lends  L.Path.Drag.prototype */
     {
       statics: {
@@ -11591,39 +11517,23 @@ var __async = (__this, __arguments, generator) => {
        * @param  {L.Path} path
        * @constructor
        */
-      initialize: function(path) {
-        this._path = path;
-        this._matrix = null;
-        this._startPoint = null;
-        this._dragStartPoint = null;
-        this._mapDraggingWasEnabled = false;
-        this._path._dragMoved = false;
+      initialize: function(t) {
+        this._path = t, this._matrix = null, this._startPoint = null, this._dragStartPoint = null, this._mapDraggingWasEnabled = false, this._path._dragMoved = false;
       },
       /**
        * Enable dragging
        */
       addHooks: function() {
-        this._path.on("mousedown", this._onDragStart, this);
-        this._path.options.className = this._path.options.className ? this._path.options.className + " " + L.Handler.PathDrag.DRAGGING_CLS : L.Handler.PathDrag.DRAGGING_CLS;
-        if (this._path._path) {
-          L.DomUtil.addClass(this._path._path, L.Handler.PathDrag.DRAGGING_CLS);
-        }
+        this._path.on("mousedown", this._onDragStart, this), this._path.options.className = this._path.options.className ? this._path.options.className + " " + leafletSrcExports.Handler.PathDrag.DRAGGING_CLS : leafletSrcExports.Handler.PathDrag.DRAGGING_CLS, this._path._path && leafletSrcExports.DomUtil.addClass(this._path._path, leafletSrcExports.Handler.PathDrag.DRAGGING_CLS);
       },
       /**
        * Disable dragging
        */
       removeHooks: function() {
-        this._path.off("mousedown", this._onDragStart, this);
-        this._path.options.className = this._path.options.className.replace(
-          new RegExp("\\s+" + L.Handler.PathDrag.DRAGGING_CLS),
+        this._path.off("mousedown", this._onDragStart, this), this._path.options.className = this._path.options.className.replace(
+          new RegExp("\\s+" + leafletSrcExports.Handler.PathDrag.DRAGGING_CLS),
           ""
-        );
-        if (this._path._path) {
-          L.DomUtil.removeClass(
-            this._path._path,
-            L.Handler.PathDrag.DRAGGING_CLS
-          );
-        }
+        ), this._path._path && leafletSrcExports.DomUtil.removeClass(this._path._path, leafletSrcExports.Handler.PathDrag.DRAGGING_CLS);
       },
       /**
        * @return {Boolean}
@@ -11635,100 +11545,43 @@ var __async = (__this, __arguments, generator) => {
        * Start drag
        * @param  {L.MouseEvent} evt
        */
-      _onDragStart: function(evt) {
-        var eventType = evt.originalEvent._simulated ? "touchstart" : evt.originalEvent.type;
-        this._mapDraggingWasEnabled = false;
-        this._startPoint = evt.containerPoint.clone();
-        this._dragStartPoint = evt.containerPoint.clone();
-        this._matrix = [1, 0, 0, 1, 0, 0];
-        L.DomEvent.stop(evt.originalEvent);
-        L.DomUtil.addClass(
-          this._path._renderer._container,
-          "leaflet-interactive"
-        );
-        L.DomEvent.on(document, MOVE[eventType], this._onDrag, this).on(
+      _onDragStart: function(t) {
+        const i = t.originalEvent._simulated ? "touchstart" : t.originalEvent.type;
+        this._mapDraggingWasEnabled = false, this._startPoint = t.containerPoint.clone(), this._dragStartPoint = t.containerPoint.clone(), this._matrix = [1, 0, 0, 1, 0, 0], leafletSrcExports.DomEvent.stop(t.originalEvent), leafletSrcExports.DomUtil.addClass(this._path._renderer._container, "leaflet-interactive"), leafletSrcExports.DomEvent.on(document, M[i], this._onDrag, this).on(
           document,
-          END[eventType],
+          S[i],
           this._onDragEnd,
           this
-        );
-        if (this._path._map.dragging.enabled()) {
-          this._path._map.dragging.disable();
-          this._mapDraggingWasEnabled = true;
-        }
-        this._path._dragMoved = false;
-        if (this._path._popup) {
-          this._path._popup.close();
-        }
-        this._replaceCoordGetters(evt);
+        ), this._path._map.dragging.enabled() && (this._path._map.dragging.disable(), this._mapDraggingWasEnabled = true), this._path._dragMoved = false, this._path._popup && this._path._popup.close(), this._replaceCoordGetters(t);
       },
       /**
        * Dragging
        * @param  {L.MouseEvent} evt
        */
-      _onDrag: function(evt) {
-        L.DomEvent.stop(evt);
-        var first = evt.touches && evt.touches.length >= 1 ? evt.touches[0] : evt;
-        var containerPoint = this._path._map.mouseEventToContainerPoint(first);
-        if (evt.type === "touchmove" && !this._path._dragMoved) {
-          var totalMouseDragDistance = this._dragStartPoint.distanceTo(containerPoint);
-          if (totalMouseDragDistance <= this._path._map.options.tapTolerance) {
-            return;
-          }
-        }
-        var x = containerPoint.x;
-        var y = containerPoint.y;
-        var dx = x - this._startPoint.x;
-        var dy = y - this._startPoint.y;
-        if (dx || dy) {
-          if (!this._path._dragMoved) {
-            this._path._dragMoved = true;
-            this._path.options.interactive = false;
-            this._path._map.dragging._draggable._moved = true;
-            this._path.fire("dragstart", evt);
-            this._path.bringToFront();
-          }
-          this._matrix[4] += dx;
-          this._matrix[5] += dy;
-          this._startPoint.x = x;
-          this._startPoint.y = y;
-          this._path.fire("predrag", evt);
-          this._path._transform(this._matrix);
-          this._path.fire("drag", evt);
-        }
+      _onDrag: function(t) {
+        leafletSrcExports.DomEvent.stop(t);
+        const i = t.touches && t.touches.length >= 1 ? t.touches[0] : t, n = this._path._map.mouseEventToContainerPoint(i);
+        if (t.type === "touchmove" && !this._path._dragMoved && this._dragStartPoint.distanceTo(n) <= this._path._map.options.tapTolerance)
+          return;
+        const a = n.x, r = n.y, s = a - this._startPoint.x, e = r - this._startPoint.y;
+        (s || e) && (this._path._dragMoved || (this._path._dragMoved = true, this._path.options.interactive = false, this._path._map.dragging._draggable._moved = true, this._path.fire("dragstart", t), this._path.bringToFront()), this._matrix[4] += s, this._matrix[5] += e, this._startPoint.x = a, this._startPoint.y = r, this._path.fire("predrag", t), this._path._transform(this._matrix), this._path.fire("drag", t));
       },
       /**
        * Dragging stopped, apply
        * @param  {L.MouseEvent} evt
        */
-      _onDragEnd: function(evt) {
-        var containerPoint = this._path._map.mouseEventToContainerPoint(evt);
-        var moved = this.moved();
-        if (moved) {
-          this._transformPoints(this._matrix);
-          this._path._updatePath();
-          this._path._project();
-          this._path._transform(null);
-          L.DomEvent.stop(evt);
-        }
-        L.DomEvent.off(document, "mousemove touchmove", this._onDrag, this);
-        L.DomEvent.off(document, "mouseup touchend", this._onDragEnd, this);
-        this._restoreCoordGetters();
-        if (moved) {
+      _onDragEnd: function(t) {
+        const i = this._path._map.mouseEventToContainerPoint(t), n = this.moved();
+        if (n && (this._transformPoints(this._matrix), this._path._updatePath(), this._path._project(), this._path._transform(null), leafletSrcExports.DomEvent.stop(t)), leafletSrcExports.DomEvent.off(document, "mousemove touchmove", this._onDrag, this), leafletSrcExports.DomEvent.off(document, "mouseup touchend", this._onDragEnd, this), this._restoreCoordGetters(), n) {
           this._path.fire("dragend", {
-            distance: distance(this._dragStartPoint, containerPoint)
+            distance: k(this._dragStartPoint, i)
           });
-          var contains = this._path._containsPoint;
-          this._path._containsPoint = L.Util.falseFn;
-          L.Util.requestAnimFrame(function() {
-            this._path._dragMoved = false;
-            this._path.options.interactive = true;
-            this._path._containsPoint = contains;
+          const a = this._path._containsPoint;
+          this._path._containsPoint = leafletSrcExports.Util.falseFn, leafletSrcExports.Util.requestAnimFrame(function() {
+            this._path._dragMoved = false, this._path.options.interactive = true, this._path._containsPoint = a;
           }, this);
         }
-        if (this._mapDraggingWasEnabled) {
-          this._path._map.dragging.enable();
-        }
+        this._mapDraggingWasEnabled && this._path._map.dragging.enable();
       },
       /**
        * Applies transformation, does it in one sweep for performance,
@@ -11739,102 +11592,57 @@ var __async = (__this, __arguments, generator) => {
        *
        * @param {Array.<Number>} matrix
        */
-      _transformPoints: function(matrix, dest) {
-        var path = this._path;
-        var i, len, latlng;
-        var px = L.point(matrix[4], matrix[5]);
-        var crs = path._map.options.crs;
-        var transformation = crs.transformation;
-        var scale = crs.scale(path._map.getZoom());
-        var projection = crs.projection;
-        var diff = transformation.untransform(px, scale).subtract(transformation.untransform(L.point(0, 0), scale));
-        var applyTransform = !dest;
-        path._bounds = new L.LatLngBounds();
-        if (path._point) {
-          dest = projection.unproject(
-            projection.project(path._latlng)._add(diff)
-          );
-          if (applyTransform) {
-            path._latlng = dest;
-            path._point._add(px);
-          }
-        } else if (path._rings || path._parts) {
-          var rings = path._rings || path._parts;
-          var latlngs = path._latlngs;
-          dest = dest || latlngs;
-          if (!L.Util.isArray(latlngs[0])) {
-            latlngs = [latlngs];
-            dest = [dest];
-          }
-          for (i = 0, len = rings.length; i < len; i++) {
-            dest[i] = dest[i] || [];
-            for (var j = 0, jj = rings[i].length; j < jj; j++) {
-              latlng = latlngs[i][j];
-              dest[i][j] = projection.unproject(
-                projection.project(latlng)._add(diff)
-              );
-              if (applyTransform) {
-                path._bounds.extend(latlngs[i][j]);
-                rings[i][j]._add(px);
-              }
+      _transformPoints: function(t, i) {
+        const n = this._path, a = L.point(t[4], t[5]), r = n._map.options.crs, s = r.transformation, e = r.scale(n._map.getZoom()), o = r.projection, _ = s.untransform(a, e).subtract(s.untransform(leafletSrcExports.point(0, 0), e)), p = !i;
+        if (n._bounds = new leafletSrcExports.LatLngBounds(), n._point)
+          i = o.unproject(
+            o.project(n._latlng)._add(_)
+          ), p && (n._latlng = i, n._point._add(a));
+        else if (n._rings || n._parts) {
+          const u = n._rings || n._parts;
+          let c = n._latlngs;
+          i = i || c, leafletSrcExports.Util.isArray(c[0]) || (c = [c], i = [i]);
+          for (let g = 0, w = u.length; g < w; g++) {
+            i[g] = i[g] || [];
+            for (let d = 0, v = u[g].length; d < v; d++) {
+              const b = c[g][d];
+              i[g][d] = o.unproject(
+                o.project(b)._add(_)
+              ), p && (n._bounds.extend(c[g][d]), u[g][d]._add(a));
             }
           }
         }
-        return dest;
+        return i;
       },
       /**
        * If you want to read the latlngs during the drag - your right,
        * but they have to be transformed
        */
       _replaceCoordGetters: function() {
-        if (this._path.getLatLng) {
-          this._path.getLatLng_ = this._path.getLatLng;
-          this._path.getLatLng = L.Util.bind(function() {
-            return this.dragging._transformPoints(this.dragging._matrix, {});
-          }, this._path);
-        } else if (this._path.getLatLngs) {
-          this._path.getLatLngs_ = this._path.getLatLngs;
-          this._path.getLatLngs = L.Util.bind(function() {
-            return this.dragging._transformPoints(this.dragging._matrix, []);
-          }, this._path);
-        }
+        this._path.getLatLng ? (this._path.getLatLng_ = this._path.getLatLng, this._path.getLatLng = leafletSrcExports.Util.bind(function() {
+          return this.dragging._transformPoints(this.dragging._matrix, {});
+        }, this._path)) : this._path.getLatLngs && (this._path.getLatLngs_ = this._path.getLatLngs, this._path.getLatLngs = leafletSrcExports.Util.bind(function() {
+          return this.dragging._transformPoints(this.dragging._matrix, []);
+        }, this._path));
       },
       /**
        * Put back the getters
        */
       _restoreCoordGetters: function() {
-        if (this._path.getLatLng_) {
-          this._path.getLatLng = this._path.getLatLng_;
-          delete this._path.getLatLng_;
-        } else if (this._path.getLatLngs_) {
-          this._path.getLatLngs = this._path.getLatLngs_;
-          delete this._path.getLatLngs_;
-        }
+        this._path.getLatLng_ ? (this._path.getLatLng = this._path.getLatLng_, delete this._path.getLatLng_) : this._path.getLatLngs_ && (this._path.getLatLngs = this._path.getLatLngs_, delete this._path.getLatLngs_);
       }
     }
   );
-  L.Handler.PathDrag.makeDraggable = function(layer) {
-    layer.dragging = new L.Handler.PathDrag(layer);
-    return layer;
+  leafletSrcExports.Handler.PathDrag.makeDraggable = function(t) {
+    return t.dragging = new leafletSrcExports.Handler.PathDrag(t), t;
   };
-  L.Path.prototype.makeDraggable = function() {
-    return L.Handler.PathDrag.makeDraggable(this);
+  leafletSrcExports.Path.prototype.makeDraggable = function() {
+    return leafletSrcExports.Handler.PathDrag.makeDraggable(this);
   };
-  L.Path.addInitHook(function() {
-    if (this.options.draggable) {
-      this.options.interactive = true;
-      if (this.dragging) {
-        this.dragging.enable();
-      } else {
-        L.Handler.PathDrag.makeDraggable(this);
-        this.dragging.enable();
-      }
-    } else if (this.dragging) {
-      this.dragging.disable();
-    }
+  leafletSrcExports.Path.addInitHook(function() {
+    this.options.draggable ? (this.options.interactive = true, this.dragging ? this.dragging.enable() : (leafletSrcExports.Handler.PathDrag.makeDraggable(this), this.dragging.enable())) : this.dragging && this.dragging.disable();
   });
-  var leafletPathDrag = L.Path.Drag;
-  const index = /* @__PURE__ */ getDefaultExportFromCjs(leafletPathDrag);
+  const T = leafletSrcExports.Handler.PathDrag;
   var Leaflet_Editable$2 = { exports: {} };
   var Leaflet_Editable = Leaflet_Editable$2.exports;
   (function(module2, exports) {
@@ -12029,8 +11837,8 @@ var __async = (__this, __arguments, generator) => {
             if (this._drawingEditor !== editor)
               return;
             var origin = L2.point(mouseDown.originalEvent.clientX, mouseDown.originalEvent.clientY);
-            var distance2 = L2.point(e.originalEvent.clientX, e.originalEvent.clientY).distanceTo(origin);
-            if (Math.abs(distance2) < 9 * (window.devicePixelRatio || 1))
+            var distance = L2.point(e.originalEvent.clientX, e.originalEvent.clientY).distanceTo(origin);
+            if (Math.abs(distance) < 9 * (window.devicePixelRatio || 1))
               this._drawingEditor.onDrawingClick(e);
           }
         },
@@ -12286,8 +12094,8 @@ var __async = (__this, __arguments, generator) => {
         getPrevious: function() {
           if (this.latlngs.length < 2)
             return;
-          var index2 = this.getIndex(), previousIndex = index2 - 1;
-          if (index2 === 0 && this.editor.CLOSED)
+          var index = this.getIndex(), previousIndex = index - 1;
+          if (index === 0 && this.editor.CLOSED)
             previousIndex = this.getLastIndex();
           var previous = this.latlngs[previousIndex];
           if (previous)
@@ -12298,8 +12106,8 @@ var __async = (__this, __arguments, generator) => {
         getNext: function() {
           if (this.latlngs.length < 2)
             return;
-          var index2 = this.getIndex(), nextIndex = index2 + 1;
-          if (index2 === this.getLastIndex() && this.editor.CLOSED)
+          var index = this.getIndex(), nextIndex = index + 1;
+          if (index === this.getLastIndex() && this.editor.CLOSED)
             nextIndex = 0;
           var next = this.latlngs[nextIndex];
           if (next)
@@ -12339,10 +12147,10 @@ var __async = (__this, __arguments, generator) => {
         continue: function() {
           if (!this.editor.continueBackward)
             return;
-          var index2 = this.getIndex();
-          if (index2 === 0)
+          var index = this.getIndex();
+          if (index === 0)
             this.editor.continueBackward(this.latlngs);
-          else if (index2 === this.getLastIndex())
+          else if (index === this.getLastIndex())
             this.editor.continueForward(this.latlngs);
         }
       });
@@ -12656,7 +12464,7 @@ var __async = (__this, __arguments, generator) => {
             return;
           if (this.tools.drawing() && this.tools._drawingEditor !== this)
             return;
-          var index2 = e.vertex.getIndex(), commit;
+          var index = e.vertex.getIndex(), commit;
           if (e.originalEvent.ctrlKey) {
             this.onVertexMarkerCtrlClick(e);
           } else if (e.originalEvent.altKey) {
@@ -12665,12 +12473,12 @@ var __async = (__this, __arguments, generator) => {
             this.onVertexMarkerShiftClick(e);
           } else if (e.originalEvent.metaKey) {
             this.onVertexMarkerMetaKeyClick(e);
-          } else if (index2 === e.vertex.getLastIndex() && this._drawing === L2.Editable.FORWARD) {
-            if (index2 >= this.MIN_VERTEX - 1)
+          } else if (index === e.vertex.getLastIndex() && this._drawing === L2.Editable.FORWARD) {
+            if (index >= this.MIN_VERTEX - 1)
               commit = true;
-          } else if (index2 === 0 && this._drawing === L2.Editable.BACKWARD && this._drawnLatLngs.length >= this.MIN_VERTEX) {
+          } else if (index === 0 && this._drawing === L2.Editable.BACKWARD && this._drawnLatLngs.length >= this.MIN_VERTEX) {
             commit = true;
-          } else if (index2 === 0 && this._drawing === L2.Editable.FORWARD && this._drawnLatLngs.length >= this.MIN_VERTEX && this.CLOSED) {
+          } else if (index === 0 && this._drawing === L2.Editable.FORWARD && this._drawnLatLngs.length >= this.MIN_VERTEX && this.CLOSED) {
             commit = true;
           } else {
             this.onVertexRawMarkerClick(e);
@@ -12893,12 +12701,12 @@ var __async = (__this, __arguments, generator) => {
         },
         // 🍂method insertShape(shape: Array, index: int)
         // Insert a new shape to the Polygon or Polyline at given index (default is to append).
-        insertShape: function(shape, index2) {
+        insertShape: function(shape, index) {
           this.ensureMulti();
           shape = this.formatShape(shape);
-          if (typeof index2 === "undefined")
-            index2 = this.feature._latlngs.length;
-          this.feature._latlngs.splice(index2, 0, shape);
+          if (typeof index === "undefined")
+            index = this.feature._latlngs.length;
+          this.feature._latlngs.splice(index, 0, shape);
           this.feature.redraw();
           if (this._enabled)
             this.reset();
@@ -12975,14 +12783,14 @@ var __async = (__this, __arguments, generator) => {
         },
         // 🍂method splitShape(latlngs?: Array, index: int)
         // Split the given `latlngs` shape at index `index` and integrate new shape in instance `latlngs`.
-        splitShape: function(shape, index2) {
-          if (!index2 || index2 >= shape.length - 1)
+        splitShape: function(shape, index) {
+          if (!index || index >= shape.length - 1)
             return;
           this.ensureMulti();
           var shapeIndex = this.feature._latlngs.indexOf(shape);
           if (shapeIndex === -1)
             return;
-          var first = shape.slice(0, index2 + 1), second = shape.slice(index2);
+          var first = shape.slice(0, index + 1), second = shape.slice(index);
           second[0] = L2.latLng(second[0].lat, second[0].lng, second[0].alt);
           this.feature._latlngs.splice(shapeIndex, 1, first, second);
           this.refresh();
@@ -13062,7 +12870,7 @@ var __async = (__this, __arguments, generator) => {
           skipMiddleMarkers: true
         },
         extendBounds: function(e) {
-          var index2 = e.vertex.getIndex(), next = e.vertex.getNext(), previous = e.vertex.getPrevious(), oppositeIndex = (index2 + 2) % 4, opposite = e.vertex.latlngs[oppositeIndex], bounds = new L2.LatLngBounds(e.latlng, opposite);
+          var index = e.vertex.getIndex(), next = e.vertex.getNext(), previous = e.vertex.getPrevious(), oppositeIndex = (index + 2) % 4, opposite = e.vertex.latlngs[oppositeIndex], bounds = new L2.LatLngBounds(e.latlng, opposite);
           previous.latlng.update([e.latlng.lat, opposite.lng]);
           next.latlng.update([opposite.lat, e.latlng.lng]);
           this.updateBounds(bounds);
@@ -13225,15 +13033,15 @@ var __async = (__this, __arguments, generator) => {
         isInLatLngs: function(l, latlngs) {
           if (!latlngs)
             return false;
-          var i, k, len, part = [], p, w = this._clickTolerance();
+          var i, k2, len, part = [], p, w = this._clickTolerance();
           this._projectLatlngs(latlngs, part, this._pxBounds);
           part = part[0];
           p = this._map.latLngToLayerPoint(l);
           if (!this._pxBounds.contains(p)) {
             return false;
           }
-          for (i = 1, len = part.length, k = 0; i < len; k = i++) {
-            if (L2.LineUtil.pointToSegmentDistance(p, part[k], part[i]) <= w) {
+          for (i = 1, len = part.length, k2 = 0; i < len; k2 = i++) {
+            if (L2.LineUtil.pointToSegmentDistance(p, part[k2], part[i]) <= w) {
               return true;
             }
           }
@@ -13260,10 +13068,10 @@ var __async = (__this, __arguments, generator) => {
           return shape;
         },
         isInLatLngs: function(l, latlngs) {
-          var inside = false, l1, l2, j, k, len2;
-          for (j = 0, len2 = latlngs.length, k = len2 - 1; j < len2; k = j++) {
+          var inside = false, l1, l2, j, k2, len2;
+          for (j = 0, len2 = latlngs.length, k2 = len2 - 1; j < len2; k2 = j++) {
             l1 = latlngs[j];
-            l2 = latlngs[k];
+            l2 = latlngs[k2];
             if (l1.lat > l.lat !== l2.lat > l.lat && l.lng < (l2.lng - l1.lng) * (l.lat - l1.lat) / (l2.lat - l1.lat) + l1.lng) {
               inside = !inside;
             }
@@ -13506,7 +13314,7 @@ var __async = (__this, __arguments, generator) => {
                   }
                   return e3;
                 }
-                function k2(e3, t3, n2, r2, l3, i3) {
+                function k3(e3, t3, n2, r2, l3, i3) {
                   let s3 = { code: t3, details: n2, token: r2, rule: l3, ctx: i3 };
                   return null == e3 ? "" : e3.replace(/\$(\{?)([\w_0-9]+)(\}?)/g, (e4, t4, o3, a3) => {
                     let c3 = null != s3[o3] ? s3[o3] : null != n2[o3] ? n2[o3] : i3.meta && null != i3.meta[o3] ? i3.meta[o3] : null != r2[o3] ? r2[o3] : null != l3[o3] ? l3[o3] : null != i3.opts[o3] ? i3.opts[o3] : null != i3.cfg[o3] ? i3.cfg[o3] : null != i3[o3] ? i3[o3] : "$" + o3, u3 = t4 && a3 ? c3 : JSON.stringify(c3);
@@ -13523,9 +13331,9 @@ var __async = (__this, __arguments, generator) => {
                 function x2(e3, t3, n2, r2, l3) {
                   var i3, s3, o3;
                   try {
-                    let a3 = l3.cfg, c3 = l3.meta, u3 = k2(a3.error[e3] || (null === (i3 = null == t3 ? void 0 : t3.use) || void 0 === i3 ? void 0 : i3.err) && (t3.use.err.code || t3.use.err.message) || a3.error.unknown, e3, t3, n2, r2, l3);
+                    let a3 = l3.cfg, c3 = l3.meta, u3 = k3(a3.error[e3] || (null === (i3 = null == t3 ? void 0 : t3.use) || void 0 === i3 ? void 0 : i3.err) && (t3.use.err.code || t3.use.err.message) || a3.error.unknown, e3, t3, n2, r2, l3);
                     d2.function === typeof a3.hint && (a3.hint = __spreadValues(__spreadValues({}, a3.hint()), a3.hint));
-                    let p3 = ["\x1B[31m[jsonic/" + e3 + "]:\x1B[0m " + u3, "  \x1B[34m-->\x1B[0m " + (c3 && c3.fileName || "<no-file>") + ":" + n2.rI + ":" + n2.cI, b2(l3.src(), u3, n2), "", k2((a3.hint[e3] || (null === (o3 = null === (s3 = t3.use) || void 0 === s3 ? void 0 : s3.err) || void 0 === o3 ? void 0 : o3.message) || a3.hint.unknown || "").trim().split("\n").map((e4) => "  " + e4).join("\n"), e3, t3, n2, r2, l3), "", "  \x1B[2mhttps://jsonic.senecajs.org\x1B[0m", "  \x1B[2m--internal: rule=" + r2.name + "~" + r2.state + "; token=" + m2(n2.tin, l3.cfg) + (null == n2.why ? "" : "~" + n2.why) + "; plugins=" + l3.plgn().map((e4) => e4.name).join(",") + "--\x1B[0m\n"].join("\n"), h3 = { internal: { token: n2, ctx: l3 } };
+                    let p3 = ["\x1B[31m[jsonic/" + e3 + "]:\x1B[0m " + u3, "  \x1B[34m-->\x1B[0m " + (c3 && c3.fileName || "<no-file>") + ":" + n2.rI + ":" + n2.cI, b2(l3.src(), u3, n2), "", k3((a3.hint[e3] || (null === (o3 = null === (s3 = t3.use) || void 0 === s3 ? void 0 : s3.err) || void 0 === o3 ? void 0 : o3.message) || a3.hint.unknown || "").trim().split("\n").map((e4) => "  " + e4).join("\n"), e3, t3, n2, r2, l3), "", "  \x1B[2mhttps://jsonic.senecajs.org\x1B[0m", "  \x1B[2m--internal: rule=" + r2.name + "~" + r2.state + "; token=" + m2(n2.tin, l3.cfg) + (null == n2.why ? "" : "~" + n2.why) + "; plugins=" + l3.plgn().map((e4) => e4.name).join(",") + "--\x1B[0m\n"].join("\n"), h3 = { internal: { token: n2, ctx: l3 } };
                     return h3 = __spreadProps(__spreadValues({}, Object.create(h3)), { message: p3, code: e3, details: t3, meta: c3, fileName: c3 ? c3.fileName : void 0, lineNumber: n2.rI, columnNumber: n2.cI });
                   } catch (e4) {
                     return console.log(e4), {};
@@ -13537,7 +13345,7 @@ var __async = (__this, __arguments, generator) => {
                     return n2 = n2.substring(0, e3.debug.maxlen) + (e3.debug.maxlen < n2.length ? "..." : r.EMPTY);
                   };
                 }
-                function S2(e3, t3 = 44) {
+                function S3(e3, t3 = 44) {
                   let n2;
                   try {
                     n2 = "object" == typeof e3 ? JSON.stringify(e3) : "" + e3;
@@ -13549,7 +13357,7 @@ var __async = (__this, __arguments, generator) => {
                 function j2(e3, t3 = 5) {
                   return void 0 === e3 ? "" : ("" + e3).substring(0, t3).replace(/[\r\n\t]/g, ".");
                 }
-                function E2(...e3) {
+                function E3(...e3) {
                   return null == e3 ? {} : e3.filter((e4) => false !== e4).map((e4) => "object" == typeof e4 ? i2(e4).join(r.EMPTY) : e4).join(r.EMPTY).split(r.EMPTY).reduce((e4, t3) => (e4[t3] = t3.charCodeAt(0), e4), {});
                 }
                 function O2(e3) {
@@ -13558,7 +13366,7 @@ var __async = (__this, __arguments, generator) => {
                   return e3;
                 }
                 t2.JsonicError = p2, t2.configure = function(e3, t3, n2) {
-                  var r2, l3, c3, d3, p3, g3, k3, v3, b3, x3, y3, S3, j3, I2, T2, M2, N2, P2, C, w, R, _, A, L2, Y, $, F, U, J, B, K, V, D, z, G, Z, W, q, H, X, Q, ee, te, ne, re, le, ie, se, oe, ae;
+                  var r2, l3, c3, d3, p3, g3, k4, v3, b3, x3, y3, S4, j3, I2, T3, M3, N2, P2, C, w, R, _, A, L2, Y, $, F, U, J, B, K, V, D, z, G, Z, W, q, H, X, Q, ee, te, ne, re, le, ie, se, oe, ae;
                   const ce = t3 || {};
                   ce.t = ce.t || {}, ce.tI = ce.tI || 1;
                   const ue = (e4) => m2(e4, ce);
@@ -13567,8 +13375,8 @@ var __async = (__this, __arguments, generator) => {
                   ce.tokenSet = ce.tokenSet || {}, o2(de).map((e4) => {
                     let t4 = e4[0], n3 = e4[1];
                     ce.tokenSet[t4] ? (ce.tokenSet[t4].length = 0, ce.tokenSet[t4].push(...n3)) : ce.tokenSet[t4] = n3;
-                  }), ce.tokenSetTins = o2(ce.tokenSet).reduce((e4, t4) => (e4[t4[0]] = e4[t4[0]] || {}, t4[1].map((n3) => e4[t4[0]][n3] = true), e4), {}), ce.tokenSetTins.IGNORE = ce.tokenSetTins.IGNORE || {}, ce.space = { lex: !!(null === (g3 = n2.space) || void 0 === g3 ? void 0 : g3.lex), chars: E2(null === (k3 = n2.space) || void 0 === k3 ? void 0 : k3.chars), check: null === (v3 = n2.space) || void 0 === v3 ? void 0 : v3.check }, ce.line = { lex: !!(null === (b3 = n2.line) || void 0 === b3 ? void 0 : b3.lex), chars: E2(null === (x3 = n2.line) || void 0 === x3 ? void 0 : x3.chars), rowChars: E2(null === (y3 = n2.line) || void 0 === y3 ? void 0 : y3.rowChars), single: !!(null === (S3 = n2.line) || void 0 === S3 ? void 0 : S3.single), check: null === (j3 = n2.line) || void 0 === j3 ? void 0 : j3.check }, ce.text = { lex: !!(null === (I2 = n2.text) || void 0 === I2 ? void 0 : I2.lex), modify: ((null === (T2 = ce.text) || void 0 === T2 ? void 0 : T2.modify) || []).concat([null === (M2 = n2.text) || void 0 === M2 ? void 0 : M2.modify].flat()).filter((e4) => null != e4), check: null === (N2 = n2.text) || void 0 === N2 ? void 0 : N2.check }, ce.number = { lex: !!(null === (P2 = n2.number) || void 0 === P2 ? void 0 : P2.lex), hex: !!(null === (C = n2.number) || void 0 === C ? void 0 : C.hex), oct: !!(null === (w = n2.number) || void 0 === w ? void 0 : w.oct), bin: !!(null === (R = n2.number) || void 0 === R ? void 0 : R.bin), sep: null != (null === (_ = n2.number) || void 0 === _ ? void 0 : _.sep) && "" !== n2.number.sep, exclude: null === (A = n2.number) || void 0 === A ? void 0 : A.exclude, sepChar: null === (L2 = n2.number) || void 0 === L2 ? void 0 : L2.sep, check: null === (Y = n2.number) || void 0 === Y ? void 0 : Y.check }, ce.value = { lex: !!(null === ($ = n2.value) || void 0 === $ ? void 0 : $.lex), def: o2((null === (F = n2.value) || void 0 === F ? void 0 : F.def) || {}).reduce((e4, t4) => (null == t4[1] || false === t4[1] || t4[1].match || (e4[t4[0]] = t4[1]), e4), {}), defre: o2((null === (U = n2.value) || void 0 === U ? void 0 : U.def) || {}).reduce((e4, t4) => (t4[1] && t4[1].match && (e4[t4[0]] = t4[1], e4[t4[0]].consume = !!e4[t4[0]].consume), e4), {}) }, ce.rule = { start: null == (null === (J = n2.rule) || void 0 === J ? void 0 : J.start) ? "val" : n2.rule.start, maxmul: null == (null === (B = n2.rule) || void 0 === B ? void 0 : B.maxmul) ? 3 : n2.rule.maxmul, finish: !!(null === (K = n2.rule) || void 0 === K ? void 0 : K.finish), include: (null === (V = n2.rule) || void 0 === V ? void 0 : V.include) ? n2.rule.include.split(/\s*,+\s*/).filter((e4) => "" !== e4) : [], exclude: (null === (D = n2.rule) || void 0 === D ? void 0 : D.exclude) ? n2.rule.exclude.split(/\s*,+\s*/).filter((e4) => "" !== e4) : [] }, ce.map = { extend: !!(null === (z = n2.map) || void 0 === z ? void 0 : z.extend), merge: null === (G = n2.map) || void 0 === G ? void 0 : G.merge }, ce.list = { property: !!(null === (Z = n2.list) || void 0 === Z ? void 0 : Z.property) };
-                  let pe = Object.keys(ce.fixed.token).sort((e4, t4) => t4.length - e4.length).map((e4) => f2(e4)).join("|"), me = (null === (W = n2.comment) || void 0 === W ? void 0 : W.lex) ? (n2.comment.def ? s2(n2.comment.def) : []).filter((e4) => e4 && e4.lex).map((e4) => f2(e4.start)).join("|") : "", he = ["([", f2(i2(E2(ce.space.lex && ce.space.chars, ce.line.lex && ce.line.chars)).join("")), "]", ("string" == typeof n2.ender ? n2.ender.split("") : Array.isArray(n2.ender) ? n2.ender : []).map((e4) => "|" + f2(e4)).join(""), "" === pe ? "" : "|", pe, "" === me ? "" : "|", me, "|$)"];
+                  }), ce.tokenSetTins = o2(ce.tokenSet).reduce((e4, t4) => (e4[t4[0]] = e4[t4[0]] || {}, t4[1].map((n3) => e4[t4[0]][n3] = true), e4), {}), ce.tokenSetTins.IGNORE = ce.tokenSetTins.IGNORE || {}, ce.space = { lex: !!(null === (g3 = n2.space) || void 0 === g3 ? void 0 : g3.lex), chars: E3(null === (k4 = n2.space) || void 0 === k4 ? void 0 : k4.chars), check: null === (v3 = n2.space) || void 0 === v3 ? void 0 : v3.check }, ce.line = { lex: !!(null === (b3 = n2.line) || void 0 === b3 ? void 0 : b3.lex), chars: E3(null === (x3 = n2.line) || void 0 === x3 ? void 0 : x3.chars), rowChars: E3(null === (y3 = n2.line) || void 0 === y3 ? void 0 : y3.rowChars), single: !!(null === (S4 = n2.line) || void 0 === S4 ? void 0 : S4.single), check: null === (j3 = n2.line) || void 0 === j3 ? void 0 : j3.check }, ce.text = { lex: !!(null === (I2 = n2.text) || void 0 === I2 ? void 0 : I2.lex), modify: ((null === (T3 = ce.text) || void 0 === T3 ? void 0 : T3.modify) || []).concat([null === (M3 = n2.text) || void 0 === M3 ? void 0 : M3.modify].flat()).filter((e4) => null != e4), check: null === (N2 = n2.text) || void 0 === N2 ? void 0 : N2.check }, ce.number = { lex: !!(null === (P2 = n2.number) || void 0 === P2 ? void 0 : P2.lex), hex: !!(null === (C = n2.number) || void 0 === C ? void 0 : C.hex), oct: !!(null === (w = n2.number) || void 0 === w ? void 0 : w.oct), bin: !!(null === (R = n2.number) || void 0 === R ? void 0 : R.bin), sep: null != (null === (_ = n2.number) || void 0 === _ ? void 0 : _.sep) && "" !== n2.number.sep, exclude: null === (A = n2.number) || void 0 === A ? void 0 : A.exclude, sepChar: null === (L2 = n2.number) || void 0 === L2 ? void 0 : L2.sep, check: null === (Y = n2.number) || void 0 === Y ? void 0 : Y.check }, ce.value = { lex: !!(null === ($ = n2.value) || void 0 === $ ? void 0 : $.lex), def: o2((null === (F = n2.value) || void 0 === F ? void 0 : F.def) || {}).reduce((e4, t4) => (null == t4[1] || false === t4[1] || t4[1].match || (e4[t4[0]] = t4[1]), e4), {}), defre: o2((null === (U = n2.value) || void 0 === U ? void 0 : U.def) || {}).reduce((e4, t4) => (t4[1] && t4[1].match && (e4[t4[0]] = t4[1], e4[t4[0]].consume = !!e4[t4[0]].consume), e4), {}) }, ce.rule = { start: null == (null === (J = n2.rule) || void 0 === J ? void 0 : J.start) ? "val" : n2.rule.start, maxmul: null == (null === (B = n2.rule) || void 0 === B ? void 0 : B.maxmul) ? 3 : n2.rule.maxmul, finish: !!(null === (K = n2.rule) || void 0 === K ? void 0 : K.finish), include: (null === (V = n2.rule) || void 0 === V ? void 0 : V.include) ? n2.rule.include.split(/\s*,+\s*/).filter((e4) => "" !== e4) : [], exclude: (null === (D = n2.rule) || void 0 === D ? void 0 : D.exclude) ? n2.rule.exclude.split(/\s*,+\s*/).filter((e4) => "" !== e4) : [] }, ce.map = { extend: !!(null === (z = n2.map) || void 0 === z ? void 0 : z.extend), merge: null === (G = n2.map) || void 0 === G ? void 0 : G.merge }, ce.list = { property: !!(null === (Z = n2.list) || void 0 === Z ? void 0 : Z.property) };
+                  let pe = Object.keys(ce.fixed.token).sort((e4, t4) => t4.length - e4.length).map((e4) => f2(e4)).join("|"), me = (null === (W = n2.comment) || void 0 === W ? void 0 : W.lex) ? (n2.comment.def ? s2(n2.comment.def) : []).filter((e4) => e4 && e4.lex).map((e4) => f2(e4.start)).join("|") : "", he = ["([", f2(i2(E3(ce.space.lex && ce.space.chars, ce.line.lex && ce.line.chars)).join("")), "]", ("string" == typeof n2.ender ? n2.ender.split("") : Array.isArray(n2.ender) ? n2.ender : []).map((e4) => "|" + f2(e4)).join(""), "" === pe ? "" : "|", pe, "" === me ? "" : "|", me, "|$)"];
                   return ce.rePart = { fixed: pe, ender: he, commentStart: me }, ce.re = { ender: h2(null, ...he), rowChars: h2(null, f2(null === (q = n2.line) || void 0 === q ? void 0 : q.rowChars)), columns: h2(null, "[" + f2(null === (H = n2.line) || void 0 === H ? void 0 : H.chars) + "]", "(.*)$") }, ce.lex = { empty: !!(null === (X = n2.lex) || void 0 === X ? void 0 : X.empty), emptyResult: null === (Q = n2.lex) || void 0 === Q ? void 0 : Q.emptyResult, match: (null === (ee = n2.lex) || void 0 === ee ? void 0 : ee.match) ? o2(n2.lex.match).reduce((e4, t4) => {
                     let r3 = t4[0], l4 = t4[1];
                     if (l4) {
@@ -13581,7 +13389,7 @@ var __async = (__this, __arguments, generator) => {
                   return t3.tokenSet[e3];
                 }, t2.mesc = function(e3, t3) {
                   return (t3 = new String(e3)).esc = true, t3;
-                }, t2.regexp = h2, t2.escre = f2, t2.deep = g2, t2.errinject = k2, t2.trimstk = v2, t2.extract = b2, t2.errdesc = x2, t2.badlex = function(e3, t3, n2) {
+                }, t2.regexp = h2, t2.escre = f2, t2.deep = g2, t2.errinject = k3, t2.trimstk = v2, t2.extract = b2, t2.errdesc = x2, t2.badlex = function(e3, t3, n2) {
                   let r2 = e3.next.bind(e3);
                   return e3.next = (e4, l3, i3, s3) => {
                     let o3 = r2(e4, l3, i3, s3);
@@ -13607,9 +13415,9 @@ var __async = (__this, __arguments, generator) => {
                     } else
                       "function" == typeof t3.log && (e3.log = t3.log);
                   return e3.log;
-                }, t2.srcfmt = y2, t2.str = S2, t2.snip = j2, t2.clone = function(e3) {
+                }, t2.srcfmt = y2, t2.str = S3, t2.snip = j2, t2.clone = function(e3) {
                   return g2(Object.create(Object.getPrototypeOf(e3)), e3);
-                }, t2.charset = E2, t2.clean = O2, t2.filterRules = function(e3, t3) {
+                }, t2.charset = E3, t2.clean = O2, t2.filterRules = function(e3, t3) {
                   let n2 = ["open", "close"];
                   for (let r2 of n2)
                     e3.def[r2] = e3.def[r2].map((e4) => (e4.g = "string" == typeof e4.g ? (e4.g || "").split(/\s*,+\s*/) : e4.g || [], e4)).filter((e4) => t3.rule.include.reduce((t4, n3) => t4 || null != e4.g && -1 !== e4.g.indexOf(n3), 0 === t3.rule.include.length)).filter((e4) => t3.rule.exclude.reduce((t4, n3) => t4 && (null == e4.g || -1 === e4.g.indexOf(n3)), true));
@@ -13621,7 +13429,7 @@ var __async = (__this, __arguments, generator) => {
                       r2 = l3[t4], t4 < l3.length - 1 && (e3 = e3[r2] = e3[r2] || {});
                     return void 0 !== n2 && (e3[r2] = n2), e3[r2];
                   } catch (e4) {
-                    throw new Error("Cannot " + (void 0 === n2 ? "get" : "set") + " path " + t3 + " on object: " + S2(r) + (void 0 === n2 ? "" : " to value: " + S2(n2, 22)));
+                    throw new Error("Cannot " + (void 0 === n2 ? "get" : "set") + " path " + t3 + " on object: " + S3(r) + (void 0 === n2 ? "" : " to value: " + S3(n2, 22)));
                   }
                 }, t2.modlist = function(e3, t3) {
                   if (t3 && e3) {
@@ -13906,20 +13714,20 @@ var __async = (__this, __arguments, generator) => {
                       if (n5 && n5.done)
                         return n5.token;
                     }
-                    let { quoteMap: i3, escMap: s3, escChar: o3, escCharCode: a3, multiChars: c3, allowUnknown: u3, replaceCodeMap: d2, hasReplace: p2 } = n4, { pnt: m2, src: h2 } = t3, { sI: f2, rI: g2, cI: k2 } = m2, v2 = h2.length;
+                    let { quoteMap: i3, escMap: s3, escChar: o3, escCharCode: a3, multiChars: c3, allowUnknown: u3, replaceCodeMap: d2, hasReplace: p2 } = n4, { pnt: m2, src: h2 } = t3, { sI: f2, rI: g2, cI: k3 } = m2, v2 = h2.length;
                     if (i3[h2[f2]]) {
                       const i4 = h2[f2], b2 = f2, x2 = g2, y2 = c3[i4];
-                      ++f2, ++k2;
-                      let S2, j2 = [];
+                      ++f2, ++k3;
+                      let S3, j2 = [];
                       for (; f2 < v2; f2++) {
-                        k2++;
+                        k3++;
                         let r2 = h2[f2];
-                        if (S2 = void 0, i4 === r2) {
+                        if (S3 = void 0, i4 === r2) {
                           f2++;
                           break;
                         }
                         if (o3 === r2) {
-                          k2++;
+                          k3++;
                           let e4 = s3[h2[++f2]];
                           if (null != e4)
                             j2.push(e4);
@@ -13929,40 +13737,40 @@ var __async = (__this, __arguments, generator) => {
                             if (isNaN(e5)) {
                               if (n4.abandon)
                                 return;
-                              return f2 -= 2, k2 -= 2, m2.sI = f2, m2.cI = k2, t3.bad(l2.S.invalid_ascii, f2, f2 + 4);
+                              return f2 -= 2, k3 -= 2, m2.sI = f2, m2.cI = k3, t3.bad(l2.S.invalid_ascii, f2, f2 + 4);
                             }
                             let r3 = String.fromCharCode(e5);
-                            j2.push(r3), f2 += 1, k2 += 2;
+                            j2.push(r3), f2 += 1, k3 += 2;
                           } else if ("u" === h2[f2]) {
                             let e5 = "{" === h2[++f2] ? (f2++, 1) : 0, r3 = e5 ? 6 : 4, i5 = parseInt(h2.substring(f2, f2 + r3), 16);
                             if (isNaN(i5)) {
                               if (n4.abandon)
                                 return;
-                              return f2 = f2 - 2 - e5, k2 -= 2, m2.sI = f2, m2.cI = k2, t3.bad(l2.S.invalid_unicode, f2, f2 + r3 + 2 + 2 * e5);
+                              return f2 = f2 - 2 - e5, k3 -= 2, m2.sI = f2, m2.cI = k3, t3.bad(l2.S.invalid_unicode, f2, f2 + r3 + 2 + 2 * e5);
                             }
                             let s4 = String.fromCodePoint(i5);
-                            j2.push(s4), f2 += r3 - 1 + e5, k2 += r3 + e5;
+                            j2.push(s4), f2 += r3 - 1 + e5, k3 += r3 + e5;
                           } else {
                             if (!u3) {
                               if (n4.abandon)
                                 return;
-                              return m2.sI = f2, m2.cI = k2 - 1, t3.bad(l2.S.unexpected, f2, f2 + 1);
+                              return m2.sI = f2, m2.cI = k3 - 1, t3.bad(l2.S.unexpected, f2, f2 + 1);
                             }
                             j2.push(h2[f2]);
                           }
-                        } else if (p2 && void 0 !== (S2 = d2[h2.charCodeAt(f2)]))
-                          j2.push(S2), k2++;
+                        } else if (p2 && void 0 !== (S3 = d2[h2.charCodeAt(f2)]))
+                          j2.push(S3), k3++;
                         else {
                           let r3 = f2, s4 = i4.charCodeAt(0), o4 = h2.charCodeAt(f2);
-                          for (; (!p2 || void 0 === (S2 = d2[o4])) && f2 < v2 && 32 <= o4 && s4 !== o4 && a3 !== o4; )
-                            o4 = h2.charCodeAt(++f2), k2++;
-                          if (k2--, void 0 === S2 && o4 < 32) {
+                          for (; (!p2 || void 0 === (S3 = d2[o4])) && f2 < v2 && 32 <= o4 && s4 !== o4 && a3 !== o4; )
+                            o4 = h2.charCodeAt(++f2), k3++;
+                          if (k3--, void 0 === S3 && o4 < 32) {
                             if (!y2 || !e3.line.chars[h2[f2]]) {
                               if (n4.abandon)
                                 return;
-                              return m2.sI = f2, m2.cI = k2, t3.bad(l2.S.unprintable, f2, f2 + 1);
+                              return m2.sI = f2, m2.cI = k3, t3.bad(l2.S.unprintable, f2, f2 + 1);
                             }
-                            e3.line.rowChars[h2[f2]] && (m2.rI = ++g2), k2 = 1, j2.push(h2.substring(r3, f2 + 1));
+                            e3.line.rowChars[h2[f2]] && (m2.rI = ++g2), k3 = 1, j2.push(h2.substring(r3, f2 + 1));
                           } else
                             j2.push(h2.substring(r3, f2)), f2--;
                         }
@@ -13972,8 +13780,8 @@ var __async = (__this, __arguments, generator) => {
                           return;
                         return m2.rI = x2, t3.bad(l2.S.unterminated_string, b2, f2);
                       }
-                      const E2 = t3.token("#ST", j2.join(r.EMPTY), h2.substring(m2.sI, f2), m2);
-                      return m2.sI = f2, m2.rI = g2, m2.cI = k2, E2;
+                      const E3 = t3.token("#ST", j2.join(r.EMPTY), h2.substring(m2.sI, f2), m2);
+                      return m2.sI = f2, m2.rI = g2, m2.cI = k3, E3;
                     }
                   };
                 }, n2.makeLineMatcher = (e3, t2) => function(t3) {
@@ -14101,13 +13909,13 @@ var __async = (__this, __arguments, generator) => {
                 constructor(e2, t2) {
                   this.name = r.EMPTY, this.def = { open: [], close: [], bo: [], bc: [], ao: [], ac: [], tcol: [] }, this.cfg = e2, this.def = Object.assign(this.def, t2), this.def.open = (this.def.open || []).filter((e3) => null != e3), this.def.close = (this.def.close || []).filter((e3) => null != e3);
                   for (let e3 of [...this.def.open, ...this.def.close])
-                    k(e3);
+                    k2(e3);
                 }
                 tin(e2) {
                   return (0, a.tokenize)(e2, this.cfg);
                 }
                 add(e2, t2, n2) {
-                  let r2 = (null == n2 ? void 0 : n2.append) ? "push" : "unshift", l2 = ((0, a.isarr)(t2) ? t2 : [t2]).filter((e3) => null != e3 && "object" == typeof e3).map((e3) => k(e3)), i2 = "o" === e2 ? "open" : "close", s2 = this.def[i2];
+                  let r2 = (null == n2 ? void 0 : n2.append) ? "push" : "unshift", l2 = ((0, a.isarr)(t2) ? t2 : [t2]).filter((e3) => null != e3 && "object" == typeof e3).map((e3) => k2(e3)), i2 = "o" === e2 ? "open" : "close", s2 = this.def[i2];
                   return s2[r2](...l2), s2 = this.def[i2] = (0, a.modlist)(s2, n2), (0, a.filterRules)(this, this.cfg), this.norm(), this;
                 }
                 open(e2, t2) {
@@ -14136,7 +13944,7 @@ var __async = (__this, __arguments, generator) => {
                   return this.def.open.length = 0, this.def.close.length = 0, this.def.bo.length = 0, this.def.ao.length = 0, this.def.bc.length = 0, this.def.ac.length = 0, this;
                 }
                 norm() {
-                  this.def.open.map((e3) => k(e3)), this.def.close.map((e3) => k(e3));
+                  this.def.open.map((e3) => k2(e3)), this.def.close.map((e3) => k2(e3));
                   const e2 = [];
                   function t2(e3, t3, n2) {
                     return n2[e3] = n2[e3] || [], [function(e4, n3) {
@@ -14219,8 +14027,8 @@ var __async = (__this, __arguments, generator) => {
                         return this.bad(n3, e2, t2, { is_open: i2 });
                   }
                   s2.why = o2, t2.log && t2.log(a.S.node, t2, e2, n2, s2), r.OPEN === e2.state && (e2.state = r.CLOSE);
-                  let k2 = e2[i2 ? "os" : "cs"] - (f2.b || 0);
-                  return 1 === k2 ? (t2.v2 = t2.v1, t2.v1 = t2.t0, t2.t0 = t2.t1, t2.t1 = t2.NOTOKEN) : 2 == k2 && (t2.v2 = t2.t1, t2.v1 = t2.t0, t2.t0 = t2.NOTOKEN, t2.t1 = t2.NOTOKEN), s2;
+                  let k3 = e2[i2 ? "os" : "cs"] - (f2.b || 0);
+                  return 1 === k3 ? (t2.v2 = t2.v1, t2.v1 = t2.t0, t2.t0 = t2.t1, t2.t1 = t2.NOTOKEN) : 2 == k3 && (t2.v2 = t2.t1, t2.v1 = t2.t0, t2.t0 = t2.NOTOKEN, t2.t1 = t2.NOTOKEN), s2;
                 }
                 bad(e2, t2, n2, r2) {
                   throw new a.JsonicError(e2.err || a.S.unexpected, __spreadProps(__spreadValues({}, e2.use), { state: r2.is_open ? a.S.open : a.S.close }), e2, t2, n2);
@@ -14230,7 +14038,7 @@ var __async = (__this, __arguments, generator) => {
                 }
               }
               const g = (...e2) => new f(...e2);
-              function k(e2) {
+              function k2(e2) {
                 if (r.STRING === typeof e2.g ? e2.g = e2.g.split(/\s*,\s*/) : null == e2.g && (e2.g = []), e2.g = e2.g.sort(), e2.s && 0 !== e2.s.length) {
                   const t2 = (e3) => e3.flat().filter((e4) => "number" == typeof e4), n2 = (e3, t3) => e3.filter((e4) => 31 * t3 <= e4 && e4 < 31 * (t3 + 1)), r2 = (e3, t3) => e3.reduce((e4, n3) => 1 << n3 - (31 * t3 + 1) | e4, 0), l2 = t2([e2.s[0]]), i2 = t2([e2.s[1]]), s2 = e2;
                   s2.S0 = 0 < l2.length ? new Array(Math.max(...l2.map((e3) => 1 + e3 / 31 | 0))).fill(null).map((e3, t3) => t3).map((e3) => r2(n2(l2, e3), e3)) : null, s2.S1 = 0 < i2.length ? new Array(Math.max(...i2.map((e3) => 1 + e3 / 31 | 0))).fill(null).map((e3, t3) => t3).map((e3) => r2(n2(i2, e3), e3)) : null;
@@ -14294,7 +14102,7 @@ var __async = (__this, __arguments, generator) => {
                 }
               }
               v.makeParser = (...e2) => new y(...e2);
-              var S = {};
+              var S2 = {};
               function j(e2) {
                 const { deep: t2 } = e2.util, { OB: n2, CB: r2, OS: l2, CS: i2, CL: s2, CA: o2, TX: a2, ST: c2, ZZ: u2 } = e2.token, { VAL: d2, KEY: p2 } = e2.tokenSet, m2 = (e3, t3) => {
                   if (!t3.cfg.rule.finish)
@@ -14349,63 +14157,63 @@ var __async = (__this, __arguments, generator) => {
                   }).close([{ s: [o2, [i2, u2]], b: 1, g: "list,elem,comma,jsonic" }, { s: [o2], r: "elem", g: "list,elem,json" }, { s: [i2], b: 1, g: "list,elem,json" }, { s: [u2], e: m2, g: "list,elem,json" }, { s: [r2], e: (e4) => e4.c0, g: "end,jsonic" }, { r: "elem", b: 1, g: "list,elem,imp,jsonic" }], { delete: [-1, -2] });
                 });
               }
-              Object.defineProperty(S, "__esModule", { value: true }), S.makeJSON = S.grammar = void 0, S.grammar = j, S.makeJSON = function(e2) {
+              Object.defineProperty(S2, "__esModule", { value: true }), S2.makeJSON = S2.grammar = void 0, S2.grammar = j, S2.makeJSON = function(e2) {
                 let t2 = e2.make({ grammar$: false, text: { lex: false }, number: { hex: false, oct: false, bin: false, sep: null, exclude: /^00+/ }, string: { chars: '"', multiChars: "", allowUnknown: false, escape: { v: null } }, comment: { lex: false }, map: { extend: false }, lex: { empty: false }, rule: { finish: false, include: "json" }, result: { fail: [void 0, NaN] }, tokenSet: { KEY: ["#ST", null, null, null] } });
                 return j(t2), t2;
               };
-              var E = { exports: {} };
-              Object.defineProperty(E.exports, "__esModule", { value: true }), E.exports.root = E.exports.S = E.exports.EMPTY = E.exports.AFTER = E.exports.BEFORE = E.exports.CLOSE = E.exports.OPEN = E.exports.makeTextMatcher = E.exports.makeNumberMatcher = E.exports.makeCommentMatcher = E.exports.makeStringMatcher = E.exports.makeLineMatcher = E.exports.makeSpaceMatcher = E.exports.makeFixedMatcher = E.exports.makeParser = E.exports.makeLex = E.exports.makeRuleSpec = E.exports.makeRule = E.exports.makePoint = E.exports.makeToken = E.exports.make = E.exports.util = E.exports.JsonicError = E.exports.Jsonic = void 0, Object.defineProperty(E.exports, "OPEN", { enumerable: true, get: function() {
+              var E2 = { exports: {} };
+              Object.defineProperty(E2.exports, "__esModule", { value: true }), E2.exports.root = E2.exports.S = E2.exports.EMPTY = E2.exports.AFTER = E2.exports.BEFORE = E2.exports.CLOSE = E2.exports.OPEN = E2.exports.makeTextMatcher = E2.exports.makeNumberMatcher = E2.exports.makeCommentMatcher = E2.exports.makeStringMatcher = E2.exports.makeLineMatcher = E2.exports.makeSpaceMatcher = E2.exports.makeFixedMatcher = E2.exports.makeParser = E2.exports.makeLex = E2.exports.makeRuleSpec = E2.exports.makeRule = E2.exports.makePoint = E2.exports.makeToken = E2.exports.make = E2.exports.util = E2.exports.JsonicError = E2.exports.Jsonic = void 0, Object.defineProperty(E2.exports, "OPEN", { enumerable: true, get: function() {
                 return r.OPEN;
-              } }), Object.defineProperty(E.exports, "CLOSE", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "CLOSE", { enumerable: true, get: function() {
                 return r.CLOSE;
-              } }), Object.defineProperty(E.exports, "BEFORE", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "BEFORE", { enumerable: true, get: function() {
                 return r.BEFORE;
-              } }), Object.defineProperty(E.exports, "AFTER", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "AFTER", { enumerable: true, get: function() {
                 return r.AFTER;
-              } }), Object.defineProperty(E.exports, "EMPTY", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "EMPTY", { enumerable: true, get: function() {
                 return r.EMPTY;
               } });
               const O = t({});
-              Object.defineProperty(E.exports, "JsonicError", { enumerable: true, get: function() {
+              Object.defineProperty(E2.exports, "JsonicError", { enumerable: true, get: function() {
                 return O.JsonicError;
-              } }), Object.defineProperty(E.exports, "S", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "S", { enumerable: true, get: function() {
                 return O.S;
               } });
               const I = n({});
-              Object.defineProperty(E.exports, "makePoint", { enumerable: true, get: function() {
+              Object.defineProperty(E2.exports, "makePoint", { enumerable: true, get: function() {
                 return I.makePoint;
-              } }), Object.defineProperty(E.exports, "makeToken", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeToken", { enumerable: true, get: function() {
                 return I.makeToken;
-              } }), Object.defineProperty(E.exports, "makeLex", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeLex", { enumerable: true, get: function() {
                 return I.makeLex;
-              } }), Object.defineProperty(E.exports, "makeFixedMatcher", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeFixedMatcher", { enumerable: true, get: function() {
                 return I.makeFixedMatcher;
-              } }), Object.defineProperty(E.exports, "makeSpaceMatcher", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeSpaceMatcher", { enumerable: true, get: function() {
                 return I.makeSpaceMatcher;
-              } }), Object.defineProperty(E.exports, "makeLineMatcher", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeLineMatcher", { enumerable: true, get: function() {
                 return I.makeLineMatcher;
-              } }), Object.defineProperty(E.exports, "makeStringMatcher", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeStringMatcher", { enumerable: true, get: function() {
                 return I.makeStringMatcher;
-              } }), Object.defineProperty(E.exports, "makeCommentMatcher", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeCommentMatcher", { enumerable: true, get: function() {
                 return I.makeCommentMatcher;
-              } }), Object.defineProperty(E.exports, "makeNumberMatcher", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeNumberMatcher", { enumerable: true, get: function() {
                 return I.makeNumberMatcher;
-              } }), Object.defineProperty(E.exports, "makeTextMatcher", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeTextMatcher", { enumerable: true, get: function() {
                 return I.makeTextMatcher;
-              } }), Object.defineProperty(E.exports, "makeRule", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeRule", { enumerable: true, get: function() {
                 return v.makeRule;
-              } }), Object.defineProperty(E.exports, "makeRuleSpec", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeRuleSpec", { enumerable: true, get: function() {
                 return v.makeRuleSpec;
-              } }), Object.defineProperty(E.exports, "makeParser", { enumerable: true, get: function() {
+              } }), Object.defineProperty(E2.exports, "makeParser", { enumerable: true, get: function() {
                 return v.makeParser;
               } });
-              const T = { tokenize: O.tokenize, srcfmt: O.srcfmt, clone: O.clone, charset: O.charset, trimstk: O.trimstk, makelog: O.makelog, badlex: O.badlex, extract: O.extract, errinject: O.errinject, errdesc: O.errdesc, configure: O.configure, parserwrap: O.parserwrap, mesc: O.mesc, escre: O.escre, regexp: O.regexp, prop: O.prop, str: O.str, clean: O.clean, deep: O.deep, omap: O.omap, keys: O.keys, values: O.values, entries: O.entries };
-              function M(e2, t2) {
+              const T2 = { tokenize: O.tokenize, srcfmt: O.srcfmt, clone: O.clone, charset: O.charset, trimstk: O.trimstk, makelog: O.makelog, badlex: O.badlex, extract: O.extract, errinject: O.errinject, errdesc: O.errdesc, configure: O.configure, parserwrap: O.parserwrap, mesc: O.mesc, escre: O.escre, regexp: O.regexp, prop: O.prop, str: O.str, clean: O.clean, deep: O.deep, omap: O.omap, keys: O.keys, values: O.values, entries: O.entries };
+              function M2(e2, t2) {
                 let n2 = true;
                 if ("jsonic" === e2)
                   n2 = false;
                 else if ("json" === e2)
-                  return (0, S.makeJSON)(N);
+                  return (0, S2.makeJSON)(N);
                 e2 = "string" == typeof e2 ? {} : e2;
                 let r2 = { parser: null, config: null, plugins: [], sub: { lex: void 0, rule: void 0 }, mark: Math.random() }, i2 = (0, O.deep)({}, t2 ? __spreadValues({}, t2.options) : false === (null == e2 ? void 0 : e2.defaults$) ? {} : l.defaults, e2 || {}), s2 = function(e3, t3, n3) {
                   var r3;
@@ -14428,7 +14236,7 @@ var __async = (__this, __arguments, generator) => {
                   s2.options({ plugin: { [n3]: r3 } });
                   let l2 = s2.options.plugin[n3];
                   return s2.internal().plugins.push(e3), e3.options = l2, e3(s2, l2) || s2;
-                }, rule: (e3, t3) => s2.internal().parser.rule(e3, t3) || s2, make: (e3) => M(e3, s2), empty: (e3) => M(__spreadValues({ defaults$: false, standard$: false, grammar$: false }, e3 || {})), id: "Jsonic/" + Date.now() + "/" + ("" + Math.random()).substring(2, 8).padEnd(6, "0") + (null == o2.tag ? "" : "/" + o2.tag), toString: () => a2.id, sub: (e3) => (e3.lex && (r2.sub.lex = r2.sub.lex || [], r2.sub.lex.push(e3.lex)), e3.rule && (r2.sub.rule = r2.sub.rule || [], r2.sub.rule.push(e3.rule)), s2), util: T };
+                }, rule: (e3, t3) => s2.internal().parser.rule(e3, t3) || s2, make: (e3) => M2(e3, s2), empty: (e3) => M2(__spreadValues({ defaults$: false, standard$: false, grammar$: false }, e3 || {})), id: "Jsonic/" + Date.now() + "/" + ("" + Math.random()).substring(2, 8).padEnd(6, "0") + (null == o2.tag ? "" : "/" + o2.tag), toString: () => a2.id, sub: (e3) => (e3.lex && (r2.sub.lex = r2.sub.lex || [], r2.sub.lex.push(e3.lex)), e3.rule && (r2.sub.rule = r2.sub.rule || [], r2.sub.rule.push(e3.rule)), s2), util: T2 };
                 if ((0, O.defprop)(a2.make, O.S.name, { value: O.S.make }), n2 ? (0, O.assign)(s2, a2) : (0, O.assign)(s2, { empty: a2.empty, parse: a2.parse, sub: a2.sub, id: a2.id, toString: a2.toString }), (0, O.defprop)(s2, "internal", { value: () => r2 }), t2) {
                   for (let e4 in t2)
                     void 0 === s2[e4] && (s2[e4] = t2[e4]);
@@ -14437,14 +14245,14 @@ var __async = (__this, __arguments, generator) => {
                   r2.config = (0, O.deep)({}, e3.config), (0, O.configure)(s2, r2.config, i2), (0, O.assign)(s2.token, r2.config.t), r2.plugins = [...e3.plugins], r2.parser = e3.parser.clone(i2, r2.config);
                 } else {
                   let e3 = __spreadValues(__spreadValues({}, s2), a2);
-                  r2.config = (0, O.configure)(e3, void 0, i2), r2.plugins = [], r2.parser = (0, v.makeParser)(i2, r2.config), false !== i2.grammar$ && (0, S.grammar)(e3);
+                  r2.config = (0, O.configure)(e3, void 0, i2), r2.plugins = [], r2.parser = (0, v.makeParser)(i2, r2.config), false !== i2.grammar$ && (0, S2.grammar)(e3);
                 }
                 return s2;
               }
               let N;
-              E.exports.util = T, E.exports.make = M, E.exports.root = N;
-              let P = E.exports.root = N = M("jsonic");
-              return E.exports.Jsonic = P, N.Jsonic = N, N.JsonicError = O.JsonicError, N.makeLex = I.makeLex, N.makeParser = v.makeParser, N.makeToken = I.makeToken, N.makePoint = I.makePoint, N.makeRule = v.makeRule, N.makeRuleSpec = v.makeRuleSpec, N.makeFixedMatcher = I.makeFixedMatcher, N.makeSpaceMatcher = I.makeSpaceMatcher, N.makeLineMatcher = I.makeLineMatcher, N.makeStringMatcher = I.makeStringMatcher, N.makeCommentMatcher = I.makeCommentMatcher, N.makeNumberMatcher = I.makeNumberMatcher, N.makeTextMatcher = I.makeTextMatcher, N.OPEN = r.OPEN, N.CLOSE = r.CLOSE, N.BEFORE = r.BEFORE, N.AFTER = r.AFTER, N.EMPTY = r.EMPTY, N.util = T, N.make = M, N.S = O.S, E.exports.default = P, E.exports = P, E.exports;
+              E2.exports.util = T2, E2.exports.make = M2, E2.exports.root = N;
+              let P = E2.exports.root = N = M2("jsonic");
+              return E2.exports.Jsonic = P, N.Jsonic = N, N.JsonicError = O.JsonicError, N.makeLex = I.makeLex, N.makeParser = v.makeParser, N.makeToken = I.makeToken, N.makePoint = I.makePoint, N.makeRule = v.makeRule, N.makeRuleSpec = v.makeRuleSpec, N.makeFixedMatcher = I.makeFixedMatcher, N.makeSpaceMatcher = I.makeSpaceMatcher, N.makeLineMatcher = I.makeLineMatcher, N.makeStringMatcher = I.makeStringMatcher, N.makeCommentMatcher = I.makeCommentMatcher, N.makeNumberMatcher = I.makeNumberMatcher, N.makeTextMatcher = I.makeTextMatcher, N.OPEN = r.OPEN, N.CLOSE = r.CLOSE, N.BEFORE = r.BEFORE, N.AFTER = r.AFTER, N.EMPTY = r.EMPTY, N.util = T2, N.make = M2, N.S = O.S, E2.exports.default = P, E2.exports = P, E2.exports;
             });
           }).call(this);
         }).call(this, typeof commonjsGlobal !== "undefined" ? commonjsGlobal : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
@@ -15725,7 +15533,7 @@ var __async = (__this, __arguments, generator) => {
             }(function() {
               var e = {}, t = {};
               Object.defineProperty(t, "__esModule", { value: true }), t.Gubu = void 0;
-              const n = Symbol.for("gubu$"), l = { gubu$: n, v$: "6.0.1" }, r = Symbol.for("gubu$nil"), i = /^[A-Z]/, o = "name", s = "nan", u = "never", a = "number", c = "required", f = "array", p = "function", h = "object", v = "string", d = "undefined", g = "any", m = "list", y = "instance", b = "null", x = "type", $ = "closed", I = "shape", k = "check", j = "Object", w = "Array", O = "Function", N = "Value", S = " for property ", V = '"$PATH"', R = '"$VALUE"', A = (e2) => Object.keys(e2), D = (e2, t2, n2) => Object.defineProperty(e2, t2, n2), E = (e2) => Array.isArray(e2), C = (e2) => JSON.parse(e2), G = (e2, t2) => JSON.stringify(e2, t2);
+              const n = Symbol.for("gubu$"), l = { gubu$: n, v$: "6.0.1" }, r = Symbol.for("gubu$nil"), i = /^[A-Z]/, o = "name", s = "nan", u = "never", a = "number", c = "required", f = "array", p = "function", h = "object", v = "string", d = "undefined", g = "any", m = "list", y = "instance", b = "null", x = "type", $ = "closed", I = "shape", k2 = "check", j = "Object", w = "Array", O = "Function", N = "Value", S2 = " for property ", V = '"$PATH"', R = '"$VALUE"', A = (e2) => Object.keys(e2), D = (e2, t2, n2) => Object.defineProperty(e2, t2, n2), E2 = (e2) => Array.isArray(e2), C = (e2) => JSON.parse(e2), G = (e2, t2) => JSON.stringify(e2, t2);
               class B {
                 constructor(e2, t2, n2, l2) {
                   this.match = false, this.dI = 0, this.nI = 2, this.cI = -1, this.pI = 0, this.sI = -1, this.valType = u, this.isRoot = false, this.key = "", this.type = u, this.stop = true, this.nextSibling = true, this.fromDefault = false, this.ignoreVal = void 0, this.curerr = [], this.err = [], this.parents = [], this.keys = [], this.path = [], this.root = e2, this.vals = [e2, -1], this.node = t2, this.nodes = [t2, -1], this.ctx = n2 || {}, this.match = !!l2;
@@ -15734,14 +15542,14 @@ var __async = (__this, __arguments, generator) => {
                   this.stop = false, this.fromDefault = false, this.ignoreVal = void 0, this.isRoot = 0 === this.pI, this.check = void 0;
                   let e2 = this.nodes[this.pI];
                   for (; +e2; )
-                    this.dI--, this.ctx.log && -1 < this.dI && this.ctx.log("e" + (E(this.parents[this.pI]) ? "a" : "o"), this), this.pI = +e2, e2 = this.nodes[this.pI];
+                    this.dI--, this.ctx.log && -1 < this.dI && this.ctx.log("e" + (E2(this.parents[this.pI]) ? "a" : "o"), this), this.pI = +e2, e2 = this.nodes[this.pI];
                   e2 ? (this.node = e2, this.updateVal(this.vals[this.pI]), this.key = this.keys[this.pI], this.cI = this.pI, this.sI = this.pI + 1, this.parent = this.parents[this.pI], this.nextSibling = true, this.type = this.node.t, this.path[this.dI] = this.key, this.oval = this.val, this.curerr.length = 0) : this.stop = true;
                 }
                 updateVal(e2) {
                   this.val = e2, this.valType = typeof this.val, a === this.valType && isNaN(this.val) && (this.valType = s), this.isRoot && !this.match && (this.root = this.val);
                 }
               }
-              class T extends TypeError {
+              class T2 extends TypeError {
                 constructor(e2, t2, n2, l2) {
                   var r2;
                   super((t2 = null == t2 ? "" : t2 + ": ") + n2.map((e3) => e3.t).join("\n")), this.gubu = true, this.name = "GubuError", this.code = e2, this.prefix = t2, this.desc = () => ({ name: "GubuError", code: e2, err: n2, ctx: l2 }), this.stack = null === (r2 = this.stack) || void 0 === r2 ? void 0 : r2.replace(/.*\/gubu\/gubu\.[tj]s.*\n/g, ""), this.props = n2.map((e3) => {
@@ -15753,7 +15561,7 @@ var __async = (__this, __arguments, generator) => {
                   return Object.assign(Object.assign({}, this), { err: this.desc().err, name: this.name, message: this.message });
                 }
               }
-              const M = { String: true, Number: true, Boolean: true, Object: true, Array: true, Function: true, Symbol: true, BigInt: true }, L2 = { string: "", number: 0, boolean: false, object: {}, array: [], symbol: Symbol(""), bigint: BigInt(0), null: null };
+              const M2 = { String: true, Number: true, Boolean: true, Object: true, Array: true, Function: true, Symbol: true, BigInt: true }, L2 = { string: "", number: 0, boolean: false, object: {}, array: [], symbol: Symbol(""), bigint: BigInt(0), null: null };
               function F(e2, t2, o2) {
                 var u2, c2, m2, x2;
                 if (P === e2)
@@ -15763,24 +15571,24 @@ var __async = (__this, __arguments, generator) => {
                     return e2.d = null == t2 ? e2.d : t2, e2;
                   if (true === e2.$.gubu$) {
                     let l2 = Object.assign({}, e2);
-                    return l2.$ = Object.assign(Object.assign({ v$: "6.0.1" }, l2.$), { gubu$: n }), l2.v = null != l2.v && h === typeof l2.v ? Object.assign({}, l2.v) : l2.v, l2.t = l2.t || typeof l2.v, p === l2.t && M[l2.v.name] && (l2.t = l2.v.name.toLowerCase(), l2.v = $e(L2[l2.t]), l2.f = l2.v), l2.r = !!l2.r, l2.p = !!l2.p, l2.d = null == t2 ? null == l2.d ? -1 : l2.d : t2, l2.b = l2.b || [], l2.a = l2.a || [], l2.u = l2.u || {}, l2.m = l2.m || o2 || {}, l2;
+                    return l2.$ = Object.assign(Object.assign({ v$: "6.0.1" }, l2.$), { gubu$: n }), l2.v = null != l2.v && h === typeof l2.v ? Object.assign({}, l2.v) : l2.v, l2.t = l2.t || typeof l2.v, p === l2.t && M2[l2.v.name] && (l2.t = l2.v.name.toLowerCase(), l2.v = $e(L2[l2.t]), l2.f = l2.v), l2.r = !!l2.r, l2.p = !!l2.p, l2.d = null == t2 ? null == l2.d ? -1 : l2.d : t2, l2.b = l2.b || [], l2.a = l2.a || [], l2.u = l2.u || {}, l2.m = l2.m || o2 || {}, l2;
                   }
                 }
-                let $2 = null === e2 ? b : typeof e2, I2 = e2, k2 = I2, w2 = r, N2 = false, S2 = {}, V2 = [], R2 = [];
+                let $2 = null === e2 ? b : typeof e2, I2 = e2, k3 = I2, w2 = r, N2 = false, S3 = {}, V2 = [], R2 = [];
                 if (h === ($2 = d === $2 ? g : $2))
-                  k2 = void 0, E(I2) ? ($2 = f, 1 === I2.length && (w2 = I2[0], I2 = [])) : null != I2 && Function !== I2.constructor && Object !== I2.constructor && null != I2.constructor ? ($2 = y, S2.n = I2.constructor.name, S2.i = I2.constructor, k2 = I2) : 0 === A(I2).length && (w2 = K());
+                  k3 = void 0, E2(I2) ? ($2 = f, 1 === I2.length && (w2 = I2[0], I2 = [])) : null != I2 && Function !== I2.constructor && Object !== I2.constructor && null != I2.constructor ? ($2 = y, S3.n = I2.constructor.name, S3.i = I2.constructor, k3 = I2) : 0 === A(I2).length && (w2 = K());
                 else if (p === $2)
-                  if (M[e2.name])
-                    $2 = e2.name.toLowerCase(), N2 = true, k2 = I2 = $e(L2[$2]), j === e2.name && (w2 = K());
+                  if (M2[e2.name])
+                    $2 = e2.name.toLowerCase(), N2 = true, k3 = I2 = $e(L2[$2]), j === e2.name && (w2 = K());
                   else if (I2.gubu === l || true === (null === (c2 = I2.$) || void 0 === c2 ? void 0 : c2.gubu)) {
                     let e3 = I2.node ? I2.node() : I2;
-                    $2 = e3.t, k2 = I2 = e3.v, N2 = e3.r, S2 = Object.assign({}, e3.u), V2 = [...e3.a], R2 = [...e3.b];
+                    $2 = e3.t, k3 = I2 = e3.v, N2 = e3.r, S3 = Object.assign({}, e3.u), V2 = [...e3.a], R2 = [...e3.b];
                   } else
-                    O === I2.constructor.name && i.test(I2.name) && ($2 = y, N2 = true, S2.n = null === (x2 = null === (m2 = I2.prototype) || void 0 === m2 ? void 0 : m2.constructor) || void 0 === x2 ? void 0 : x2.name, S2.i = I2);
+                    O === I2.constructor.name && i.test(I2.name) && ($2 = y, N2 = true, S3.n = null === (x2 = null === (m2 = I2.prototype) || void 0 === m2 ? void 0 : m2.constructor) || void 0 === x2 ? void 0 : x2.name, S3.i = I2);
                 else
-                  a === $2 && isNaN(I2) ? $2 = s : v === $2 && "" === I2 && (S2.empty = true);
+                  a === $2 && isNaN(I2) ? $2 = s : v === $2 && "" === I2 && (S3.empty = true);
                 let D2 = null == I2 || h !== $2 && f !== $2 ? I2 : Object.assign({}, I2);
-                return { $: l, t: $2, v: D2, f: k2, n: null != D2 && h === typeof D2 ? A(D2).length : 0, c: w2, r: N2, p: false, d: null == t2 ? -1 : t2, k: [], e: true, u: S2, a: V2, b: R2, m: o2 || {} };
+                return { $: l, t: $2, v: D2, f: k3, n: null != D2 && h === typeof D2 ? A(D2).length : 0, c: w2, r: N2, p: false, d: null == t2 ? -1 : t2, k: [], e: true, u: S3, a: V2, b: R2, m: o2 || {} };
               }
               function P(t2, i2) {
                 const o2 = null == i2 ? {} : i2;
@@ -15790,7 +15598,7 @@ var __async = (__this, __arguments, generator) => {
                 let a2 = o2.keyexpr = o2.keyexpr || {};
                 a2.active = false !== a2.active;
                 let p2 = F(t2, 0);
-                function k2(e2, t3, n2) {
+                function k3(e2, t3, n2) {
                   let l2 = new B(e2, p2, t3, n2);
                   for (; l2.next(), !l2.stop; ) {
                     let t4 = l2.node, n3 = false, i3 = false;
@@ -15805,7 +15613,7 @@ var __async = (__this, __arguments, generator) => {
                         l2.curerr.push(ye(u, l2, 1070));
                       else if (h === l2.type) {
                         let e3;
-                        if (t4.r && i4 ? (l2.ignoreVal = true, l2.curerr.push(ye(c, l2, 1010))) : i4 || null !== l2.val && h === l2.valType && !E(l2.val) ? !t4.p && i4 && void 0 !== t4.f ? (l2.updateVal(t4.f), l2.fromDefault = true, e3 = l2.val, n4 = false) : t4.p && i4 || (l2.updateVal(l2.val || (l2.fromDefault = true, {})), e3 = l2.val) : (l2.curerr.push(ye(x, l2, 1020)), e3 = E(l2.val) ? l2.val : {}), n4 && null != (e3 = null == e3 && false === l2.ctx.err ? {} : e3)) {
+                        if (t4.r && i4 ? (l2.ignoreVal = true, l2.curerr.push(ye(c, l2, 1010))) : i4 || null !== l2.val && h === l2.valType && !E2(l2.val) ? !t4.p && i4 && void 0 !== t4.f ? (l2.updateVal(t4.f), l2.fromDefault = true, e3 = l2.val, n4 = false) : t4.p && i4 || (l2.updateVal(l2.val || (l2.fromDefault = true, {})), e3 = l2.val) : (l2.curerr.push(ye(x, l2, 1020)), e3 = E2(l2.val) ? l2.val : {}), n4 && null != (e3 = null == e3 && false === l2.ctx.err ? {} : e3)) {
                           l2.ctx.log && l2.ctx.log("so", l2);
                           let n5 = false, i5 = A(t4.v), o4 = l2.nI;
                           if (0 < i5.length) {
@@ -15844,7 +15652,7 @@ var __async = (__this, __arguments, generator) => {
                       } else if (f === l2.type)
                         if (t4.r && i4)
                           l2.ignoreVal = true, l2.curerr.push(ye(c, l2, 1030));
-                        else if (i4 || E(l2.val)) {
+                        else if (i4 || E2(l2.val)) {
                           if (!t4.p && i4 && void 0 !== t4.f)
                             l2.updateVal(t4.f), l2.fromDefault = true;
                           else if (!t4.p || null != l2.val) {
@@ -15890,22 +15698,22 @@ var __async = (__this, __arguments, generator) => {
                     !l2.match && null != l2.parent && !n3 && !o3 && (l2.parent[l2.key] = l2.val), l2.nextSibling && (l2.pI = l2.sI), (l2.node.e || i3) && l2.err.push(...l2.curerr);
                   }
                   if (0 < l2.err.length) {
-                    if (E(l2.ctx.err))
+                    if (E2(l2.ctx.err))
                       l2.ctx.err.push(...l2.err);
                     else if (!l2.match && false !== l2.ctx.err)
-                      throw new T(I, o2.prefix, l2.err, l2.ctx);
+                      throw new T2(I, o2.prefix, l2.err, l2.ctx);
                   }
                   return l2.match ? 0 === l2.err.length : l2.root;
                 }
                 function j2(e2, t3) {
-                  return k2(e2, t3, false);
+                  return k3(e2, t3, false);
                 }
                 j2.valid = function(e2, t3) {
                   let n2 = t3 || {};
-                  return n2.err = n2.err || [], k2(e2, n2, false), 0 === n2.err.length;
-                }, j2.match = (e2, t3) => k2(e2, t3 = t3 || {}, true), j2.error = (e2, t3) => {
+                  return n2.err = n2.err || [], k3(e2, n2, false), 0 === n2.err.length;
+                }, j2.match = (e2, t3) => k3(e2, t3 = t3 || {}, true), j2.error = (e2, t3) => {
                   let n2 = t3 || {};
-                  return n2.err = n2.err || [], k2(e2, n2, false), n2.err;
+                  return n2.err = n2.err || [], k3(e2, n2, false), n2.err;
                 }, j2.spec = () => (j2(void 0, { err: false }), C(xe(p2, (e2, t3) => n === t3 || t3, false, true))), j2.node = () => (j2.spec(), p2);
                 let w2 = "";
                 return j2.toString = () => (w2 = J("" === w2 ? xe(p2 && p2.$ && (n === p2.$.gubu$ || true === p2.$.gubu$) ? p2.v : p2) : w2), `[Gubu ${o2.name} ${w2}]`), e.inspect && e.inspect.custom && (j2[e.inspect.custom] = j2.toString), j2.gubu = l, j2.spec(), j2;
@@ -15946,11 +15754,11 @@ var __async = (__this, __arguments, generator) => {
                 } catch (e3) {
                   l2 = e3;
                 }
-                let o2 = E(r2.err) ? 0 < r2.err.length : null != r2.err;
+                let o2 = E2(r2.err) ? 0 < r2.err.length : null != r2.err;
                 if (!i2 || o2) {
                   if (void 0 === t2.val && (t2.node.p || !t2.node.r) && true !== r2.done)
                     return delete r2.err, r2;
-                  let n3 = r2.why || k, i3 = W(t2);
+                  let n3 = r2.why || k2, i3 = W(t2);
                   if (v === typeof r2.err)
                     t2.curerr.push(me(t2, r2.err));
                   else if (h === typeof r2.err)
@@ -16005,7 +15813,7 @@ var __async = (__this, __arguments, generator) => {
                   for (let n3 = 0; n3 < e2.length; n3++)
                     if (t3 === e2[n3])
                       return true;
-                  return n2.err = me(l2, N + " " + R + S + V + " must be exactly one of: " + l2.node.s + "."), n2.done = true, false;
+                  return n2.err = me(l2, N + " " + R + S2 + V + " must be exactly one of: " + l2.node.s + "."), n2.done = true, false;
                 }), t2.s = e2.map((e3) => xe(e3, null, true)).join(", "), t2;
               }, ne = function(e2, t2) {
                 let n2 = ge(this, t2);
@@ -16047,7 +15855,7 @@ var __async = (__this, __arguments, generator) => {
                   return true;
                 }), n2;
               }, ue = function(e2, t2) {
-                let n2 = ge(this, t2), l2 = h === typeof e2 && e2 || {}, r2 = v === typeof e2 ? e2 : l2.name, i2 = "boolean" == typeof l2.keep ? l2.keep : void 0, s2 = E(l2.claim) ? l2.claim : [];
+                let n2 = ge(this, t2), l2 = h === typeof e2 && e2 || {}, r2 = v === typeof e2 ? e2 : l2.name, i2 = "boolean" == typeof l2.keep ? l2.keep : void 0, s2 = E2(l2.claim) ? l2.claim : [];
                 if (null != r2 && "" != r2) {
                   let e3 = (e4, t4, n3) => {
                     if (void 0 === e4 && 0 < s2.length) {
@@ -16071,7 +15879,7 @@ var __async = (__this, __arguments, generator) => {
                     return true;
                   };
                   D(e3, o, { value: "Rename:" + r2 }), n2.b.push(e3);
-                  let t3 = (e4, t4, n3) => (n3.parent[r2] = e4, n3.match || i2 || n3.key === r2 || E(n3.parent) && false !== i2 || (delete n3.parent[n3.key], t4.done = true), n3.ctx.Rename = n3.ctx.Rename || {}, n3.ctx.Rename.fromDefault = n3.ctx.Rename.fromDefault || {}, n3.ctx.Rename.fromDefault[r2] = { yes: n3.fromDefault, key: n3.key, dval: n3.node.v, node: n3.node }, true);
+                  let t3 = (e4, t4, n3) => (n3.parent[r2] = e4, n3.match || i2 || n3.key === r2 || E2(n3.parent) && false !== i2 || (delete n3.parent[n3.key], t4.done = true), n3.ctx.Rename = n3.ctx.Rename || {}, n3.ctx.Rename.fromDefault = n3.ctx.Rename.fromDefault || {}, n3.ctx.Rename.fromDefault[r2] = { yes: n3.fromDefault, key: n3.key, dval: n3.node.v, node: n3.node }, true);
                   D(t3, o, { value: "Rename:" + r2 }), n2.a.push(t3);
                 }
                 return n2;
@@ -16083,7 +15891,7 @@ var __async = (__this, __arguments, generator) => {
                     return true;
                   l2.checkargs = { min: 1 };
                   let i2 = a === typeof t3 ? "" : "length ";
-                  return n3.err = me(l2, N + " " + R + S + V + ` must be a minimum ${i2}of ${e2} (was ${r2}).`), false;
+                  return n3.err = me(l2, N + " " + R + S2 + V + ` must be a minimum ${i2}of ${e2} (was ${r2}).`), false;
                 }), n2.s = "Min(" + e2 + (null == t2 ? "" : "," + xe(t2)) + ")", n2;
               }, ce = function(e2, t2) {
                 let n2 = ge(this, t2);
@@ -16092,7 +15900,7 @@ var __async = (__this, __arguments, generator) => {
                   if (r2 <= e2)
                     return true;
                   let i2 = a === typeof t3 ? "" : "length ";
-                  return n3.err = me(l2, N + " " + R + S + V + ` must be a maximum ${i2}of ${e2} (was ${r2}).`), false;
+                  return n3.err = me(l2, N + " " + R + S2 + V + ` must be a maximum ${i2}of ${e2} (was ${r2}).`), false;
                 }), n2.s = "Max(" + e2 + (null == t2 ? "" : "," + xe(t2)) + ")", n2;
               }, fe = function(e2, t2) {
                 let n2 = ge(this, t2);
@@ -16101,7 +15909,7 @@ var __async = (__this, __arguments, generator) => {
                   if (e2 < r2)
                     return true;
                   let i2 = a === typeof t3 ? "be" : "have length";
-                  return n3.err = me(l2, N + " " + R + S + V + ` must ${i2} above ${e2} (was ${r2}).`), false;
+                  return n3.err = me(l2, N + " " + R + S2 + V + ` must ${i2} above ${e2} (was ${r2}).`), false;
                 }), n2.s = "Above(" + e2 + (null == t2 ? "" : "," + xe(t2)) + ")", n2;
               }, pe = function(e2, t2) {
                 let n2 = ge(this, t2);
@@ -16110,7 +15918,7 @@ var __async = (__this, __arguments, generator) => {
                   if (r2 < e2)
                     return true;
                   let i2 = a === typeof t3 ? "be" : "have length";
-                  return n3.err = me(l2, N + " " + R + S + V + ` must ${i2} below ${e2} (was ${r2}).`), false;
+                  return n3.err = me(l2, N + " " + R + S2 + V + ` must ${i2} below ${e2} (was ${r2}).`), false;
                 }), n2.s = "Below(" + e2 + (null == t2 ? "" : "," + xe(t2)) + ")", n2;
               }, he = function(e2, t2) {
                 let n2 = ge(this, t2 || K());
@@ -16119,7 +15927,7 @@ var __async = (__this, __arguments, generator) => {
                   if (e2 === r2)
                     return true;
                   let i2 = a === typeof t3 ? "" : " in length";
-                  return n3.err = me(l2, N + " " + R + S + V + ` must be exactly ${e2}${i2} (was ${r2}).`), false;
+                  return n3.err = me(l2, N + " " + R + S2 + V + ` must be exactly ${e2}${i2} (was ${r2}).`), false;
                 }), n2.s = "Len(" + e2 + (null == t2 ? "" : "," + xe(t2)) + ")", n2;
               }, ve = function(e2, t2) {
                 let n2 = ge(this, t2 || {});
@@ -16133,14 +15941,14 @@ var __async = (__this, __arguments, generator) => {
                 return Object.assign(n2, { Above: fe, After: le, Any: K, Before: ne, Below: pe, Check: re, Child: ve, Closed: ie, Define: oe, Empty: Y, Exact: te, Fault: Z, Ignore: X, Len: he, Max: ce, Min: ae, Never: ee, Open: U, Refer: se, Rename: ue, Required: H, Skip: Q, Rest: de });
               }
               function me(e2, t2, n2, l2) {
-                return ye(n2 || k, e2, 4e3, t2, l2);
+                return ye(n2 || k2, e2, 4e3, t2, l2);
               }
               function ye(e2, t2, n2, l2, r2, i2) {
                 var o2;
                 let s2 = { k: t2.key, n: t2.node, v: t2.val, p: W(t2), w: e2, c: (null === (o2 = t2.check) || void 0 === o2 ? void 0 : o2.name) || "none", a: t2.checkargs || {}, m: n2, t: "", u: r2 || {} }, p2 = J((void 0 === t2.val ? d : xe(t2.val)).replace(/"/g, ""));
                 if (null == (l2 = l2 || t2.node.z) || "" === l2) {
-                  let n3 = p2.startsWith("[") ? f : p2.startsWith("{") ? h : null == t2.val || a === typeof t2.val && isNaN(t2.val) ? "value" : typeof t2.val, l3 = p2.startsWith("[") || E(t2.parents[t2.pI]) ? "index" : "property", o3 = "is", v2 = null == r2 ? void 0 : r2.k;
-                  v2 = E(v2) ? (l3 = 1 < v2.length ? (o3 = "are", "properties") : l3, v2.join(", ")) : v2, s2.t = "Validation failed for " + (0 < s2.p.length ? `${l3} "${s2.p}" with ` : "") + `${n3} "${p2}" because ` + (x === e2 ? y === t2.node.t ? `the ${n3} is not an instance of ${t2.node.u.n}` : `the ${n3} is not of type ${t2.node.t}` : c === e2 ? "" === t2.val ? "an empty string is not allowed" : `the ${n3} is required` : "closed" === e2 ? `the ${l3} "${v2}" ${o3} not allowed` : u === e2 ? "no value is allowed" : `check "${null == i2 ? e2 : i2}" failed`) + (s2.u.thrown ? " (threw: " + s2.u.thrown.message + ")" : ".");
+                  let n3 = p2.startsWith("[") ? f : p2.startsWith("{") ? h : null == t2.val || a === typeof t2.val && isNaN(t2.val) ? "value" : typeof t2.val, l3 = p2.startsWith("[") || E2(t2.parents[t2.pI]) ? "index" : "property", o3 = "is", v2 = null == r2 ? void 0 : r2.k;
+                  v2 = E2(v2) ? (l3 = 1 < v2.length ? (o3 = "are", "properties") : l3, v2.join(", ")) : v2, s2.t = "Validation failed for " + (0 < s2.p.length ? `${l3} "${s2.p}" with ` : "") + `${n3} "${p2}" because ` + (x === e2 ? y === t2.node.t ? `the ${n3} is not an instance of ${t2.node.u.n}` : `the ${n3} is not of type ${t2.node.t}` : c === e2 ? "" === t2.val ? "an empty string is not allowed" : `the ${n3} is required` : "closed" === e2 ? `the ${l3} "${v2}" ${o3} not allowed` : u === e2 ? "no value is allowed" : `check "${null == i2 ? e2 : i2}" failed`) + (s2.u.thrown ? " (threw: " + s2.u.thrown.message + ")" : ".");
                 } else
                   s2.t = l2.replace(/\$VALUE/g, p2).replace(/\$PATH/g, s2.p);
                 return s2;
@@ -16185,11 +15993,11 @@ var __async = (__this, __arguments, generator) => {
                     let n3 = Object.assign(Object.assign({}, r2.ctx), { err: [] });
                     e3(t3, n3), 0 < n3.err.length && (i2 = false);
                   }
-                  return i2 || (l2.why = "All", l2.err = [me(r2, N + " " + R + S + V + " does not satisfy all of: " + e2.map((e3) => xe(e3, null, true)).join(", "))]), i2;
+                  return i2 || (l2.why = "All", l2.err = [me(r2, N + " " + R + S2 + V + " does not satisfy all of: " + e2.map((e3) => xe(e3, null, true)).join(", "))]), i2;
                 }), t2;
               }, Any: K, Before: ne, Below: pe, Check: re, Child: ve, Closed: ie, Default: function(e2, t2) {
                 let n2 = ge(this, void 0 === t2 ? e2 : t2);
-                return n2.r = false, n2.f = e2, p === typeof e2 && M[e2.name] && (n2.t = e2.name.toLowerCase(), n2.f = $e(L2[n2.t])), n2.p = false, n2;
+                return n2.r = false, n2.f = e2, p === typeof e2 && M2[e2.name] && (n2.t = e2.name.toLowerCase(), n2.f = $e(L2[n2.t])), n2.p = false, n2;
               }, Define: oe, Empty: Y, Exact: te, Fault: Z, Func: function(e2) {
                 let t2 = ge(this);
                 return t2.t = p, t2.v = e2, t2.f = e2, t2;
@@ -16220,7 +16028,7 @@ var __async = (__this, __arguments, generator) => {
                       break;
                     }
                   }
-                  return 1 !== i2 && (l2.why = "One", l2.err = [me(r2, N + " " + R + S + V + " does not satisfy one of: " + e2.map((e3) => xe(e3, null, true)).join(", "))]), true;
+                  return 1 !== i2 && (l2.why = "One", l2.err = [me(r2, N + " " + R + S2 + V + " does not satisfy one of: " + e2.map((e3) => xe(e3, null, true)).join(", "))]), true;
                 }), t2;
               }, Open: U, Optional: function(e2) {
                 let t2 = ge(this, e2);
@@ -16235,7 +16043,7 @@ var __async = (__this, __arguments, generator) => {
                     let n3 = Object.assign(Object.assign({}, r2.ctx), { err: [] }), o2 = e3.match(t3, n3);
                     o2 && (l2.val = e3(t3, n3)), i2 || (i2 = o2);
                   }
-                  return i2 || (l2.why = "Some", l2.err = [me(r2, N + " " + R + S + V + " does not satisfy any of: " + e2.map((e3) => xe(e3, null, true)).join(", "))]), i2;
+                  return i2 || (l2.why = "Some", l2.err = [me(r2, N + " " + R + S2 + V + " does not satisfy any of: " + e2.map((e3) => xe(e3, null, true)).join(", "))]), i2;
                 }), t2;
               }, Rest: de };
               if (d !== typeof window)
@@ -17674,8 +17482,8 @@ var __async = (__this, __arguments, generator) => {
                 return t(e2, a, n + 1, o);
               }
               if ("function" == typeof e && !isRegExp(e)) {
-                var y = nameOf(e), S = arrObjKeys(e, s);
-                return "[Function" + (y ? ": " + y : " (anonymous)") + "]" + (S.length > 0 ? " { " + $join.call(S, ", ") + " }" : "");
+                var y = nameOf(e), S2 = arrObjKeys(e, s);
+                return "[Function" + (y ? ": " + y : " (anonymous)") + "]" + (S2.length > 0 ? " { " + $join.call(S2, ", ") + " }" : "");
               }
               if (isSymbol(e)) {
                 var g = hasShammedSymbols ? $replace.call(String(e), /^(Symbol\(.*\))_[^)]*$/, "$1") : symToString.call(e);
@@ -17733,8 +17541,8 @@ var __async = (__this, __arguments, generator) => {
               if (e === global2)
                 return "{ [object globalThis] }";
               if (!isDate(e) && !isRegExp(e)) {
-                var $ = arrObjKeys(e, s), k = gPO ? gPO(e) === Object.prototype : e instanceof Object || e.constructor === Object, v = e instanceof Object ? "" : "null prototype", T = !k && toStringTag && Object(e) === e && toStringTag in e ? $slice.call(toStr(e), 8, -1) : v ? "Object" : "", E = (k || "function" != typeof e.constructor ? "" : e.constructor.name ? e.constructor.name + " " : "") + (T || v ? "[" + $join.call($concat.call([], T || [], v || []), ": ") + "] " : "");
-                return 0 === $.length ? E + "{}" : f ? E + "{" + indentedJoin($, f) + "}" : E + "{ " + $join.call($, ", ") + " }";
+                var $ = arrObjKeys(e, s), k2 = gPO ? gPO(e) === Object.prototype : e instanceof Object || e.constructor === Object, v = e instanceof Object ? "" : "null prototype", T2 = !k2 && toStringTag && Object(e) === e && toStringTag in e ? $slice.call(toStr(e), 8, -1) : v ? "Object" : "", E2 = (k2 || "function" != typeof e.constructor ? "" : e.constructor.name ? e.constructor.name + " " : "") + (T2 || v ? "[" + $join.call($concat.call([], T2 || [], v || []), ": ") + "] " : "");
+                return 0 === $.length ? E2 + "{}" : f ? E2 + "{" + indentedJoin($, f) + "}" : E2 + "{ " + $join.call($, ", ") + " }";
               }
               return String(e);
             };
@@ -18105,7 +17913,7 @@ var __async = (__this, __arguments, generator) => {
                             return n3;
                           case "utf8":
                           case "utf-8":
-                            return M2(t5).length;
+                            return M3(t5).length;
                           case "ucs2":
                           case "ucs-2":
                           case "utf16le":
@@ -18117,7 +17925,7 @@ var __async = (__this, __arguments, generator) => {
                             return C2(t5).length;
                           default:
                             if (i3)
-                              return o3 ? -1 : M2(t5).length;
+                              return o3 ? -1 : M3(t5).length;
                             e3 = ("" + e3).toLowerCase(), i3 = true;
                         }
                     }
@@ -18188,7 +17996,7 @@ var __async = (__this, __arguments, generator) => {
                       return s3;
                     }
                     function p2(t5, e3, r3, n3) {
-                      return P2(M2(e3, t5.length - r3), t5, r3, n3);
+                      return P2(M3(e3, t5.length - r3), t5, r3, n3);
                     }
                     function y2(t5, e3, r3, n3) {
                       return P2(function(t6) {
@@ -18353,7 +18161,7 @@ var __async = (__this, __arguments, generator) => {
                             case "utf-8":
                               return w2(this, e3, r3);
                             case "ascii":
-                              return E2(this, e3, r3);
+                              return E3(this, e3, r3);
                             case "latin1":
                             case "binary":
                               return _2(this, e3, r3);
@@ -18444,7 +18252,7 @@ var __async = (__this, __arguments, generator) => {
                       return { type: "Buffer", data: Array.prototype.slice.call(this._arr || this, 0) };
                     };
                     var b2 = 4096;
-                    function E2(t5, e3, r3) {
+                    function E3(t5, e3, r3) {
                       var n3 = "";
                       r3 = Math.min(t5.length, r3);
                       for (var o3 = e3; o3 < r3; ++o3)
@@ -18470,13 +18278,13 @@ var __async = (__this, __arguments, generator) => {
                         o3 += String.fromCharCode(n3[i3] + 256 * n3[i3 + 1]);
                       return o3;
                     }
-                    function k2(t5, e3, r3) {
+                    function k3(t5, e3, r3) {
                       if (t5 % 1 != 0 || t5 < 0)
                         throw new RangeError("offset is not uint");
                       if (t5 + e3 > r3)
                         throw new RangeError("Trying to access beyond buffer length");
                     }
-                    function S2(t5, e3, n3, o3, i3, s3) {
+                    function S3(t5, e3, n3, o3, i3, s3) {
                       if (!r2.isBuffer(t5))
                         throw new TypeError('"buffer" argument must be a Buffer instance');
                       if (e3 > i3 || e3 < s3)
@@ -18491,10 +18299,10 @@ var __async = (__this, __arguments, generator) => {
                         throw new RangeError("Index out of range");
                     }
                     function B2(t5, e3, r3, n3, o3) {
-                      return e3 = +e3, r3 >>>= 0, o3 || L3(t5, 0, r3, 4), T.write(t5, e3, r3, n3, 23, 4), r3 + 4;
+                      return e3 = +e3, r3 >>>= 0, o3 || L3(t5, 0, r3, 4), T2.write(t5, e3, r3, n3, 23, 4), r3 + 4;
                     }
                     function x2(t5, e3, r3, n3, o3) {
-                      return e3 = +e3, r3 >>>= 0, o3 || L3(t5, 0, r3, 8), T.write(t5, e3, r3, n3, 52, 8), r3 + 8;
+                      return e3 = +e3, r3 >>>= 0, o3 || L3(t5, 0, r3, 8), T2.write(t5, e3, r3, n3, 52, 8), r3 + 8;
                     }
                     r2.prototype.slice = function(t5, e3) {
                       var n3 = this.length;
@@ -18502,83 +18310,83 @@ var __async = (__this, __arguments, generator) => {
                       var o3 = this.subarray(t5, e3);
                       return o3.__proto__ = r2.prototype, o3;
                     }, r2.prototype.readUIntLE = function(t5, e3, r3) {
-                      t5 >>>= 0, e3 >>>= 0, r3 || k2(t5, e3, this.length);
+                      t5 >>>= 0, e3 >>>= 0, r3 || k3(t5, e3, this.length);
                       for (var n3 = this[t5], o3 = 1, i3 = 0; ++i3 < e3 && (o3 *= 256); )
                         n3 += this[t5 + i3] * o3;
                       return n3;
                     }, r2.prototype.readUIntBE = function(t5, e3, r3) {
-                      t5 >>>= 0, e3 >>>= 0, r3 || k2(t5, e3, this.length);
+                      t5 >>>= 0, e3 >>>= 0, r3 || k3(t5, e3, this.length);
                       for (var n3 = this[t5 + --e3], o3 = 1; e3 > 0 && (o3 *= 256); )
                         n3 += this[t5 + --e3] * o3;
                       return n3;
                     }, r2.prototype.readUInt8 = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 1, this.length), this[t5];
+                      return t5 >>>= 0, e3 || k3(t5, 1, this.length), this[t5];
                     }, r2.prototype.readUInt16LE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 2, this.length), this[t5] | this[t5 + 1] << 8;
+                      return t5 >>>= 0, e3 || k3(t5, 2, this.length), this[t5] | this[t5 + 1] << 8;
                     }, r2.prototype.readUInt16BE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 2, this.length), this[t5] << 8 | this[t5 + 1];
+                      return t5 >>>= 0, e3 || k3(t5, 2, this.length), this[t5] << 8 | this[t5 + 1];
                     }, r2.prototype.readUInt32LE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 4, this.length), (this[t5] | this[t5 + 1] << 8 | this[t5 + 2] << 16) + 16777216 * this[t5 + 3];
+                      return t5 >>>= 0, e3 || k3(t5, 4, this.length), (this[t5] | this[t5 + 1] << 8 | this[t5 + 2] << 16) + 16777216 * this[t5 + 3];
                     }, r2.prototype.readUInt32BE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 4, this.length), 16777216 * this[t5] + (this[t5 + 1] << 16 | this[t5 + 2] << 8 | this[t5 + 3]);
+                      return t5 >>>= 0, e3 || k3(t5, 4, this.length), 16777216 * this[t5] + (this[t5 + 1] << 16 | this[t5 + 2] << 8 | this[t5 + 3]);
                     }, r2.prototype.readIntLE = function(t5, e3, r3) {
-                      t5 >>>= 0, e3 >>>= 0, r3 || k2(t5, e3, this.length);
+                      t5 >>>= 0, e3 >>>= 0, r3 || k3(t5, e3, this.length);
                       for (var n3 = this[t5], o3 = 1, i3 = 0; ++i3 < e3 && (o3 *= 256); )
                         n3 += this[t5 + i3] * o3;
                       return n3 >= (o3 *= 128) && (n3 -= Math.pow(2, 8 * e3)), n3;
                     }, r2.prototype.readIntBE = function(t5, e3, r3) {
-                      t5 >>>= 0, e3 >>>= 0, r3 || k2(t5, e3, this.length);
+                      t5 >>>= 0, e3 >>>= 0, r3 || k3(t5, e3, this.length);
                       for (var n3 = e3, o3 = 1, i3 = this[t5 + --n3]; n3 > 0 && (o3 *= 256); )
                         i3 += this[t5 + --n3] * o3;
                       return i3 >= (o3 *= 128) && (i3 -= Math.pow(2, 8 * e3)), i3;
                     }, r2.prototype.readInt8 = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 1, this.length), 128 & this[t5] ? -1 * (255 - this[t5] + 1) : this[t5];
+                      return t5 >>>= 0, e3 || k3(t5, 1, this.length), 128 & this[t5] ? -1 * (255 - this[t5] + 1) : this[t5];
                     }, r2.prototype.readInt16LE = function(t5, e3) {
-                      t5 >>>= 0, e3 || k2(t5, 2, this.length);
+                      t5 >>>= 0, e3 || k3(t5, 2, this.length);
                       var r3 = this[t5] | this[t5 + 1] << 8;
                       return 32768 & r3 ? 4294901760 | r3 : r3;
                     }, r2.prototype.readInt16BE = function(t5, e3) {
-                      t5 >>>= 0, e3 || k2(t5, 2, this.length);
+                      t5 >>>= 0, e3 || k3(t5, 2, this.length);
                       var r3 = this[t5 + 1] | this[t5] << 8;
                       return 32768 & r3 ? 4294901760 | r3 : r3;
                     }, r2.prototype.readInt32LE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 4, this.length), this[t5] | this[t5 + 1] << 8 | this[t5 + 2] << 16 | this[t5 + 3] << 24;
+                      return t5 >>>= 0, e3 || k3(t5, 4, this.length), this[t5] | this[t5 + 1] << 8 | this[t5 + 2] << 16 | this[t5 + 3] << 24;
                     }, r2.prototype.readInt32BE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 4, this.length), this[t5] << 24 | this[t5 + 1] << 16 | this[t5 + 2] << 8 | this[t5 + 3];
+                      return t5 >>>= 0, e3 || k3(t5, 4, this.length), this[t5] << 24 | this[t5 + 1] << 16 | this[t5 + 2] << 8 | this[t5 + 3];
                     }, r2.prototype.readFloatLE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 4, this.length), T.read(this, t5, true, 23, 4);
+                      return t5 >>>= 0, e3 || k3(t5, 4, this.length), T2.read(this, t5, true, 23, 4);
                     }, r2.prototype.readFloatBE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 4, this.length), T.read(this, t5, false, 23, 4);
+                      return t5 >>>= 0, e3 || k3(t5, 4, this.length), T2.read(this, t5, false, 23, 4);
                     }, r2.prototype.readDoubleLE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 8, this.length), T.read(this, t5, true, 52, 8);
+                      return t5 >>>= 0, e3 || k3(t5, 8, this.length), T2.read(this, t5, true, 52, 8);
                     }, r2.prototype.readDoubleBE = function(t5, e3) {
-                      return t5 >>>= 0, e3 || k2(t5, 8, this.length), T.read(this, t5, false, 52, 8);
+                      return t5 >>>= 0, e3 || k3(t5, 8, this.length), T2.read(this, t5, false, 52, 8);
                     }, r2.prototype.writeUIntLE = function(t5, e3, r3, n3) {
-                      t5 = +t5, e3 >>>= 0, r3 >>>= 0, n3 || S2(this, t5, e3, r3, Math.pow(2, 8 * r3) - 1, 0);
+                      t5 = +t5, e3 >>>= 0, r3 >>>= 0, n3 || S3(this, t5, e3, r3, Math.pow(2, 8 * r3) - 1, 0);
                       var o3 = 1, i3 = 0;
                       for (this[e3] = 255 & t5; ++i3 < r3 && (o3 *= 256); )
                         this[e3 + i3] = t5 / o3 & 255;
                       return e3 + r3;
                     }, r2.prototype.writeUIntBE = function(t5, e3, r3, n3) {
-                      t5 = +t5, e3 >>>= 0, r3 >>>= 0, n3 || S2(this, t5, e3, r3, Math.pow(2, 8 * r3) - 1, 0);
+                      t5 = +t5, e3 >>>= 0, r3 >>>= 0, n3 || S3(this, t5, e3, r3, Math.pow(2, 8 * r3) - 1, 0);
                       var o3 = r3 - 1, i3 = 1;
                       for (this[e3 + o3] = 255 & t5; --o3 >= 0 && (i3 *= 256); )
                         this[e3 + o3] = t5 / i3 & 255;
                       return e3 + r3;
                     }, r2.prototype.writeUInt8 = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 1, 255, 0), this[e3] = 255 & t5, e3 + 1;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 1, 255, 0), this[e3] = 255 & t5, e3 + 1;
                     }, r2.prototype.writeUInt16LE = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 2, 65535, 0), this[e3] = 255 & t5, this[e3 + 1] = t5 >>> 8, e3 + 2;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 2, 65535, 0), this[e3] = 255 & t5, this[e3 + 1] = t5 >>> 8, e3 + 2;
                     }, r2.prototype.writeUInt16BE = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 2, 65535, 0), this[e3] = t5 >>> 8, this[e3 + 1] = 255 & t5, e3 + 2;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 2, 65535, 0), this[e3] = t5 >>> 8, this[e3 + 1] = 255 & t5, e3 + 2;
                     }, r2.prototype.writeUInt32LE = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 4, 4294967295, 0), this[e3 + 3] = t5 >>> 24, this[e3 + 2] = t5 >>> 16, this[e3 + 1] = t5 >>> 8, this[e3] = 255 & t5, e3 + 4;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 4, 4294967295, 0), this[e3 + 3] = t5 >>> 24, this[e3 + 2] = t5 >>> 16, this[e3 + 1] = t5 >>> 8, this[e3] = 255 & t5, e3 + 4;
                     }, r2.prototype.writeUInt32BE = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 4, 4294967295, 0), this[e3] = t5 >>> 24, this[e3 + 1] = t5 >>> 16, this[e3 + 2] = t5 >>> 8, this[e3 + 3] = 255 & t5, e3 + 4;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 4, 4294967295, 0), this[e3] = t5 >>> 24, this[e3 + 1] = t5 >>> 16, this[e3 + 2] = t5 >>> 8, this[e3 + 3] = 255 & t5, e3 + 4;
                     }, r2.prototype.writeIntLE = function(t5, e3, r3, n3) {
                       if (t5 = +t5, e3 >>>= 0, !n3) {
                         var o3 = Math.pow(2, 8 * r3 - 1);
-                        S2(this, t5, e3, r3, o3 - 1, -o3);
+                        S3(this, t5, e3, r3, o3 - 1, -o3);
                       }
                       var i3 = 0, s3 = 1, u3 = 0;
                       for (this[e3] = 255 & t5; ++i3 < r3 && (s3 *= 256); )
@@ -18587,22 +18395,22 @@ var __async = (__this, __arguments, generator) => {
                     }, r2.prototype.writeIntBE = function(t5, e3, r3, n3) {
                       if (t5 = +t5, e3 >>>= 0, !n3) {
                         var o3 = Math.pow(2, 8 * r3 - 1);
-                        S2(this, t5, e3, r3, o3 - 1, -o3);
+                        S3(this, t5, e3, r3, o3 - 1, -o3);
                       }
                       var i3 = r3 - 1, s3 = 1, u3 = 0;
                       for (this[e3 + i3] = 255 & t5; --i3 >= 0 && (s3 *= 256); )
                         t5 < 0 && 0 === u3 && 0 !== this[e3 + i3 + 1] && (u3 = 1), this[e3 + i3] = (t5 / s3 >> 0) - u3 & 255;
                       return e3 + r3;
                     }, r2.prototype.writeInt8 = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 1, 127, -128), t5 < 0 && (t5 = 255 + t5 + 1), this[e3] = 255 & t5, e3 + 1;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 1, 127, -128), t5 < 0 && (t5 = 255 + t5 + 1), this[e3] = 255 & t5, e3 + 1;
                     }, r2.prototype.writeInt16LE = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 2, 32767, -32768), this[e3] = 255 & t5, this[e3 + 1] = t5 >>> 8, e3 + 2;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 2, 32767, -32768), this[e3] = 255 & t5, this[e3 + 1] = t5 >>> 8, e3 + 2;
                     }, r2.prototype.writeInt16BE = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 2, 32767, -32768), this[e3] = t5 >>> 8, this[e3 + 1] = 255 & t5, e3 + 2;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 2, 32767, -32768), this[e3] = t5 >>> 8, this[e3 + 1] = 255 & t5, e3 + 2;
                     }, r2.prototype.writeInt32LE = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 4, 2147483647, -2147483648), this[e3] = 255 & t5, this[e3 + 1] = t5 >>> 8, this[e3 + 2] = t5 >>> 16, this[e3 + 3] = t5 >>> 24, e3 + 4;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 4, 2147483647, -2147483648), this[e3] = 255 & t5, this[e3 + 1] = t5 >>> 8, this[e3 + 2] = t5 >>> 16, this[e3 + 3] = t5 >>> 24, e3 + 4;
                     }, r2.prototype.writeInt32BE = function(t5, e3, r3) {
-                      return t5 = +t5, e3 >>>= 0, r3 || S2(this, t5, e3, 4, 2147483647, -2147483648), t5 < 0 && (t5 = 4294967295 + t5 + 1), this[e3] = t5 >>> 24, this[e3 + 1] = t5 >>> 16, this[e3 + 2] = t5 >>> 8, this[e3 + 3] = 255 & t5, e3 + 4;
+                      return t5 = +t5, e3 >>>= 0, r3 || S3(this, t5, e3, 4, 2147483647, -2147483648), t5 < 0 && (t5 = 4294967295 + t5 + 1), this[e3] = t5 >>> 24, this[e3 + 1] = t5 >>> 16, this[e3 + 2] = t5 >>> 8, this[e3 + 3] = 255 & t5, e3 + 4;
                     }, r2.prototype.writeFloatLE = function(t5, e3, r3) {
                       return B2(this, t5, e3, true, r3);
                     }, r2.prototype.writeFloatBE = function(t5, e3, r3) {
@@ -18664,7 +18472,7 @@ var __async = (__this, __arguments, generator) => {
                       return this;
                     };
                     var I2 = /[^+/0-9A-Za-z-_]/g;
-                    function M2(t5, e3) {
+                    function M3(t5, e3) {
                       var r3;
                       e3 = e3 || 1 / 0;
                       for (var n3 = t5.length, o3 = null, i3 = [], s3 = 0; s3 < n3; ++s3) {
@@ -18935,7 +18743,7 @@ var __async = (__this, __arguments, generator) => {
                   super(t2.filter((t3) => "" !== t3).map((t3) => "string" == typeof t3 ? t3 : t3 instanceof Error ? t3.message : m(t3)).join(" ") || "Unknown error"), "function" == typeof Error.captureStackTrace && Error.captureStackTrace(this, w.assert);
                 }
               };
-              var b, E = function(t2, ...e2) {
+              var b, E2 = function(t2, ...e2) {
                 if (!t2) {
                   if (1 === e2.length && e2[0] instanceof Error)
                     throw e2[0];
@@ -18948,7 +18756,7 @@ var __async = (__this, __arguments, generator) => {
                   return t2;
                 "string" == typeof (r2 = r2 || {}) && (r2 = { separator: r2 });
                 const n2 = Array.isArray(e2);
-                E(!n2 || !r2.separator, "Separator option no valid for array-based chain");
+                E2(!n2 || !r2.separator, "Separator option no valid for array-based chain");
                 const o2 = n2 ? e2 : e2.split(r2.separator || ".");
                 let i2 = t2;
                 for (let t3 = 0; t3 < o2.length; ++t3) {
@@ -18959,7 +18767,7 @@ var __async = (__this, __arguments, generator) => {
                     Number.isInteger(t4) && (n3 = t4 < 0 ? i2.length + t4 : t4);
                   }
                   if (!i2 || "function" == typeof i2 && false === r2.functions || !s2 && void 0 === i2[n3]) {
-                    E(!r2.strict || t3 + 1 === o2.length, "Missing segment", n3, "in reach path ", e2), E("object" == typeof i2 || true === r2.functions || "function" != typeof i2, "Invalid segment", n3, "in reach path ", e2), i2 = r2.default;
+                    E2(!r2.strict || t3 + 1 === o2.length, "Missing segment", n3, "in reach path ", e2), E2("object" == typeof i2 || true === r2.functions || "function" != typeof i2, "Invalid segment", n3, "in reach path ", e2), i2 = r2.default;
                     break;
                   }
                   i2 = s2 ? "set" === s2 ? [...i2][n3] : i2.get(n3) : i2[n3];
@@ -18975,7 +18783,7 @@ var __async = (__this, __arguments, generator) => {
                     throw new Error("Invalid string. Length must be a multiple of 4");
                   var r3 = t3.indexOf("=");
                   return -1 === r3 && (r3 = e3), [r3, r3 === e3 ? 0 : 4 - r3 % 4];
-                }(t2), o2 = n2[0], i2 = n2[1], s2 = new k(3 * (o2 + i2) / 4 - i2), u2 = 0, a2 = i2 > 0 ? o2 - 4 : o2;
+                }(t2), o2 = n2[0], i2 = n2[1], s2 = new k2(3 * (o2 + i2) / 4 - i2), u2 = 0, a2 = i2 > 0 ? o2 - 4 : o2;
                 for (r2 = 0; r2 < a2; r2 += 4)
                   e2 = j[t2.charCodeAt(r2)] << 18 | j[t2.charCodeAt(r2 + 1)] << 12 | j[t2.charCodeAt(r2 + 2)] << 6 | j[t2.charCodeAt(r2 + 3)], s2[u2++] = e2 >> 16 & 255, s2[u2++] = e2 >> 8 & 255, s2[u2++] = 255 & e2;
                 return 2 === i2 && (e2 = j[t2.charCodeAt(r2)] << 2 | j[t2.charCodeAt(r2 + 1)] >> 4, s2[u2++] = 255 & e2), 1 === i2 && (e2 = j[t2.charCodeAt(r2)] << 10 | j[t2.charCodeAt(r2 + 1)] << 4 | j[t2.charCodeAt(r2 + 2)] >> 2, s2[u2++] = e2 >> 8 & 255, s2[u2++] = 255 & e2), s2;
@@ -18983,15 +18791,15 @@ var __async = (__this, __arguments, generator) => {
                 for (var e2, r2 = t2.length, n2 = r2 % 3, o2 = [], i2 = 0, s2 = r2 - n2; i2 < s2; i2 += 16383)
                   o2.push(x(t2, i2, i2 + 16383 > s2 ? s2 : i2 + 16383));
                 return 1 === n2 ? (e2 = t2[r2 - 1], o2.push(O[e2 >> 2] + O[e2 << 4 & 63] + "==")) : 2 === n2 && (e2 = (t2[r2 - 2] << 8) + t2[r2 - 1], o2.push(O[e2 >> 10] + O[e2 >> 4 & 63] + O[e2 << 2 & 63] + "=")), o2.join("");
-              } }, O = [], j = [], k = "undefined" != typeof Uint8Array ? Uint8Array : Array, S = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", L2 = 0, B = S.length; L2 < B; ++L2)
-                O[L2] = S[L2], j[S.charCodeAt(L2)] = L2;
+              } }, O = [], j = [], k2 = "undefined" != typeof Uint8Array ? Uint8Array : Array, S2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", L2 = 0, B = S2.length; L2 < B; ++L2)
+                O[L2] = S2[L2], j[S2.charCodeAt(L2)] = L2;
               function x(t2, e2, r2) {
                 for (var n2, o2, i2 = [], s2 = e2; s2 < r2; s2 += 3)
                   n2 = (t2[s2] << 16 & 16711680) + (t2[s2 + 1] << 8 & 65280) + (255 & t2[s2 + 2]), i2.push(O[(o2 = n2) >> 18 & 63] + O[o2 >> 12 & 63] + O[o2 >> 6 & 63] + O[63 & o2]);
                 return i2.join("");
               }
               j["-".charCodeAt(0)] = 62, j["_".charCodeAt(0)] = 63;
-              var T = { read: function(t2, e2, r2, n2, o2) {
+              var T2 = { read: function(t2, e2, r2, n2, o2) {
                 var i2, s2, u2 = 8 * o2 - n2 - 1, a2 = (1 << u2) - 1, f2 = a2 >> 1, c2 = -7, l2 = r2 ? o2 - 1 : 0, h2 = r2 ? -1 : 1, p2 = t2[e2 + l2];
                 for (l2 += h2, i2 = p2 & (1 << -c2) - 1, p2 >>= -c2, c2 += u2; c2 > 0; i2 = 256 * i2 + t2[e2 + l2], l2 += h2, c2 -= 8)
                   ;
@@ -19033,7 +18841,7 @@ var __async = (__this, __arguments, generator) => {
                   };
                 }).call(this);
               }).call(this, n({}).Buffer);
-              var M = function(t2, e2 = {}) {
+              var M2 = function(t2, e2 = {}) {
                 return false !== e2.symbols ? Reflect.ownKeys(t2) : Object.getOwnPropertyNames(t2);
               }, C = {};
               (function(t2) {
@@ -19070,7 +18878,7 @@ var __async = (__this, __arguments, generator) => {
                     else if (u2 === I.map)
                       for (const [t3, e3] of r2)
                         a2.set(t3, i2(e3, n2, s2));
-                    const f2 = M(r2, n2);
+                    const f2 = M2(r2, n2);
                     for (const t3 of f2) {
                       if ("__proto__" === t3)
                         continue;
@@ -19115,15 +18923,15 @@ var __async = (__this, __arguments, generator) => {
                   "use strict";
                   const e2 = {};
                   U = e2.merge = function(r2, n2, o2) {
-                    if (E(r2 && "object" == typeof r2, "Invalid target value: must be an object"), E(null == n2 || "object" == typeof n2, "Invalid source value: must be null, undefined, or an object"), !n2)
+                    if (E2(r2 && "object" == typeof r2, "Invalid target value: must be an object"), E2(null == n2 || "object" == typeof n2, "Invalid source value: must be null, undefined, or an object"), !n2)
                       return r2;
                     if (o2 = Object.assign({ nullOverride: true, mergeArrays: true }, o2), Array.isArray(n2)) {
-                      E(Array.isArray(r2), "Cannot merge array onto an object"), o2.mergeArrays || (r2.length = 0);
+                      E2(Array.isArray(r2), "Cannot merge array onto an object"), o2.mergeArrays || (r2.length = 0);
                       for (let t3 = 0; t3 < n2.length; ++t3)
                         r2.push(C(n2[t3], { symbols: o2.symbols }));
                       return r2;
                     }
-                    const i2 = M(n2, o2);
+                    const i2 = M2(n2, o2);
                     for (let s2 = 0; s2 < i2.length; ++s2) {
                       const u2 = i2[s2];
                       if ("__proto__" === u2 || !Object.prototype.propertyIsEnumerable.call(n2, u2))
@@ -19142,7 +18950,7 @@ var __async = (__this, __arguments, generator) => {
               }).call(this, n({}).Buffer);
               const R = {};
               P = function(t2, e2, r2 = {}) {
-                if (E(t2 && "object" == typeof t2, "Invalid defaults value: must be an object"), E(!e2 || true === e2 || "object" == typeof e2, "Invalid source value: must be true, falsy or an object"), E("object" == typeof r2, "Invalid options: must be an object"), !e2)
+                if (E2(t2 && "object" == typeof t2, "Invalid defaults value: must be an object"), E2(!e2 || true === e2 || "object" == typeof e2, "Invalid source value: must be true, falsy or an object"), E2("object" == typeof r2, "Invalid options: must be an object"), !e2)
                   return null;
                 if (r2.shallow)
                   return R.applyToDefaultsWithShallow(t2, e2, r2);
@@ -19153,7 +18961,7 @@ var __async = (__this, __arguments, generator) => {
                 return U(n2, e2, { nullOverride: o2, mergeArrays: false });
               }, R.applyToDefaultsWithShallow = function(t2, e2, r2) {
                 const n2 = r2.shallow;
-                E(Array.isArray(n2), "Invalid keys");
+                E2(Array.isArray(n2), "Invalid keys");
                 const o2 = /* @__PURE__ */ new Map(), i2 = true === e2 ? null : /* @__PURE__ */ new Set();
                 for (let r3 of n2) {
                   r3 = Array.isArray(r3) ? r3 : r3.split(".");
@@ -19453,7 +19261,7 @@ var __async = (__this, __arguments, generator) => {
               const ot = {};
               var it;
               rt = function(t2, e2, r2 = {}) {
-                return "object" != typeof e2 && (e2 = [e2]), E(!Array.isArray(e2) || e2.length, "Values array cannot be empty"), "string" == typeof t2 ? ot.string(t2, e2, r2) : Array.isArray(t2) ? ot.array(t2, e2, r2) : (E("object" == typeof t2, "Reference must be string or an object"), ot.object(t2, e2, r2));
+                return "object" != typeof e2 && (e2 = [e2]), E2(!Array.isArray(e2) || e2.length, "Values array cannot be empty"), "string" == typeof t2 ? ot.string(t2, e2, r2) : Array.isArray(t2) ? ot.array(t2, e2, r2) : (E2("object" == typeof t2, "Reference must be string or an object"), ot.object(t2, e2, r2));
               }, ot.array = function(t2, e2, r2) {
                 if (Array.isArray(e2) || (e2 = [e2]), !t2.length)
                   return false;
@@ -19497,8 +19305,8 @@ var __async = (__this, __arguments, generator) => {
                     return false;
                 return !!i2;
               }, ot.object = function(t2, e2, r2) {
-                E(void 0 === r2.once, "Cannot use option once with object");
-                const n2 = M(t2, r2);
+                E2(void 0 === r2.once, "Cannot use option once with object");
+                const n2 = M2(t2, r2);
                 if (!n2.length)
                   return false;
                 if (Array.isArray(e2))
@@ -19517,7 +19325,7 @@ var __async = (__this, __arguments, generator) => {
                   return 1 === e2.length && "" === e2[0] || !r2.once && !e2.some((t3) => "" !== t3);
                 const n2 = /* @__PURE__ */ new Map(), o2 = [];
                 for (const t3 of e2)
-                  if (E("string" == typeof t3, "Cannot compare string reference to non-string value"), t3) {
+                  if (E2("string" == typeof t3, "Cannot compare string reference to non-string value"), t3) {
                     const e3 = n2.get(t3);
                     e3 ? ++e3.allowed : (n2.set(t3, { allowed: 1, hits: 0 }), o2.push(nt(t3)));
                   } else if (r2.once || r2.only)
@@ -19588,10 +19396,10 @@ var __async = (__this, __arguments, generator) => {
                 return "function" == typeof t2.has ? t2.has(e2) : void 0 !== t2[e2];
               };
               var lt = {};
-              lt.applyToDefaults = P, lt.assert = E, lt.Bench = Q, lt.block = function() {
+              lt.applyToDefaults = P, lt.assert = E2, lt.Bench = Q, lt.block = function() {
                 return new Promise(tt);
               }, lt.clone = C, lt.contain = rt, lt.deepEqual = et, lt.Error = w, lt.escapeHeaderAttribute = function(t2) {
-                return E(/^[ \w\!#\$%&'\(\)\*\+,\-\.\/\:;<\=>\?@\[\]\^`\{\|\}~\"\\]*$/.test(t2), "Bad attribute value (" + t2 + ")"), t2.replace(/\\/g, "\\\\").replace(/\"/g, '\\"');
+                return E2(/^[ \w\!#\$%&'\(\)\*\+,\-\.\/\:;<\=>\?@\[\]\^`\{\|\}~\"\\]*$/.test(t2), "Bad attribute value (" + t2 + ")"), t2.replace(/\\/g, "\\\\").replace(/\"/g, '\\"');
               }, lt.escapeHtml = it, lt.escapeJson = function(t2) {
                 if (!t2)
                   return "";
@@ -20152,15 +19960,15 @@ var __async = (__this, __arguments, generator) => {
                   if ("string" == typeof f2 && f2.match(/[=<>.[()\]]/)) {
                     let e3 = f2.match(h), d2 = { jo: "and", o0: "err", n0: NaN, o1: "err", n1: NaN }, g2 = (e4) => false;
                     if (null != e3) {
-                      let h2 = c.normop(e3[1]) || c.normop(e3[5]), m2 = c.normop(e3[8]) || c.normop(e3[10]), v = p(this, "=" === h2 ? a : "<" === h2 || ")" === h2 ? l : "<=" === h2 || "]" === h2 ? u : ">" === h2 || "(" === h2 ? i : ">=" === h2 || "[" === h2 ? o : s, "f"), x = Number(e3[2]), k = null == e3[9] ? NaN : Number(e3[9]), y = e3[7], w = null == y ? p(this, n, "f") : "&" === y.substring(0, 1) || "," === y.substring(0, 1) ? p(this, t, "f") : p(this, n, "f");
+                      let h2 = c.normop(e3[1]) || c.normop(e3[5]), m2 = c.normop(e3[8]) || c.normop(e3[10]), v = p(this, "=" === h2 ? a : "<" === h2 || ")" === h2 ? l : "<=" === h2 || "]" === h2 ? u : ">" === h2 || "(" === h2 ? i : ">=" === h2 || "[" === h2 ? o : s, "f"), x = Number(e3[2]), k2 = null == e3[9] ? NaN : Number(e3[9]), y = e3[7], w = null == y ? p(this, n, "f") : "&" === y.substring(0, 1) || "," === y.substring(0, 1) ? p(this, t, "f") : p(this, n, "f");
                       ".." === y && (w = p(this, t, "f"), v = p(this, s, "f") === v ? p(this, o, "f") : v, m2 = "" === m2 ? "<=" : m2);
                       let N = p(this, null == m2 ? r : "=" === m2 ? a : "<" === m2 || ")" === m2 ? l : "<=" === m2 || "]" === m2 ? u : ">" === m2 ? i : ">=" === m2 ? o : s, "f");
-                      if (x === k && ("=" === h2 && null != m2 ? (k = NaN, N = p(this, r, "f"), v = m2.includes("<") ? p(this, u, "f") : m2.includes(">") ? p(this, o, "f") : m2.includes("=") ? p(this, a, "f") : p(this, s, "f")) : "=" === m2 && null != h2 && (k = NaN, N = p(this, r, "f"), v = h2.includes("<") ? p(this, u, "f") : h2.includes(">") ? p(this, o, "f") : p(this, s, "f"))), p(this, s, "f") !== v && p(this, r, "f") === N && (p(this, l, "f") === v || p(this, u, "f") === v ? (N = v, k = x, v = p(this, o, "f"), x = Number.NEGATIVE_INFINITY, w = p(this, t, "f")) : p(this, i, "f") !== v && p(this, o, "f") !== v || (N = p(this, u, "f"), k = Number.POSITIVE_INFINITY, w = p(this, t, "f"))), !isNaN(k) && k < x) {
-                        let e4 = N, t2 = k;
-                        k = x, x = t2, ".." !== y && (N = v, v = e4);
+                      if (x === k2 && ("=" === h2 && null != m2 ? (k2 = NaN, N = p(this, r, "f"), v = m2.includes("<") ? p(this, u, "f") : m2.includes(">") ? p(this, o, "f") : m2.includes("=") ? p(this, a, "f") : p(this, s, "f")) : "=" === m2 && null != h2 && (k2 = NaN, N = p(this, r, "f"), v = h2.includes("<") ? p(this, u, "f") : h2.includes(">") ? p(this, o, "f") : p(this, s, "f"))), p(this, s, "f") !== v && p(this, r, "f") === N && (p(this, l, "f") === v || p(this, u, "f") === v ? (N = v, k2 = x, v = p(this, o, "f"), x = Number.NEGATIVE_INFINITY, w = p(this, t, "f")) : p(this, i, "f") !== v && p(this, o, "f") !== v || (N = p(this, u, "f"), k2 = Number.POSITIVE_INFINITY, w = p(this, t, "f"))), !isNaN(k2) && k2 < x) {
+                        let e4 = N, t2 = k2;
+                        k2 = x, x = t2, ".." !== y && (N = v, v = e4);
                       }
-                      let b = v(x), O = N(k), j = w(b, O);
-                      return { kind: "interval", fix: f2, meta: d2 = { jo: j.name, o0: b.name, n0: x, o1: O.name, n1: k }, match: g2 = (e4) => {
+                      let b = v(x), O = N(k2), j = w(b, O);
+                      return { kind: "interval", fix: f2, meta: d2 = { jo: j.name, o0: b.name, n0: x, o1: O.name, n1: k2 }, match: g2 = (e4) => {
                         let t2 = false, n2 = parseFloat(e4);
                         return isNaN(n2) || (t2 = j(n2)), t2;
                       }, same(e4) {
@@ -22385,21 +22193,21 @@ var __async = (__this, __arguments, generator) => {
             return Qr.object = !!r2, Qr;
           }, s = /^[ \t\r\n]/, h = Br([" ", "	", "\r", "\n"], false, false), p = ",", g = qr(",", false), d = function(r2, n2, t2) {
             Qr.push({ name: r2, type: n2, mod: t2 });
-          }, A = /^[a-zA-Z]/, v = Br([["a", "z"], ["A", "Z"]], false, false), x = /^[a-zA-Z0-9]/, C = Br([["a", "z"], ["A", "Z"], ["0", "9"]], false, false), y = ":", m = qr(":", false), E = function(r2, n2) {
+          }, A = /^[a-zA-Z]/, v = Br([["a", "z"], ["A", "Z"]], false, false), x = /^[a-zA-Z0-9]/, C = Br([["a", "z"], ["A", "Z"], ["0", "9"]], false, false), y = ":", m = qr(":", false), E2 = function(r2, n2) {
             return r2 + n2.join("");
-          }, S = "?", $ = qr("?", false), b = function() {
+          }, S2 = "?", $ = qr("?", false), b = function() {
             return "?";
           }, w = "*", F = qr("*", false), z = function() {
             return "*";
           }, R = "+", U = qr("+", false), Z = function() {
             return "+";
-          }, j = "|", k = qr("|", false), N = function(r2) {
+          }, j = "|", k2 = qr("|", false), N = function(r2) {
             return { mark: r2[0], or: r2[1] };
           }, Y = function() {
             return ".";
-          }, M = function() {
+          }, M2 = function() {
             return "s";
-          }, T = function() {
+          }, T2 = function() {
             return "i";
           }, q = function() {
             return "A";
@@ -22500,15 +22308,15 @@ var __async = (__this, __arguments, generator) => {
               if (t3 !== e) {
                 for (u3 = [], x.test(r.charAt(jr)) ? (o3 = r.charAt(jr), jr++) : (o3 = e, 0 === Tr && Hr(C)); o3 !== e; )
                   u3.push(o3), x.test(r.charAt(jr)) ? (o3 = r.charAt(jr), jr++) : (o3 = e, 0 === Tr && Hr(C));
-                u3 !== e ? (58 === r.charCodeAt(jr) ? (o3 = y, jr++) : (o3 = e, 0 === Tr && Hr(m)), o3 !== e ? (kr = n3, t3 = E(t3, u3), n3 = t3) : (jr = n3, n3 = e)) : (jr = n3, n3 = e);
+                u3 !== e ? (58 === r.charCodeAt(jr) ? (o3 = y, jr++) : (o3 = e, 0 === Tr && Hr(m)), o3 !== e ? (kr = n3, t3 = E2(t3, u3), n3 = t3) : (jr = n3, n3 = e)) : (jr = n3, n3 = e);
               } else
                 jr = n3, n3 = e;
               return n3;
             }()) === e && (t2 = null), t2 !== e && (u2 = function() {
               var n3, t3, u3, o3, c2, a2, i2;
               if (n3 = jr, t3 = jr, (u3 = Pr()) !== e) {
-                for (o3 = [], c2 = jr, 124 === r.charCodeAt(jr) ? (a2 = j, jr++) : (a2 = e, 0 === Tr && Hr(k)), a2 !== e && (i2 = Pr()) !== e ? c2 = a2 = [a2, i2] : (jr = c2, c2 = e); c2 !== e; )
-                  o3.push(c2), c2 = jr, 124 === r.charCodeAt(jr) ? (a2 = j, jr++) : (a2 = e, 0 === Tr && Hr(k)), a2 !== e && (i2 = Pr()) !== e ? c2 = a2 = [a2, i2] : (jr = c2, c2 = e);
+                for (o3 = [], c2 = jr, 124 === r.charCodeAt(jr) ? (a2 = j, jr++) : (a2 = e, 0 === Tr && Hr(k2)), a2 !== e && (i2 = Pr()) !== e ? c2 = a2 = [a2, i2] : (jr = c2, c2 = e); c2 !== e; )
+                  o3.push(c2), c2 = jr, 124 === r.charCodeAt(jr) ? (a2 = j, jr++) : (a2 = e, 0 === Tr && Hr(k2)), a2 !== e && (i2 = Pr()) !== e ? c2 = a2 = [a2, i2] : (jr = c2, c2 = e);
                 o3 !== e ? t3 = u3 = [u3, o3] : (jr = t3, t3 = e);
               } else
                 jr = t3, t3 = e;
@@ -22516,7 +22324,7 @@ var __async = (__this, __arguments, generator) => {
               return n3 = t3;
             }()) !== e ? ((o2 = function() {
               var n3, t3;
-              n3 = jr, 63 === r.charCodeAt(jr) ? (t3 = S, jr++) : (t3 = e, 0 === Tr && Hr($));
+              n3 = jr, 63 === r.charCodeAt(jr) ? (t3 = S2, jr++) : (t3 = e, 0 === Tr && Hr($));
               t3 !== e && (kr = n3, t3 = b());
               (n3 = t3) === e && (n3 = jr, 42 === r.charCodeAt(jr) ? (t3 = w, jr++) : (t3 = e, 0 === Tr && Hr(F)), t3 !== e && (kr = n3, t3 = z()), (n3 = t3) === e && (n3 = jr, 43 === r.charCodeAt(jr) ? (t3 = R, jr++) : (t3 = e, 0 === Tr && Hr(U)), t3 !== e && (kr = n3, t3 = Z()), n3 = t3));
               return n3;
@@ -22532,11 +22340,11 @@ var __async = (__this, __arguments, generator) => {
               var n3;
               115 === r.charCodeAt(jr) ? (n3 = _, jr++) : (n3 = e, 0 === Tr && Hr(rr));
               return n3;
-            }()) !== e && (kr = n2, t2 = M()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
+            }()) !== e && (kr = n2, t2 = M2()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
               var n3;
               105 === r.charCodeAt(jr) ? (n3 = nr, jr++) : (n3 = e, 0 === Tr && Hr(tr));
               return n3;
-            }()) !== e && (kr = n2, t2 = T()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
+            }()) !== e && (kr = n2, t2 = T2()), (n2 = t2) === e && (n2 = jr, (t2 = function() {
               var n3;
               65 === r.charCodeAt(jr) ? (n3 = er, jr++) : (n3 = e, 0 === Tr && Hr(ur));
               return n3;
@@ -24184,9 +23992,9 @@ var __async = (__this, __arguments, generator) => {
       }
     }
     if (null != q) {
-      for (let k in q) {
-        if (void 0 === q[k]) {
-          delete q[k];
+      for (let k2 in q) {
+        if (void 0 === q[k2]) {
+          delete q[k2];
         }
       }
     }
@@ -24257,8 +24065,8 @@ var __async = (__this, __arguments, generator) => {
     if (Array.isArray(hidden_fields_spec)) {
       hidden_fields.concat(hidden_fields_spec);
     } else if (hidden_fields_spec && "object" === typeof hidden_fields_spec) {
-      Object.keys(hidden_fields_spec).forEach((k) => {
-        hidden_fields.push(k);
+      Object.keys(hidden_fields_spec).forEach((k2) => {
+        hidden_fields.push(k2);
       });
     }
     hidden_fields.push("id");
@@ -24322,7 +24130,7 @@ var __async = (__this, __arguments, generator) => {
         return val.inspect();
       }
     }
-    var out, i = 0, j, k;
+    var out, i = 0, j, k2;
     if ("N" === type) {
       return isNaN(val) ? "null" : val.toString();
     } else if ("O" === type) {
@@ -24333,8 +24141,8 @@ var __async = (__this, __arguments, generator) => {
           if (j >= opts.maxitems)
             break;
           var pass = true;
-          for (k = 0; k < opts.exclude.length && pass; k++) {
-            pass = !~i2.indexOf(opts.exclude[k]);
+          for (k2 = 0; k2 < opts.exclude.length && pass; k2++) {
+            pass = !~i2.indexOf(opts.exclude[k2]);
           }
           pass = pass && !opts.omit[i2];
           var str = jsonic_strify(val[i2], opts, depth);
@@ -25114,6 +24922,7 @@ var __async = (__this, __arguments, generator) => {
           mapMinZoom: 1,
           // 2,
           mapMaxZoom: 6,
+          buildingZoom: 4,
           assetFontScaleRoom: 10,
           assetFontScaleZoom: 4,
           assetFontHideZoom: -1,
@@ -25266,7 +25075,6 @@ var __async = (__this, __arguments, generator) => {
           self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
           return;
         }
-        self2.clearAssets();
         self2.clearGeofences();
         self2.closeAssetInfo();
         self2.closeClusterInfo();
@@ -25499,9 +25307,9 @@ var __async = (__this, __arguments, generator) => {
                 }
                 if ((existing == null ? void 0 : existing.t_m) < assetEnt.t_m) {
                   self2.data.assetMap[assetEnt.id] = assetEnt;
-                  let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
-                  if (-1 < index2) {
-                    self2.data.asset[index2] = assetEnt;
+                  let index = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
+                  if (-1 < index) {
+                    self2.data.asset[index] = assetEnt;
                   }
                   assetInst.ent = assetEnt;
                   assetInst = self2.config.asset.prepare(assetInst) || assetInst;
@@ -25525,11 +25333,11 @@ var __async = (__this, __arguments, generator) => {
                     delete self2.current.asset[assetInst.id];
                   }
                 } else if (!existing) {
-                  let show = assetEnt.map - 1 == self2.loc.map;
+                  let show = assetEnt.map == self2.loc.map;
                   self2.data.assetMap[assetEnt.id] = assetEnt;
-                  let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
-                  if (-1 < index2) {
-                    self2.data.asset[index2] = assetEnt;
+                  let index = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
+                  if (-1 < index) {
+                    self2.data.asset[index] = assetEnt;
                   } else {
                     self2.data.asset.push(assetEnt);
                   }
@@ -25670,7 +25478,7 @@ var __async = (__this, __arguments, generator) => {
         stateShown: {},
         asset: {},
         // TODO: use proper levels instead
-        map: -1
+        map: 1
       };
       self2.leaflet = {};
       self2.map = null;
@@ -25932,7 +25740,8 @@ var __async = (__this, __arguments, generator) => {
           var _a;
           return level.building_id === ((_a = self2.current.building) == null ? void 0 : _a.id);
         });
-        levelsForBuilding.forEach((level, index2) => {
+        levelsForBuilding.forEach((level, index) => {
+          let mapIndex = null != level.map ? level.map : index + 1;
           levelActions.push(
             L$1.Toolbar2.Action.extend({
               options: {
@@ -25941,8 +25750,8 @@ var __async = (__this, __arguments, generator) => {
                 }
               },
               addHooks: function() {
-                markLevelSelector(index2);
-                self2.showMap(index2, {
+                markLevelSelector(index);
+                self2.showMap(mapIndex, {
                   centerView: false,
                   startZoom: false,
                   showAllAssets: false,
@@ -25961,13 +25770,13 @@ var __async = (__this, __arguments, generator) => {
         self2.map.addLayer(levelToolbar);
         self2.current.levelControl = levelToolbar;
         markLevelSelector(0);
-        function markLevelSelector(index2) {
+        function markLevelSelector(index) {
           let marked = false;
           let selectors = document.querySelectorAll("ul.plantquest-tool-level li");
           for (let sI = 0; sI < selectors.length; sI++) {
             let selector = selectors[sI];
             selector.classList.remove("plantquest-tool-select-level-active");
-            if (index2 === sI) {
+            if (index === sI) {
               selector.classList.add("plantquest-tool-select-level-active");
               marked = true;
             }
@@ -26012,7 +25821,7 @@ var __async = (__this, __arguments, generator) => {
                   x: building.center[0],
                   y: building.center[1]
                 });
-                self2.map.setView(coords, self2.config.mapMinZoom + 1);
+                self2.map.setView(coords, self2.config.buildingZoom);
                 self2.addLevelControl();
                 self2.emit({
                   srv: "plantquest",
@@ -26069,9 +25878,9 @@ var __async = (__this, __arguments, generator) => {
           } else {
             self2.data.assetMap[assetEnt.id] = assetEnt;
           }
-          let index2 = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
-          if (-1 < index2) {
-            assetEnt = Object.assign(self2.data.asset[index2], assetEnt);
+          let index = self2.data.asset.findIndex((a) => a.id === assetEnt.id);
+          if (-1 < index) {
+            assetEnt = Object.assign(self2.data.asset[index], assetEnt);
           } else {
             self2.data.asset.push(assetEnt);
           }
@@ -26111,7 +25920,7 @@ var __async = (__this, __arguments, generator) => {
               whence: "setAsset"
             });
           } else {
-            let show = assetEnt.map - 1 == self2.loc.map;
+            let show = assetEnt.map == self2.loc.map;
             show && assetInst.show({
               pqam: self2,
               assetID: assetEnt.id,
@@ -26135,7 +25944,7 @@ var __async = (__this, __arguments, generator) => {
         let yco = convert_poly_y(self2.config.mapImg, self2.loc.y);
         let rooms = Object.values(self2.data.room);
         for (let room of rooms) {
-          if (1 + self2.loc.map != room.map) {
+          if (self2.loc.map != room.map) {
             continue;
           }
           let roomInst = self2.room.map[room.id];
@@ -26428,7 +26237,7 @@ var __async = (__this, __arguments, generator) => {
           if (self2.leaflet.maptile) {
             self2.leaflet.maptile.remove(self2.map);
           }
-          self2.leaflet.maptile = self2.createTile(mapIndex + 1);
+          self2.leaflet.maptile = self2.createTile(mapIndex);
           self2.leaflet.maptile.addTo(self2.map);
           self2.loc.map = mapIndex;
           self2.zoomEndRender();
@@ -26812,6 +26621,9 @@ var __async = (__this, __arguments, generator) => {
                   let showargs = [];
                   for (let assetID of assetList) {
                     let assetInst = self2.asset.map[assetID];
+                    if (null == assetInst) {
+                      continue;
+                    }
                     let assetData = assetInst.ent;
                     if (assetData) {
                       if (msg.asset === assetData.id) {
@@ -26819,7 +26631,7 @@ var __async = (__this, __arguments, generator) => {
                       }
                       let shown = showAll || true;
                       shown = "hide" === msg.asset ? !shown : shown;
-                      shown = assetData.map - 1 == self2.loc.map ? shown : false;
+                      shown = assetData.map == self2.loc.map ? shown : false;
                       showargs.push([assetInst, {
                         pqam: self2,
                         state: stateName,
@@ -26867,7 +26679,7 @@ var __async = (__this, __arguments, generator) => {
                     let showInfoBox = null == msg.infobox ? self2.config.infobox.show : !!msg.infobox;
                     let assetMapIndex = assetData.map;
                     if (null != assetMapIndex) {
-                      let mapIndex = +assetMapIndex - 1;
+                      let mapIndex = assetMapIndex;
                       if (mapIndex !== self2.loc.map) {
                         self2.showMap(mapIndex, {
                           startZoom: false,
@@ -26924,7 +26736,7 @@ var __async = (__this, __arguments, generator) => {
                   if (geofence) {
                     let shown = showAll || -1 != geofenceIDList.indexOf(geofenceID);
                     shown = "geofence" === msg.hide ? false : shown;
-                    shown = geofence.ent.map - 1 == self2.loc.map ? shown : false;
+                    shown = geofence.ent.map == self2.loc.map ? shown : false;
                     self2.showGeofence(geofence, shown);
                   } else {
                     self2.log("ERROR", "send", "geofence", "unknown-geofence", geofenceID);
@@ -27278,7 +27090,7 @@ var __async = (__this, __arguments, generator) => {
       }
       // TODO: need a mapState object
       onZoom(zoom, mapID, layer) {
-        let mapMatch = 1 + parseInt(mapID) == parseInt(this.ent.map);
+        let mapMatch = parseInt(mapID) == parseInt(this.ent.map);
         let showRoomLabel = 1 === parseInt(this.ent.showlabel);
         let showNameZoom = null == this.cfgroom.label.zoom ? this.ctx.cfg.mapMaxZoom : this.cfgroom.label.zoom;
         let showLabel = showNameZoom <= zoom && mapMatch && showRoomLabel;
