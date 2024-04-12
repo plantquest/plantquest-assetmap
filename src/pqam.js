@@ -257,14 +257,15 @@ import './rastercoords.js'
         self.closeAssetInfo()
         self.closeClusterInfo()
         self.current.assetsShownOnLevel = {}
+        
 
         self.map.setView(self.config.mapStart, self.config.mapStartZoom)
         return
       }
       
-      
-
       // self.clearAssets()
+      // clear rooms
+      self.room.map = {}
       self.clearGeofences()
       self.closeAssetInfo()
       self.closeClusterInfo()
