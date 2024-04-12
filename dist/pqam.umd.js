@@ -13143,7 +13143,7 @@ var __async = (__this, __arguments, generator) => {
   var Leaflet_EditableExports = Leaflet_Editable$2.exports;
   const Leaflet_Editable$1 = /* @__PURE__ */ getDefaultExportFromCjs(Leaflet_EditableExports);
   const name = "@plantquest/assetmap";
-  const version = "9.0.0";
+  const version = "9.0.1";
   const description = "PlantQuest Asset Map";
   const author = "plantquest";
   const license = "MIT";
@@ -25075,6 +25075,7 @@ var __async = (__this, __arguments, generator) => {
           self2.map.setView(self2.config.mapStart, self2.config.mapStartZoom);
           return;
         }
+        self2.room.map = {};
         self2.clearGeofences();
         self2.closeAssetInfo();
         self2.closeClusterInfo();
