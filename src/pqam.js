@@ -1265,6 +1265,12 @@ import './rastercoords.js'
           selectors[0].classList.add('plantquest-tool-select-level-active')
         }
       }
+      
+      setTimeout(() => {
+        let mapIndex = levelsForBuilding[0]?.map || 1
+        self.showMap(mapIndex, { whence: 'toolbarLevel' })
+      }, 111)
+    
     }
     
 
