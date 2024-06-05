@@ -1268,7 +1268,7 @@ import './rastercoords.js'
       
       setTimeout(() => {
         let mapIndex = levelsForBuilding[0]?.map || 1
-        self.showMap(mapIndex, { whence: 'toolbarLevel' })
+        self.showMap(mapIndex, { whence: 'toolbarLevel', centerView: false, })
       }, 111)
     
     }
