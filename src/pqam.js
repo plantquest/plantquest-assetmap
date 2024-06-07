@@ -281,6 +281,47 @@ import './rastercoords.js'
         self.config.base += '/'
       }
       
+    async function updateBuildingControl(building) {
+        // Get the building control and the building selection elements
+        let buildingControl = self.current.buildingControl.getContainer();
+        let buildingSelection = buildingControl.querySelector('.building-selected');
+      
+        // Update the building selection text
+        buildingSelection.textContent = building.name.replace('Building ', '');
+      
+        // Update the current building
+        self.current.building = building;
+   
+        // Emit the event
+        self.emit({
+          srv: 'plantquest',
+          part: 'assetmap',
+          select: 'building',
+          building,
+          // level: self.data.level[self.loc.map],
+        });
+      }// end of updateBuildingControl function
+
+
+      async function updateLevelControl(levelName) {
+        // Get the level control element
+        let levelControl = document.querySelector('.leaflet-control-toolbar');
+      
+        // Get all the level options
+        let levelOptions = levelControl.querySelectorAll('li');
+      
+        // Update the active level
+        levelOptions.forEach((option) => {
+          let anchor = option.querySelector('a');
+          if (anchor.textContent === levelName) {
+            option.classList.add('plantquest-tool-select-level-active');
+          } else {
+            option.classList.remove('plantquest-tool-select-level-active');
+          }
+        });
+      }// end of updateLevelControl function
+
+
       async function loading() {
         
       //   if (false === self.current.started) {
