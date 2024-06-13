@@ -16,7 +16,7 @@ import SenecaEntity from 'seneca-entity'
 
 import './rastercoords.js'
 
-// console.log('PQAM 6')
+// console.log('PQAM 7')
 
 ;(function(W, D) {
   W.$L = L
@@ -1201,7 +1201,7 @@ import './rastercoords.js'
       }
     }
     
-    self.addLevelControl = function() {
+    self.addLevelControl = function(forceSwitch = true, markSelection = 0) {
       if(self.current.levelControl) {
         self.current.levelControl.remove()
       }
@@ -1248,7 +1248,7 @@ import './rastercoords.js'
       self.map.addLayer(levelToolbar)
       self.current.levelControl = levelToolbar
 
-      markLevelSelector(0)
+      markLevelSelector(markSelection)
       
       function markLevelSelector(index) {
         let marked = false
@@ -1266,10 +1266,12 @@ import './rastercoords.js'
         }
       }
       
-      setTimeout(() => {
-        let mapIndex = levelsForBuilding[0]?.map || 1
-        self.showMap(mapIndex, { whence: 'toolbarLevel', centerView: false, })
-      }, 111)
+      if(forceSwitch) {
+        setTimeout(() => {
+          let mapIndex = levelsForBuilding[0]?.map || 1
+          self.showMap(mapIndex, { whence: 'toolbarLevel', centerView: false, })
+        }, 111)
+      }
     
     }
     
@@ -2319,8 +2321,6 @@ import './rastercoords.js'
           let multiple = Array.isArray(msg.asset)
           let showAll = null === msg.asset
           
-          
-          
           if(multiple ||
              showAll ||
              msg.only ||
@@ -2328,12 +2328,10 @@ import './rastercoords.js'
             ) {
             
             self.current.shownAssets = showAll ? new Set(Object.keys(self.data.assetMap)) : self.current.shownAssets
-            
             // Clear the map out of assets when there is a 'clear' message
             if(msg.only || (showAll && 'asset' === msg.hide) ) {
               clearPrevious(self.current.shownAssets, msg, mark)
               self.current.shownAssets.clear()
-              
             }
             
             // append
@@ -2349,8 +2347,7 @@ import './rastercoords.js'
               }
             }
             
-            
-            
+
             let assetIDList = self.current.shownAssets
 
             let stateName = msg.state
@@ -2422,7 +2419,7 @@ import './rastercoords.js'
             
             if(assetRoom) {
               dlog.push('showAssetMsg single '+mark)
-
+                
               // emit-show-asset
               self.emit({
                 srv:'plantquest',
@@ -2456,6 +2453,29 @@ import './rastercoords.js'
                     whence: 'showAssetMsg'
                   })
                 }
+              }
+              
+              let has_building = null != assetData.building_id
+              let buildingSelector = document.querySelector('div.building-selected')
+              
+              if(has_building) {
+                buildingSelector.textContent = assetData.building.replace('Building', '')
+                // console.log(self.data.building)
+                self.current.building = self.data.building
+                  .find(building => building.id == assetData.building_id)
+               
+                if(self.current.building) {
+                  let controlIndex =
+                    self.data.level.filter(level=>
+                      level.building_id===self.current.building?.id)
+                        .findIndex(level => level.map == assetData.map)
+            
+                  // console.log('controlIndex: ', controlIndex)
+                  
+                  self.addLevelControl(false, 
+                    controlIndex == -1 ? 0 : controlIndex)
+                }
+                
               }
 
               // TODO: fix - this Timeout is needed if map changes, and showMap
