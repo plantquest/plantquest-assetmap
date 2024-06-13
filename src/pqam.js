@@ -283,6 +283,7 @@ import './rastercoords.js'
       
     async function updateBuildingControl(building) {
         // Get the building control and the building selection elements
+        console.log('updateBuildingControl', building)
         let buildingControl = self.current.buildingControl.getContainer();
         let buildingSelection = buildingControl.querySelector('.building-selected');
       
@@ -1480,6 +1481,8 @@ import './rastercoords.js'
               show:'asset',
               asset: assetEnt,
             })
+            console.log('Showing infobox for asset', assetEnt)
+            updateBuildingControl( self.data.building.find(b=>b.id===assetEnt.building_id) )
           }
           
           assetInst.show({
