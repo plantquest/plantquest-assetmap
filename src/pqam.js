@@ -16,7 +16,7 @@ import SenecaEntity from 'seneca-entity'
 
 import './rastercoords.js'
 
-// console.log('PQAM 7')
+// console.log('PQAM 8')
 
 ;(function(W, D) {
   W.$L = L
@@ -2455,19 +2455,21 @@ import './rastercoords.js'
                 }
               }
               
-              let has_building = null != assetData.building_id
+              let has_building = null != assetData.building
               let buildingSelector = document.querySelector('div.building-selected')
               
               if(has_building) {
                 buildingSelector.textContent = assetData.building.replace('Building', '')
                 // console.log(self.data.building)
                 self.current.building = self.data.building
-                  .find(building => building.id == assetData.building_id)
+                  .find(building => building.name == assetData.building)
+                
+                // console.log('current_building: ', assetData.building_id, self.current.building)
                
                 if(self.current.building) {
                   let controlIndex =
                     self.data.level.filter(level=>
-                      level.building_id===self.current.building?.id)
+                      level.building_id===self.current.building.id)
                         .findIndex(level => level.map == assetData.map)
             
                   // console.log('controlIndex: ', controlIndex)
